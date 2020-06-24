@@ -30,8 +30,33 @@
 #include <linux/prefetch.h>
 #include <linux/ipv6.h>
 #include <net/ip6_checksum.h>
+#include <linux/wait.h>
+#include <linux/semaphore.h>
+#include <linux/sched.h> // Required for task states (TASK_INTERRUPTIBLE etc )
 
 #include "r8169_firmware.h"
+
+#define CASE_RX_1	'0'
+#define CASE_RX_2	'1'
+#define CASE_RX_3	'2'
+#define CASE_RX_4	'3'
+#define CASE_RX_5	'4'
+
+#define CASE_TX_1	'5'
+#define CASE_TX_2	'6'
+#define CASE_TX_3	'7'
+#define CASE_TX_4	'8'
+#define CASE_TX_5	'9'
+
+#define CASE_WAIT_IDLE		'a'
+#define CASE_WAIT_EXIT   	'b'
+
+static struct task_struct *thread_st_nic;
+static struct semaphore   wait_sem;
+static struct semaphore   wait_sem_helper;
+wait_queue_head_t         wait_queue;
+
+char flag_queue = CASE_WAIT_IDLE;
 
 #define MODULENAME "r8169"
 
@@ -6397,6 +6422,8 @@ static int rtl8169_close(struct net_device *dev)
 	struct rtl8169_private *tp = netdev_priv(dev);
 	struct pci_dev *pdev = tp->pci_dev;
 
+	printk(KERN_ALERT "\n\nEtherent Interface DOWN!!!\n\n");
+
 	pm_runtime_get_sync(&pdev->dev);
 
 	/* Update counters before going down */
@@ -6441,6 +6468,8 @@ static int rtl_open(struct net_device *dev)
 	struct rtl8169_private *tp = netdev_priv(dev);
 	struct pci_dev *pdev = tp->pci_dev;
 	int retval = -ENOMEM;
+
+	printk(KERN_ALERT "\n\nEtherent Interface UP!!!\n\n");
 
 	pm_runtime_get_sync(&pdev->dev);
 
@@ -6747,10 +6776,39 @@ static void rtl_shutdown(struct pci_dev *pdev)
 	}
 }
 
+// Function to send commands to NIC Thread
+static void send_cmd_blocking (int FLAG)
+{
+	flag_queue = FLAG;
+	// Send Command
+	wake_up_interruptible(&wait_queue);
+	// Release Thread's wait semaphore	
+	up(&wait_sem);
+	// Wait until Thread finishes the command
+	down(&wait_sem_helper);
+}
+
 static void rtl_remove_one(struct pci_dev *pdev)
 {
 	struct net_device *dev = pci_get_drvdata(pdev);
 	struct rtl8169_private *tp = netdev_priv(dev);
+
+	printk(KERN_ALERT "Remove -- Call Occurred\n");
+
+	if (thread_st_nic)
+	{
+		// Send test commands to the thread
+//		printk(KERN_ALERT "REMOVE-- TX_1 Call!!!\n");
+		send_cmd_blocking(CASE_TX_1);
+
+//		printk(KERN_ALERT "REMOVE-- TX_2 Call!!!\n");
+		send_cmd_blocking(CASE_TX_2);
+
+//		printk(KERN_ALERT "REMOVE-- WAIT_EXIT Call!!!\n");
+		send_cmd_blocking(CASE_WAIT_EXIT);
+
+		printk(KERN_ALERT "REMOVE-- Exit Completed!!!\n");
+	}
 
 	if (r8168_check_dash(tp))
 		rtl8168_driver_stop(tp);
@@ -7064,6 +7122,53 @@ done:
 	rtl_rar_set(tp, mac_addr);
 }
 
+// Worker thread
+static int thread_fn(void *unused)
+{
+    int is_exit = 0;
+
+    while (1)
+    {
+	// Wait until some function realases the semaphore
+    	down (&wait_sem);
+
+	// Get the command from the queue
+    	wait_event_interruptible(wait_queue, flag_queue != CASE_WAIT_IDLE);
+	
+	// Do appropriate action according to command
+    	switch (flag_queue)
+    	{
+		case CASE_TX_1:
+			printk(KERN_ALERT "thread_fn | Case TX_1\n");
+			ssleep(5);
+			break;
+
+		case CASE_TX_2:
+			printk(KERN_ALERT "thread_fn | Case TX_2\n");
+			ssleep(5);
+			break;
+
+		case CASE_WAIT_EXIT:
+			is_exit = 1;
+			printk(KERN_ALERT "thread_fn | Case EXIT\n");
+			ssleep(5);
+			break;
+    	}
+	
+	// Release the semaphore for callee
+	up (&wait_sem_helper);
+	
+	// Exit from loop if EXIT Command is just executed
+	if (is_exit)
+		break;
+
+    }
+
+    printk(KERN_ALERT "thread_fn Exit!!!\n");
+
+    return 0;
+}
+
 static int rtl_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 {
 	struct rtl8169_private *tp;
@@ -7074,6 +7179,16 @@ static int rtl_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 	dev = devm_alloc_etherdev(&pdev->dev, sizeof (*tp));
 	if (!dev)
 		return -ENOMEM;
+
+	// Init Wait Queue and Semaphore
+	init_waitqueue_head(&wait_queue);
+	sema_init(&wait_sem, 0);
+	sema_init(&wait_sem_helper, 0);
+
+	// Create and bind and execute thread to core-2
+	thread_st_nic = kthread_create(thread_fn, NULL, "kthread");
+	kthread_bind(thread_st_nic, 2);
+	wake_up_process(thread_st_nic);
 
 	SET_NETDEV_DEV(dev, &pdev->dev);
 	dev->netdev_ops = &rtl_netdev_ops;
