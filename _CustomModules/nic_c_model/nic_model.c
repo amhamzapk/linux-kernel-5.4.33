@@ -19,6 +19,10 @@ MODULE_AUTHOR("Ameer Hamza");
 MODULE_DESCRIPTION("A simple Linux driver for the BBB.");
 MODULE_VERSION("0.1");
 
+static DEFINE_MUTEX(push_lock);
+static DEFINE_MUTEX(pop_lock);
+static DEFINE_MUTEX(main_lock);
+
 /* Commands */
 #define STATE_IN_POLLING    1
 #define STATE_END_POLLED	2
@@ -33,7 +37,7 @@ static struct list_head   *head;
 /* Meta data for NIC-C Model */
 struct meta_skbuff {
 	u32 command;
-	volatile u8 is_polling_over;
+	volatile u8 cpu;
 };
 
 /* Main Structure for NIC-C Model */
@@ -67,19 +71,25 @@ static inline u64 read_rdtsc(void)
 *	Return-> -1 if empty queue
 *	Element will be get by reference
 */ 
-static int pop_queue(struct queue_ll **temp_node){
+static int pop_queue(struct queue_ll *temp_node){
 	
 	int ret_status = -1;
+	struct queue_ll *temp_node_orig;
 
 	/* Check if there is something in the queue */
 	if(list_empty(head)) {
 		return ret_status;
 	}
 	else {
-		*temp_node = list_first_entry(head,struct queue_ll ,list);
+    	mutex_lock(&pop_lock);
+		temp_node_orig = list_first_entry(head,struct queue_ll ,list);
+    	mutex_unlock(&pop_lock);
+		memcpy(temp_node, temp_node_orig, sizeof(struct queue_ll));
 		ret_status = 0;
 	}
 
+	list_del(&temp_node_orig->list);
+	kfree(temp_node_orig);
 	return ret_status;
 }
 
@@ -95,7 +105,9 @@ void push_queue(struct skbuff_nic_c *skbuff_struct){
 
 	temp_node->skbuff_struct = skbuff_struct;
 
+	mutex_lock(&push_lock);
 	list_add_tail(&temp_node->list,head);
+	mutex_unlock(&push_lock);
 }
 
 /*
@@ -106,7 +118,6 @@ void push_queue(struct skbuff_nic_c *skbuff_struct){
 static int thread_fn(void *unused)
 {
     struct skbuff_nic_c *skbuff_ptr;
-	volatile int timeout = 0;
 	
 	/* Local variables to keep track of CPU Cycles */
     u64 clk_cycles_start = 0;
@@ -129,13 +140,13 @@ static int thread_fn(void *unused)
 
 		/* Check if queue needs to be processed */
         if ((clk_cycles_exp/clk_cycles_div) >= 1) {
-        	static struct queue_ll *temp_node;
+        	static struct queue_ll temp_node;
 
 			/* Check if some command is in queue */
         	if (pop_queue(&temp_node) != -1) {
 
 				/* Parse skbuff data*/
-        		skbuff_ptr = temp_node->skbuff_struct;
+        		skbuff_ptr = temp_node.skbuff_struct;
 
 				switch (skbuff_ptr->meta.command)
 				{
@@ -155,15 +166,8 @@ static int thread_fn(void *unused)
 					}
 				}
 
-				skbuff_ptr->meta.is_polling_over = STATE_END_POLLED;
-
-				/* Loop Few Cycles for polling status to read by driver */
-				timeout = 100;
-				while (--timeout > 0);
-
-				/* Remove and free element from Queue */
-				list_del(&temp_node->list);
-				kfree(temp_node);
+				// TODO: Implement IPI 
+				// skbuff_ptr->meta.cpu = IPI;
         	}
 			clk_cycles_start = 0;
         }
@@ -183,8 +187,9 @@ static int thread_fn(void *unused)
     return 0;
 }
 
+struct skbuff_nic_c skbuff_struc[20];
+int i = 0;
 static int __init nic_c_init(void) {
-	struct skbuff_nic_c skbuff_struc;
 
 	/* Initilize Queue */
 	printk(KERN_INFO "NIC-C Model Init!\n");
@@ -200,20 +205,17 @@ static int __init nic_c_init(void) {
 	ssleep(1);
 
 	/* Push Dummy RX Command */
-	skbuff_struc.skbuff = (u8*) kmalloc(sizeof(u8) * 128,GFP_KERNEL);
-	skbuff_struc.len = 128;
-	skbuff_struc.meta.is_polling_over = STATE_IN_POLLING;
-	skbuff_struc.meta.command = PROCESS_RX;
-    push_queue(&skbuff_struc);
-	while (skbuff_struc.meta.is_polling_over == STATE_IN_POLLING);
-
-	/* Push Dummy TX Command */
-	skbuff_struc.skbuff = (u8*) kmalloc(sizeof(u8) * 256,GFP_KERNEL);
-	skbuff_struc.len = 256;
-	skbuff_struc.meta.is_polling_over = STATE_IN_POLLING;
-	skbuff_struc.meta.command = PROCESS_TX;
-    push_queue(&skbuff_struc);
-	while (skbuff_struc.meta.is_polling_over == STATE_IN_POLLING);
+	for (i=0; i<20; i++)
+	{
+		skbuff_struc[i].skbuff = (u8*) kmalloc(sizeof(u8) * 128,GFP_KERNEL);
+		skbuff_struc[i].len = i * 10;
+		skbuff_struc[i].meta.cpu = get_cpu();
+		if ((i % 2) == 0)
+			skbuff_struc[i].meta.command = PROCESS_RX;
+		else
+			skbuff_struc[i].meta.command = PROCESS_TX;
+		push_queue(&skbuff_struc[i]);
+	}
 
 	return 0;
 }
