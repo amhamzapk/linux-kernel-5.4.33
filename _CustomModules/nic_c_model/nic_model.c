@@ -16,22 +16,27 @@
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Ameer Hamza");
-MODULE_DESCRIPTION("A simple Linux driver for the BBB.");
+MODULE_DESCRIPTION("NIC-C Model Description");
 MODULE_VERSION("0.1");
-wait_queue_head_t         wait_queue[8];
-static struct semaphore   wait_sem[8];
 #define CASE_WAIT_IDLE			'a'
 #define CASE_WAIT_EXIT   		'b'
 #define CASE_NOTIFY_STACK_TX   	'c'
 #define CASE_NOTIFY_STACK_RX   	'd'
-char flag_queue[8] = {CASE_WAIT_IDLE};
-int global_vals[8] = {0, 1, 2, 3, 4, 5, 6, 7};
+
+#define TYPE_REQUEST 	0
+#define TYPE_RESPONSE	1
+
+#define NUM_CPUS 	8
+#define NUM_CMDS	128
+
+u8 response_thread_exit = 0;
 
 static DEFINE_MUTEX(push_lock);
 static DEFINE_MUTEX(pop_lock);
-static DEFINE_MUTEX(main_lock);
-static DEFINE_MUTEX(temp_lock);
-volatile u64 element_idx = 0;
+static DEFINE_MUTEX(push_resp_lock);
+static DEFINE_MUTEX(pop_resp_lock);
+static DEFINE_MUTEX(response_lock);
+
 /* Commands */
 #define STATE_IN_POLLING    1
 #define STATE_END_POLLED	2
@@ -39,14 +44,18 @@ volatile u64 element_idx = 0;
 #define PROCESS_TX 			2
 
 /* Global data types */
+static struct semaphore   wait_sem[NUM_CPUS];
 static struct task_struct *thread_st_nic;
-static struct task_struct *thread_per_cpu[8];
-static int thread_fn(void *unused);
+static struct task_struct *thread_per_cpu[NUM_CPUS];
 static struct list_head   *head;
+static struct list_head   *head_response;
+
+static int 	  thread_fn(void *unused);
 
 /* Meta data for NIC-C Model */
 struct meta_skbuff {
 	u32 command;
+	u32 response_flag;
 	volatile u8 cpu;
 };
 
@@ -61,8 +70,11 @@ struct skbuff_nic_c {
 struct queue_ll{
      struct list_head list;
      struct skbuff_nic_c *skbuff_struct;
-//     u64 idx;//Later use to do memcpy in push()
 };
+
+//TODO: Make it allocate at runtime
+/* Buffer that driver will use */
+struct skbuff_nic_c skbuff_driver[NUM_CMDS];
 
 /* 
 *	Get CPU Cycles from Read RDTSC Function
@@ -75,51 +87,102 @@ static inline u64 read_rdtsc(void)
 
     return (u64) ((hi << 32) | lo);
 }
+
 /* 
 *	Pop last element from the queue
 *	Return-> 0  if found
 *	Return-> -1 if empty queue
 *	Element will be get by reference
+*   Type will tell if Request or Response
 */ 
-static int pop_queue(struct queue_ll *temp_node){
-	
-	int ret_status = -1;
-	struct queue_ll *temp_node_orig;
+static int pop_queue(struct skbuff_nic_c **skbuff_struct, int type) {
+
+	struct queue_ll *temp_node;
 
 	/* Check if there is something in the queue */
 	if(list_empty(head)) {
-		return ret_status;
+		/* Return -1, no element is found */
+		return -1;
 	}
 	else {
-    	mutex_lock(&pop_lock);
-    	--element_idx;
-		temp_node_orig = list_first_entry(head,struct queue_ll ,list);
-    	mutex_unlock(&pop_lock);
-		memcpy(temp_node, temp_node_orig, sizeof(struct queue_ll));
-		ret_status = 0;
+		mutex_lock(&pop_lock);
+		temp_node = list_first_entry(head,struct queue_ll ,list);
+		mutex_unlock(&pop_lock);
 	}
 
-	list_del(&temp_node_orig->list);
-	kfree(temp_node_orig);
-	return ret_status;
+
+	/* This structure needs to be passed to thread */
+	*skbuff_struct = temp_node->skbuff_struct;
+
+	/* Clear the node */
+	list_del(&temp_node->list);
+	kfree(temp_node);
+
+	/* Return 0, element is found */
+	return 0;
 }
+
+
+static int pop_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
+
+	struct queue_ll *temp_node;
+
+	/* Check if there is something in the queue */
+	if(list_empty(head_response)) {
+		/* Return -1, no element is found */
+		return -1;
+	}
+	else {
+		mutex_lock(&pop_resp_lock);
+		temp_node = list_first_entry(head_response,struct queue_ll ,list);
+		mutex_unlock(&pop_resp_lock);
+	}
+
+	/* This structure needs to be passed to thread */
+	*skbuff_struct = temp_node->skbuff_struct;
+
+	/* Clear the node */
+	list_del(&temp_node->list);
+	kfree(temp_node);
+
+	/* Return 0, element is found */
+	return 0;
+}
+
 
 /* 
 *	Push element in queue head
 *	Element will be passed by reference
 */ 
-void push_queue(struct skbuff_nic_c *skbuff_struct){
-	// TODO: Protect by using mutex
+void push_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 	static struct queue_ll *temp_node;
 
+	/* Allocate Node */
 	temp_node=kmalloc(sizeof(struct queue_ll),GFP_KERNEL);
 
-	temp_node->skbuff_struct = skbuff_struct;
-
+	/* skbuff needs to be add to link list */
+	temp_node->skbuff_struct = *skbuff_struct;
+	
+	/* Add element to link list */
 	mutex_lock(&push_lock);
-	++element_idx;
 	list_add_tail(&temp_node->list,head);
 	mutex_unlock(&push_lock);
+}
+
+
+void push_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
+	static struct queue_ll *temp_node;
+
+	/* Allocate Node */
+	temp_node=kmalloc(sizeof(struct queue_ll),GFP_KERNEL);
+
+	/* skbuff needs to be add to link list */
+	temp_node->skbuff_struct = *skbuff_struct;
+	
+	/* Add element to link list */
+	mutex_lock(&push_resp_lock);
+	list_add_tail(&temp_node->list,head_response);
+	mutex_unlock(&push_resp_lock);
 }
 
 /*
@@ -152,53 +215,62 @@ static int thread_fn(void *unused)
 
 		/* Check if queue needs to be processed */
         if ((clk_cycles_exp/clk_cycles_div) >= 1) {
-        	static struct queue_ll temp_node;
-
+			
 			/* Check if some command is in queue */
-        	if (pop_queue(&temp_node) != -1) {
-
-				/* Parse skbuff data*/
-        		skbuff_ptr = temp_node.skbuff_struct;
-
-				down(&wait_sem[skbuff_ptr->meta.cpu]);
+			/* If found, element will be point to skbuff_ptr */
+        	if (pop_queue(&skbuff_ptr, TYPE_REQUEST) != -1) {
 
 				switch (skbuff_ptr->meta.command)
 				{
-
+					/* Dummy RX Command */
 					case PROCESS_RX:
 					{
-						/* Parse the thread data */
+						/* Print Information */
 						printk(KERN_ALERT "RX Command | Len = %d | CPU = %d\n", skbuff_ptr->len, skbuff_ptr->meta.cpu);
 
-						flag_queue[skbuff_ptr->meta.cpu] = CASE_NOTIFY_STACK_RX;
-
-						// Send Command
-						wake_up_interruptible(&wait_queue[skbuff_ptr->meta.cpu]);
-
-
+						/* Update response flag */
+						skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_RX;
+#if 1
+						/* Pass skbuff to response queue */
+						push_queue_response(&skbuff_ptr, TYPE_RESPONSE);
+						
+    					mutex_lock(&response_lock);
+						
+						/* Release semaphore to wake per CPU thread to pass command to stack */
+	    				up (&wait_sem[skbuff_ptr->meta.cpu]);
+    					
+						mutex_unlock(&response_lock);
+#endif
 						break;
 					}
 					case PROCESS_TX:
 					{
-						/* Parse the thread data */
+						/* Print Information */
 						printk(KERN_ALERT "TX Command | Len = %d | CPU = %d\n", skbuff_ptr->len, skbuff_ptr->meta.cpu);
 
-						flag_queue[skbuff_ptr->meta.cpu] = CASE_NOTIFY_STACK_TX;
+						/* Update response flag */
+						skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_TX;
 
-						// Send Command
-						wake_up_interruptible(&wait_queue[skbuff_ptr->meta.cpu]);
+#if 1
+						/* Pass skbuff to response queue */
+						push_queue_response(&skbuff_ptr, TYPE_RESPONSE);
 
+    					mutex_lock(&response_lock);
+
+						/* Release semaphore to wake per CPU thread to pass command to stack */
+	    				up (&wait_sem[skbuff_ptr->meta.cpu]);
+
+						mutex_unlock(&response_lock);
+#endif
 						break;
 					}
 				}
-
-				// TODO: Implement IPI
-				// skbuff_ptr->meta.cpu = IPI;
         	}
 			clk_cycles_start = 0;
         }
     	else
     	{
+			//TODO: Add counter to keep track of cycles spend here
 			/* This is necessary as we have to unschedule this
 			   thread after some rdtsc for a very short amount
 			   of time, for the sake of load balancing. Otherwise
@@ -212,84 +284,61 @@ static int thread_fn(void *unused)
 
     return 0;
 }
+
 /*
 *	Main NIC-C Model Thread
 *	This thread will schedule process request
 *	as soon some element push into the queue
 */
-int temp = 0;
-static int thread_per_cpu_fn(void *unused)
+static int response_thread_per_cpu(void *unused)
 {
+	struct skbuff_nic_c *skbuff_ptr;
 	int cpu = get_cpu();
-	u8 is_exit = 0;
-	char flag_alias;
-
-	printk("Get CPU = %d", get_cpu());
 	while (1)
 	{	
-		if (temp == 0)
+		down (&wait_sem[cpu]);
+		if (pop_queue_response(&skbuff_ptr, TYPE_RESPONSE) != -1) 
 		{
-			temp = 1;
+			switch (skbuff_ptr->meta.command)
+			{
+				case PROCESS_RX:
+				{
+					skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_RX;
+					/* Parse the thread data */
+					printk(KERN_ALERT "Response RX | Len -> %d\n", skbuff_ptr->len);
+
+					break;
+				}
+				case PROCESS_TX:
+				{
+					skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_TX;
+					/* Parse the thread data */
+					printk(KERN_ALERT "Response TX | Len -> %d\n", skbuff_ptr->len);
+
+					break;
+				}
+			}
 		}
-		else
-		{
-			up (&wait_sem[cpu]);
-		}
-		// Get the command from the queue
-	    wait_event_interruptible(wait_queue[cpu], flag_queue[cpu] != CASE_WAIT_IDLE);
 
-//		mutex_lock(&temp_lock);
-	    // printk(KERN_ALERT "First - %d\n", cpu);
-	    flag_alias = flag_queue[cpu];
-//	    printk(KERN_ALERT "Second - %d\n", cpu);
-	    flag_queue[cpu] = CASE_WAIT_IDLE;
-//	    printk(KERN_ALERT "Third - %d\n", cpu);
-
-
-//	    printk(KERN_ALERT "Fourth - %d\n", cpu);
-	    switch (flag_alias)
-	    {
-			case CASE_NOTIFY_STACK_RX:
-			{
-				printk(KERN_ALERT "Notify Stack RX | CPU - %d\n", cpu);
-				ssleep(1);
-//			    printk(KERN_ALERT "Fifth - %d\n", cpu);
-				break;
-			}
-			case CASE_NOTIFY_STACK_TX:
-			{
-				printk(KERN_ALERT "Notify Stack TX | CPU - %d\n", cpu);
-				ssleep(1);
-//			    printk(KERN_ALERT "Sixth - %d\n", cpu);
-				break;
-			}
-			case CASE_WAIT_EXIT:
-			{
-				is_exit = 1;
-				break;
-			}
-//		    printk(KERN_ALERT "Seventh - %d\n", cpu);
-	    }
-
-//	    printk(KERN_ALERT "Eighth - %d\n", cpu);
-//		mutex_unlock(&temp_lock);
-
-	    if (is_exit)
-	    	break;
+		if (response_thread_exit)
+			break;
 	}
 
 	printk("Thread-%d exitting...\n", get_cpu());
+
     return 0;
 }
 
-struct skbuff_nic_c skbuff_struc[2];
-int i = 0;
 static int __init nic_c_init(void) {
-
+	struct skbuff_nic_c *skbuff_struc_temp;
+	int i = 0;
 	/* Initilize Queue */
 	printk(KERN_INFO "NIC-C Model Init!\n");
 	head=kmalloc(sizeof(struct list_head *),GFP_KERNEL);
 	INIT_LIST_HEAD(head);
+
+	head_response=kmalloc(sizeof(struct list_head *),GFP_KERNEL);
+	INIT_LIST_HEAD(head_response);
 
 	// Create and bind and execute thread to core-2
 	thread_st_nic = kthread_create(thread_fn, NULL, "kthread");
@@ -297,10 +346,9 @@ static int __init nic_c_init(void) {
 	kthread_bind(thread_st_nic, 2);
 	wake_up_process(thread_st_nic);
 
-	for (i=0; i<8; i++)
+	for (i=0; i<NUM_CPUS; i++)
 	{
-		init_waitqueue_head(&wait_queue[i]);
-		thread_per_cpu[i] = kthread_create(thread_per_cpu_fn, NULL, "kthread_cpu");
+		thread_per_cpu[i] = kthread_create(response_thread_per_cpu, NULL, "kthread_cpu");
 		kthread_bind(thread_per_cpu[i], i);
 		wake_up_process(thread_per_cpu[i]);
 		sema_init(&wait_sem[i], 0);
@@ -309,55 +357,57 @@ static int __init nic_c_init(void) {
 	/* Wait for a second to let the thread being schedule */
 	ssleep(1);
 
-//	for (i=0; i<8; i++)
-//	{
-//		flag_queue[i] = CASE_NOTIFY_STACK;
-//		// Send Command
-//		wake_up_interruptible(&wait_queue[i]);
-//	}
-
 	/* Push Dummy RX Command */
-	for (i=0; i<2; i++)
+	for (i=0; i<NUM_CMDS; i++)
 	{
-		skbuff_struc[i].skbuff = (u8*) kmalloc(sizeof(u8) * 128,GFP_KERNEL);
-		skbuff_struc[i].len = 100 + (i * 10);
-		skbuff_struc[i].meta.cpu = get_cpu();
+		skbuff_driver[i].skbuff = (u8*) kmalloc(4,GFP_KERNEL);
+		skbuff_driver[i].len = i + 1;
+		skbuff_driver[i].meta.cpu = get_cpu();
+		skbuff_driver[i].meta.response_flag = 0;
+		// Half should be TX commands and half should be RX
 		if ((i % 2) == 0)
-			skbuff_struc[i].meta.command = PROCESS_RX;
+			skbuff_driver[i].meta.command = PROCESS_RX;
 		else
-			skbuff_struc[i].meta.command = PROCESS_TX;
-		push_queue(&skbuff_struc[i]);
+			skbuff_driver[i].meta.command = PROCESS_TX;
+		skbuff_struc_temp = &skbuff_driver[i];
+		push_queue(&skbuff_struc_temp, TYPE_REQUEST); 	
 	}
+	
 	printk(KERN_INFO "NIC-C Model Init Ends | CPU = %d!\n", num_online_cpus());
-
+	ssleep (1);
 	return 0;
 }
 
 static void __exit nic_c_exit(void) {
-
+	int i = 0;
+#if 0
    struct queue_ll *temp1, *temp2;
    int count = 0;
+#endif
 
    kthread_stop(thread_st_nic);
 
-   list_for_each_entry_safe(temp1, temp2, head, list) {
+#if 0
+   list_for_each_entr y_safe(temp1, temp2, head, list) {
 	   printk(KERN_INFO "Node %d data = %d\n" , count++, temp1->skbuff_struct->len);
 
 			list_del(&temp1->list);list_first_entry(head,struct queue_ll ,list);
 			kfree(temp1);
    }
+#endif
 
-	for (i=0; i<8; i++)
+	response_thread_exit = 1;
+
+	for (i=0; i<NUM_CPUS; i++)
 	{
-		flag_queue[i] = CASE_WAIT_EXIT;
-		// Send Command
-		wake_up_interruptible(&wait_queue[i]);
-
-//	    down (&wait_sem[i]);
+	    up (&wait_sem[i]);
 	}
 
-	ssleep (2);
-   printk(KERN_INFO "NIC-C Model Exit!\n");
+	//TODO: Do something better than sleep
+	/* Wait until threads to exit */
+	ssleep (5);
+
+   	printk(KERN_INFO "NIC-C Model Exit!\n");
 }
 
 module_init(nic_c_init);
