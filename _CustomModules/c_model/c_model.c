@@ -235,6 +235,7 @@ void push_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
 *	This thread will schedule process request 
 *	as soon some element push into the queue
 */
+int cmd_rcv = 0;
 static int thread_fn(void *unused)
 {
     struct skbuff_nic_c *skbuff_ptr;
@@ -267,6 +268,7 @@ static int thread_fn(void *unused)
 
 				switch (skbuff_ptr->meta.command)
 				{
+					cmd_rcv++;
 					/* Dummy RX Command */
 					case PROCESS_RX:
 					{
@@ -413,6 +415,7 @@ static int response_thread_per_cpu(void *unused)
 
 
 u64 global_skbuff_pass = 0xDEADBEEFBEEFDEAD;
+int cmd_send = 0;
 static int request_thread_per_cpu(void *unused)
 {
 	int i = 0;
@@ -432,6 +435,7 @@ static int request_thread_per_cpu(void *unused)
 		skbuff_struc_temp = &skbuff_driver[get_cpu()][i];
 		push_queue(&skbuff_struc_temp, TYPE_REQUEST);
 //		printk(KERN_ALERT "Driver Cmd[%d]\n", i);
+		cmd_send++;
 		msleep(1);
 	}
 
@@ -520,8 +524,10 @@ static void __exit nic_c_exit(void) {
 //	kfree(head_response);
 
 
-	printk(KERN_ALERT "Total Responses => %d\n", repsonse_cnt);
-   	printk(KERN_INFO "NIC-C Model Exit!\n");
+	printk(KERN_ALERT "CMD Send => %d\n", cmd_send);
+	printk(KERN_ALERT "CMD Receive C-Model => %d\n", cmd_rcv);
+	printk(KERN_ALERT "Response Receive Driver=> %d\n", repsonse_cnt);
+//   	printk(KERN_INFO "NIC-C Model Exit!\n");
 }
 
 module_init(nic_c_init);
