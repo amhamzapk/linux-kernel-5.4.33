@@ -366,13 +366,13 @@ static int __init nic_c_init(void) {
 	kthread_bind(thread_st_nic, 2);
 	wake_up_process(thread_st_nic);
 
-	for (i=0; i<NUM_CPUS; i++)
-	{
-		thread_per_cpu[i] = kthread_create(response_thread_per_cpu, NULL, "kthread_cpu");
-		kthread_bind(thread_per_cpu[i], i);
-		wake_up_process(thread_per_cpu[i]);
-		sema_init(&wait_sem[i], 0);
-	}
+//	for (i=0; i<NUM_CPUS; i++)
+//	{
+//		thread_per_cpu[i] = kthread_create(response_thread_per_cpu, NULL, "kthread_cpu");
+//		kthread_bind(thread_per_cpu[i], i);
+//		wake_up_process(thread_per_cpu[i]);
+//		sema_init(&wait_sem[i], 0);
+//	}
 
 	/* Wait for a second to let the thread being schedule */
 	ssleep(1);
@@ -420,10 +420,10 @@ static void __exit nic_c_exit(void) {
 
 	response_thread_exit = 1;
 
-	for (i=0; i<NUM_CPUS; i++)
-	{
-	    up (&wait_sem[i]);
-	}
+//	for (i=0; i<NUM_CPUS; i++)
+//	{
+//	    up (&wait_sem[i]);
+//	}
 
 	   printk("Exit_3\n");
 	//TODO: Do something better than sleep
