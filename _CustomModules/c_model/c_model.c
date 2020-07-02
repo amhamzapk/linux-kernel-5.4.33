@@ -204,7 +204,7 @@ void push_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
 //	struct queue_ll_resp *temp_node = (struct queue_ll_resp*)&pool_queue_2[alloc_index_2++];
 
 	/* Allocate Node */
-	temp_node=kmalloc(sizeof(struct queue_ll_resp),GFP_ATOMIC);
+	temp_node=kvmalloc_custom(sizeof(struct queue_ll_resp));
 
 	/* skbuff needs to be add to link list */
 	temp_node->skbuff_struct = *skbuff_struct;
