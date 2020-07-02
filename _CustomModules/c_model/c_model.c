@@ -27,7 +27,7 @@ MODULE_VERSION("0.1");
 #define TYPE_RESPONSE	1
 
 #define NUM_CPUS 	4
-#define NUM_CMDS	1000000
+#define NUM_CMDS	100000
 
 u8 response_thread_exit = 0;
 
@@ -230,7 +230,7 @@ static int thread_fn(void *unused)
 
 						/* Update response flag */
 						skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_RX;
-#if 0
+#if 1
 						/* Pass skbuff to response queue */
 						push_queue_response(&skbuff_ptr, TYPE_RESPONSE);
 						
@@ -251,7 +251,7 @@ static int thread_fn(void *unused)
 						/* Update response flag */
 						skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_TX;
 
-#if 0
+#if 1
 						/* Pass skbuff to response queue */
 						push_queue_response(&skbuff_ptr, TYPE_RESPONSE);
 
