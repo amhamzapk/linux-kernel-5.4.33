@@ -76,9 +76,9 @@ struct queue_ll{
      struct skbuff_nic_c *skbuff_struct;
 };
 
-int alloc_limit = 10000;
+int alloc_limit = 100000;
 int alloc_index = 0;
-struct queue_ll pool_queue[10000];
+struct queue_ll pool_queue[100000];
 
 //TODO: Make it allocate at runtime
 /* Buffer that driver will use */
