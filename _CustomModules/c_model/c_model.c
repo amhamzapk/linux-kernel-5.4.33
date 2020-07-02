@@ -405,7 +405,7 @@ static int response_thread_per_cpu(void *unused)
 			break;
 	}
 
-	printk(KERN_ALERT "Core-%d | Responses => %d\n", repsonse_cnt_local);
+	printk(KERN_ALERT "Core-%d | Responses => %d\n", cpu, repsonse_cnt_local);
 //	printk("Thread-%d exitting...\n", get_cpu());
 
     return 0;
