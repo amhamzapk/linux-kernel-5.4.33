@@ -31,7 +31,7 @@ MODULE_VERSION("0.1");
 #define NUM_CPUS 	4
 #define THOUSAND	1000
 #define MILLION		THOUSAND*THOUSAND
-#define NUM_CMDS	8//1*MILLION
+#define NUM_CMDS	2//1*MILLION
 
 int cnt_resp = 0;
 
@@ -464,7 +464,7 @@ static int __init nic_c_init(void) {
 		flag[i] = 'n';
 	}
 
-	for (i=0; i<3; i++)
+	for (i=0; i<4; i++)
 	{
 		req_thread_per_cpu[i] = kthread_create(request_thread_per_cpu, NULL, "kthread_cpu_req");
 		kthread_bind(req_thread_per_cpu[i], i);
