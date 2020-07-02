@@ -464,9 +464,8 @@ static int __init nic_c_init(void) {
 		flag[i] = 'n';
 	}
 
-	for (i=0; i<NUM_CPUS; i++)
+	for (i=0; i<1; i++)
 	{
-		init_waitqueue_head(&my_wait_queue[i]);
 		req_thread_per_cpu[i] = kthread_create(request_thread_per_cpu, NULL, "kthread_cpu_req");
 		kthread_bind(req_thread_per_cpu[i], i);
 		wake_up_process(req_thread_per_cpu[i]);
