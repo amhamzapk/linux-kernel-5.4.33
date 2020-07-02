@@ -31,7 +31,7 @@ MODULE_VERSION("0.1");
 #define NUM_CPUS 	4
 #define THOUSAND	1000
 #define MILLION		THOUSAND*THOUSAND
-#define NUM_CMDS	8//1*MILLION
+#define NUM_CMDS	32//1*MILLION
 
 int cnt_resp = 0;
 
@@ -416,7 +416,7 @@ static int request_thread_per_cpu(void *unused)
 	int i = 0;
 	struct skbuff_nic_c *skbuff_struc_temp;
 	/* Push Dummy RX Command */
-	for (i=0; i<NUM_CMDS; i++)
+	for (i=0; i<NUM_CMDS/NUM_CPUS; i++)
 	{
 		skbuff_driver[get_cpu()][i].skbuff = &global_skbuff_pass;//(u8*) kmalloc(4,GFP_KERNEL);
 		skbuff_driver[get_cpu()][i].len = i + 1;
