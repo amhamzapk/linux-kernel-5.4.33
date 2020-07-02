@@ -23,7 +23,7 @@ MODULE_VERSION("0.1");
 #define CASE_NOTIFY_STACK_TX   	123
 #define CASE_NOTIFY_STACK_RX   	456
 
-#define RESPONSE_NEEDED
+//#define RESPONSE_NEEDED
 
 #define TYPE_REQUEST 	0
 #define TYPE_RESPONSE	1
@@ -31,7 +31,7 @@ MODULE_VERSION("0.1");
 #define NUM_CPUS 	4
 #define THOUSAND	1000
 #define MILLION		THOUSAND*THOUSAND
-#define NUM_CMDS	MILLION
+#define NUM_CMDS	10*MILLION
 
 int cnt_resp = 0;
 
