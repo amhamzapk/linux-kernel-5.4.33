@@ -276,27 +276,27 @@ static int thread_fn(void *unused)
 #ifdef RESPONSE_NEEDED
 						skbuff_ptr->meta.poll_flag = 0;
 
-						printk(KERN_ALERT "RX Command_2\n", skbuff_ptr->len, skbuff_ptr->meta.cpu);
+						printk(KERN_ALERT "RX Command_2\n");
 						/* Pass skbuff to response queue */
 						push_queue_response(&skbuff_ptr, TYPE_RESPONSE);
 
 
-						printk(KERN_ALERT "RX Command_3\n", skbuff_ptr->len, skbuff_ptr->meta.cpu);
+						printk(KERN_ALERT "RX Command_3\n");
 						flag[skbuff_ptr->meta.cpu] = 'y';
 
 						wake_up_interruptible(&my_wait_queue[skbuff_ptr->meta.cpu]);
 
 
-						printk(KERN_ALERT "RX Command_4\n", skbuff_ptr->len, skbuff_ptr->meta.cpu);
+						printk(KERN_ALERT "RX Command_4\n");
 
 						/* Release semaphore to wake per CPU thread to pass command to stack */
 	    				down (&wait_sem[skbuff_ptr->meta.cpu]);
 
-						printk(KERN_ALERT "RX Command_5\n", skbuff_ptr->len, skbuff_ptr->meta.cpu);
+						printk(KERN_ALERT "RX Command_5\n");
 
 						while (skbuff_ptr->meta.poll_flag == 0);
 
-						printk(KERN_ALERT "RX Command_6\n", skbuff_ptr->len, skbuff_ptr->meta.cpu);
+						printk(KERN_ALERT "RX Command_6\n");
 //
 //						skbuff_ptr->meta.poll_flag = 1;
 #endif
