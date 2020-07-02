@@ -27,8 +27,9 @@ MODULE_VERSION("0.1");
 #define TYPE_RESPONSE	1
 
 #define NUM_CPUS 	4
-#define MILLION		1000000
-#define NUM_CMDS	10*MILLION
+#define THOUSAND	1000
+#define MILLION		THOUSAND*THOUSAND
+#define NUM_CMDS	100 * THOUSAND
 
 int cnt_resp = 0;
 
@@ -376,7 +377,7 @@ static int __init nic_c_init(void) {
 		skbuff_struc_temp = &skbuff_driver[i];
 		push_queue(&skbuff_struc_temp, TYPE_REQUEST); 	
 		printk(KERN_ALERT "Driver Cmd[%d]\n", i);
-		udelay(100);
+		udelay(10);
 	}
 	printk(KERN_INFO "NIC-C Model Init Ends | CPU = %d!\n", num_online_cpus());
 	ssleep (1);
