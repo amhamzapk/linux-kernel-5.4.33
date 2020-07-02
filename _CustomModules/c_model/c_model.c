@@ -34,7 +34,7 @@ MODULE_VERSION("0.1");
 #define NUM_CMDS	8//10*MILLION
 
 int cnt_resp = 0;
-char flag = 'n';
+char flag[NUM_CMDS] = {'n'};
 
 u8 response_thread_exit = 0;
 
@@ -53,7 +53,7 @@ static DEFINE_MUTEX(response_lock);
 #define PROCESS_TX 			2
 
 /* Global data types */
-static wait_queue_head_t my_wait_queue;
+static wait_queue_head_t my_wait_queue[NUM_CPUS];
 static struct semaphore   wait_sem[NUM_CPUS];
 static struct task_struct *thread_st_nic;
 static struct task_struct *thread_per_cpu[NUM_CPUS];
@@ -277,11 +277,11 @@ static int thread_fn(void *unused)
 						
 //    					mutex_lock(&response_lock);
 
-						flag = 'y';
+						flag[skbuff_ptr->meta.cpu] = 'y';
 
-						wake_up_interruptible(&my_wait_queue);
+						wake_up_interruptible(&my_wait_queue[skbuff_ptr->meta.cpu]);
 
-						while (flag == 'y');
+						while (flag[skbuff_ptr->meta.cpu] == 'y');
 
 						/* Release semaphore to wake per CPU thread to pass command to stack */
 //	    				down (&wait_sem[skbuff_ptr->meta.cpu]);
@@ -302,11 +302,11 @@ static int thread_fn(void *unused)
 						/* Pass skbuff to response queue */
 						push_queue_response(&skbuff_ptr, TYPE_RESPONSE);
 
-						flag = 'y';
+						flag[skbuff_ptr->meta.cpu] = 'y';
 
-						wake_up_interruptible(&my_wait_queue);
+						wake_up_interruptible(&my_wait_queue[skbuff_ptr->meta.cpu]);
 
-						while (flag == 'y');
+						while (flag[skbuff_ptr->meta.cpu] == 'y');
 
 						/* Release semaphore to wake per CPU thread to pass command to stack */
 //	    				down (&wait_sem[skbuff_ptr->meta.cpu]);
@@ -350,8 +350,8 @@ static int response_thread_per_cpu(void *unused)
 	int cpu = get_cpu();
 	while (1)
 	{	
-	    wait_event_interruptible(my_wait_queue, flag != 'y');
-		flag = 'n';
+	    wait_event_interruptible(my_wait_queue[cpu], flag[cpu] != 'n');
+		flag[cpu] = 'n';
 //		up (&wait_sem[cpu]);
 #ifdef RESPONSE_NEEDED
 		if (pop_queue_response(&skbuff_ptr, TYPE_RESPONSE) != -1)
@@ -404,10 +404,10 @@ static int __init nic_c_init(void) {
 
 	kthread_bind(thread_st_nic, 2);
 	wake_up_process(thread_st_nic);
-	init_waitqueue_head(& my_wait_queue);
 
 	for (i=0; i<NUM_CPUS; i++)
 	{
+		init_waitqueue_head(&my_wait_queue[i]);
 		thread_per_cpu[i] = kthread_create(response_thread_per_cpu, NULL, "kthread_cpu");
 		kthread_bind(thread_per_cpu[i], i);
 		wake_up_process(thread_per_cpu[i]);
