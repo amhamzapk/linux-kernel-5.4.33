@@ -56,10 +56,6 @@ static struct task_struct *thread_per_cpu[NUM_CPUS];
 static struct list_head   *head;
 static struct list_head   *head_response;
 
-
-static struct list_head   head_temp;
-static struct list_head   head_response_temp;
-
 static int 	  thread_fn(void *unused);
 
 /* Meta data for NIC-C Model */
@@ -83,9 +79,9 @@ struct queue_ll{
 };
 
 //int alloc_limit = NUM_CMDS;
-int alloc_index = 0;
+//int alloc_index = 0;
 //int alloc_index_2 = 0;
-struct queue_ll pool_queue[NUM_CMDS];
+////struct queue_ll pool_queue[NUM_CMDS];
 //struct queue_ll pool_queue_2[NUM_CMDS];
 
 //TODO: Make it allocate at runtime
@@ -121,9 +117,9 @@ static int pop_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 		return -1;
 	}
 	else {
-//		mutex_lock(&pop_lock);
+		mutex_lock(&pop_lock);
 		temp_node = list_first_entry(head,struct queue_ll ,list);
-//		mutex_unlock(&pop_lock);
+		mutex_unlock(&pop_lock);
 	}
 
 
@@ -132,7 +128,7 @@ static int pop_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 
 	/* Clear the node */
 	list_del(&temp_node->list);
-//	kvfree(temp_node);
+	kvfree(temp_node);
 
 	/* Return 0, element is found */
 	return 0;
@@ -171,19 +167,19 @@ static int pop_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
 *	Element will be passed by reference
 */ 
 void push_queue(struct skbuff_nic_c **skbuff_struct, int type) {
-	struct queue_ll *temp_node = (struct queue_ll*)&pool_queue[alloc_index++];
+	struct queue_ll *temp_node;// = (struct queue_ll*)&pool_queue[alloc_index++];
 
 	/* Allocate Node */
-//	temp_node=kvmalloc(sizeof(struct queue_ll),GFP_ATOMIC);
+	temp_node=kvmalloc(sizeof(struct queue_ll),GFP_ATOMIC);
 //	pool_queue[alloc_index] =
 
 	/* skbuff needs to be add to link list */
 	temp_node->skbuff_struct = *skbuff_struct;
 	
 	/* Add element to link list */
-//	mutex_lock(&push_lock);
+	mutex_lock(&push_lock);
 	list_add_tail(&temp_node->list,head);
-//	mutex_unlock(&push_lock);
+	mutex_unlock(&push_lock);
 }
 #ifdef RESPONSE_NEEDED
 
@@ -358,46 +354,46 @@ static int __init nic_c_init(void) {
 	int i = 0;
 	/* Initilize Queue */
 	printk(KERN_INFO "NIC-C Model Init!\n");
-//	head=kvmalloc(sizeof(struct list_head *),GFP_ATOMIC);
-	INIT_LIST_HEAD(&head_temp);
+	head=kmalloc(sizeof(struct list_head *),GFP_KERNEL);
+	INIT_LIST_HEAD(head);
 
-//	head_response=kvmalloc(sizeof(struct list_head *),GFP_ATOMIC);
-	INIT_LIST_HEAD(&head_response_temp);
+	head_response=kmalloc(sizeof(struct list_head *),GFP_KERNEL);
+	INIT_LIST_HEAD(head_response);
 
-//	// Create and bind and execute thread to core-2
-//	thread_st_nic = kthread_create(thread_fn, NULL, "kthread");
-//
-//	kthread_bind(thread_st_nic, 2);
-//	wake_up_process(thread_st_nic);
+	// Create and bind and execute thread to core-2
+	thread_st_nic = kthread_create(thread_fn, NULL, "kthread");
 
-//	for (i=0; i<NUM_CPUS; i++)
-//	{
-//		thread_per_cpu[i] = kthread_create(response_thread_per_cpu, NULL, "kthread_cpu");
-//		kthread_bind(thread_per_cpu[i], i);
-//		wake_up_process(thread_per_cpu[i]);
-//		sema_init(&wait_sem[i], 0);
-//	}
+	kthread_bind(thread_st_nic, 2);
+	wake_up_process(thread_st_nic);
+
+	for (i=0; i<NUM_CPUS; i++)
+	{
+		thread_per_cpu[i] = kthread_create(response_thread_per_cpu, NULL, "kthread_cpu");
+		kthread_bind(thread_per_cpu[i], i);
+		wake_up_process(thread_per_cpu[i]);
+		sema_init(&wait_sem[i], 0);
+	}
 
 	/* Wait for a second to let the thread being schedule */
 	ssleep(1);
 
-//	/* Push Dummy RX Command */
-//	for (i=0; i<NUM_CMDS; i++)
-//	{
-//		skbuff_driver[i].skbuff = &global_skbuff_pass;//(u8*) kmalloc(4,GFP_KERNEL);
-//		skbuff_driver[i].len = i + 1;
-//		skbuff_driver[i].meta.cpu = get_cpu();
-//		skbuff_driver[i].meta.response_flag = 0;
-//		// Half should be TX commands and half should be RX
-//		if ((i % 2) == 0)
-//			skbuff_driver[i].meta.command = PROCESS_RX;
-//		else
-//			skbuff_driver[i].meta.command = PROCESS_TX;
-//		skbuff_struc_temp = &skbuff_driver[i];
-//		push_queue(&skbuff_struc_temp, TYPE_REQUEST);
-////		printk(KERN_ALERT "Driver Cmd[%d]\n", i);
-////		udelay(10);
-//	}
+	/* Push Dummy RX Command */
+	for (i=0; i<NUM_CMDS; i++)
+	{
+		skbuff_driver[i].skbuff = &global_skbuff_pass;//(u8*) kmalloc(4,GFP_KERNEL);
+		skbuff_driver[i].len = i + 1;
+		skbuff_driver[i].meta.cpu = get_cpu();
+		skbuff_driver[i].meta.response_flag = 0;
+		// Half should be TX commands and half should be RX
+		if ((i % 2) == 0)
+			skbuff_driver[i].meta.command = PROCESS_RX;
+		else
+			skbuff_driver[i].meta.command = PROCESS_TX;
+		skbuff_struc_temp = &skbuff_driver[i];
+		push_queue(&skbuff_struc_temp, TYPE_REQUEST);
+//		printk(KERN_ALERT "Driver Cmd[%d]\n", i);
+//		udelay(10);
+	}
 	printk(KERN_INFO "NIC-C Model Init Ends | CPU = %d!\n", num_online_cpus());
 	ssleep (1);
 	return 0;
@@ -410,7 +406,7 @@ static void __exit nic_c_exit(void) {
    int count = 0;
 #endif
    printk("Exit_1\n");
-//   kthread_stop(thread_st_nic);
+   kthread_stop(thread_st_nic);
 
    printk("Exit_2\n");
 #if 0
@@ -424,10 +420,10 @@ static void __exit nic_c_exit(void) {
 
 	response_thread_exit = 1;
 
-//	for (i=0; i<NUM_CPUS; i++)
-//	{
-//	    up (&wait_sem[i]);
-//	}
+	for (i=0; i<NUM_CPUS; i++)
+	{
+	    up (&wait_sem[i]);
+	}
 
 	   printk("Exit_3\n");
 	//TODO: Do something better than sleep
@@ -435,9 +431,9 @@ static void __exit nic_c_exit(void) {
 	ssleep (1);
 
 	/* Dealocate all memories */
-//	kvfree(head);
+//	kfree(head);
 	   printk("Exit_4\n");
-//	kvfree(head_response);
+//	kfree(head_response);
 
    	printk(KERN_INFO "NIC-C Model Exit!\n");
 }
