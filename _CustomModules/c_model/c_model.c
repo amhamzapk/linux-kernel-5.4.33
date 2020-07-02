@@ -78,6 +78,12 @@ struct queue_ll{
      struct skbuff_nic_c *skbuff_struct;
 };
 
+/* Queue to keep track of NIC-C Commands & SKBUFFS */
+struct queue_ll_resp{
+     struct list_head list;
+     struct skbuff_nic_c *skbuff_struct;
+};
+
 //int alloc_limit = NUM_CMDS;
 //int alloc_index = 0;
 //int alloc_index_2 = 0;
@@ -137,7 +143,7 @@ static int pop_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 #ifdef RESPONSE_NEEDED
 static int pop_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
 
-	struct queue_ll *temp_node;
+	struct queue_ll_resp *temp_node;
 
 	/* Check if there is something in the queue */
 	if(list_empty(&head_response)) {
@@ -146,7 +152,7 @@ static int pop_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
 	}
 	else {
 		mutex_lock(&pop_resp_lock);
-		temp_node = list_first_entry(&head_response,struct queue_ll ,list);
+		temp_node = list_first_entry(&head_response,struct queue_ll_resp ,list);
 		mutex_unlock(&pop_resp_lock);
 	}
 
@@ -184,11 +190,11 @@ void push_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 #ifdef RESPONSE_NEEDED
 
 void push_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
-	static struct queue_ll *temp_node;
+	static struct queue_ll_resp *temp_node;
 //	struct queue_ll *temp_node = (struct queue_ll*)&pool_queue_2[alloc_index_2++];
 
 	/* Allocate Node */
-	temp_node=kvmalloc(sizeof(struct queue_ll),GFP_ATOMIC);
+	temp_node=kvmalloc(sizeof(struct queue_ll_resp),GFP_ATOMIC);
 
 	/* skbuff needs to be add to link list */
 	temp_node->skbuff_struct = *skbuff_struct;
