@@ -240,7 +240,7 @@ static int thread_fn(void *unused)
 					case PROCESS_RX:
 					{
 						/* Print Information */
-						printk(KERN_ALERT "RX Command | Len = %d | CPU = %d\n", skbuff_ptr->len, skbuff_ptr->meta.cpu);
+//						printk(KERN_ALERT "RX Command | Len = %d | CPU = %d\n", skbuff_ptr->len, skbuff_ptr->meta.cpu);
 
 						/* Update response flag */
 						skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_RX;
@@ -260,7 +260,7 @@ static int thread_fn(void *unused)
 					case PROCESS_TX:
 					{
 						/* Print Information */
-						printk(KERN_ALERT "TX Command | Len = %d | CPU = %d\n", skbuff_ptr->len, skbuff_ptr->meta.cpu);
+//						printk(KERN_ALERT "TX Command | Len = %d | CPU = %d\n", skbuff_ptr->len, skbuff_ptr->meta.cpu);
 
 						/* Update response flag */
 						skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_TX;
@@ -318,20 +318,20 @@ static int response_thread_per_cpu(void *unused)
 		if (pop_queue_response(&skbuff_ptr, TYPE_RESPONSE) != -1)
 		{
 			repsonse_cnt++;
-			printk(KERN_ALERT "Responses => %d\n", repsonse_cnt);
+//			printk(KERN_ALERT "Responses => %d\n", repsonse_cnt);
 			switch (skbuff_ptr->meta.response_flag)
 			{
 				case CASE_NOTIFY_STACK_RX:
 				{
 					/* Parse the thread data */
-					printk(KERN_ALERT "Response RX | Len -> %d\n", skbuff_ptr->len);
+//					printk(KERN_ALERT "Response RX | Len -> %d\n", skbuff_ptr->len);
 
 					break;
 				}
 				case CASE_NOTIFY_STACK_TX:
 				{
 					/* Parse the thread data */
-					printk(KERN_ALERT "Response TX | Len -> %d\n", skbuff_ptr->len);
+//					printk(KERN_ALERT "Response TX | Len -> %d\n", skbuff_ptr->len);
 
 					break;
 				}
@@ -342,6 +342,7 @@ static int response_thread_per_cpu(void *unused)
 			break;
 	}
 
+	printk(KERN_ALERT "Responses => %d\n", repsonse_cnt);
 	printk("Thread-%d exitting...\n", get_cpu());
 
     return 0;
@@ -390,7 +391,7 @@ static int __init nic_c_init(void) {
 			skbuff_driver[i].meta.command = PROCESS_TX;
 		skbuff_struc_temp = &skbuff_driver[i];
 		push_queue(&skbuff_struc_temp, TYPE_REQUEST);
-		printk(KERN_ALERT "Driver Cmd[%d]\n", i);
+//		printk(KERN_ALERT "Driver Cmd[%d]\n", i);
 //		udelay(10);
 	}
 	printk(KERN_INFO "NIC-C Model Init Ends | CPU = %d!\n", num_online_cpus());
