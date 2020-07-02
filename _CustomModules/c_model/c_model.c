@@ -117,9 +117,9 @@ static int pop_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 		return -1;
 	}
 	else {
-		mutex_lock(&pop_lock);
+//		mutex_lock(&pop_lock);
 		temp_node = list_first_entry(head,struct queue_ll ,list);
-		mutex_unlock(&pop_lock);
+//		mutex_unlock(&pop_lock);
 	}
 
 
@@ -177,9 +177,9 @@ void push_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 	temp_node->skbuff_struct = *skbuff_struct;
 	
 	/* Add element to link list */
-	mutex_lock(&push_lock);
+//	mutex_lock(&push_lock);
 	list_add_tail(&temp_node->list,head);
-	mutex_unlock(&push_lock);
+//	mutex_unlock(&push_lock);
 }
 #ifdef RESPONSE_NEEDED
 
@@ -377,23 +377,23 @@ static int __init nic_c_init(void) {
 	/* Wait for a second to let the thread being schedule */
 	ssleep(1);
 
-	/* Push Dummy RX Command */
-	for (i=0; i<NUM_CMDS; i++)
-	{
-		skbuff_driver[i].skbuff = &global_skbuff_pass;//(u8*) kmalloc(4,GFP_KERNEL);
-		skbuff_driver[i].len = i + 1;
-		skbuff_driver[i].meta.cpu = get_cpu();
-		skbuff_driver[i].meta.response_flag = 0;
-		// Half should be TX commands and half should be RX
-		if ((i % 2) == 0)
-			skbuff_driver[i].meta.command = PROCESS_RX;
-		else
-			skbuff_driver[i].meta.command = PROCESS_TX;
-		skbuff_struc_temp = &skbuff_driver[i];
-		push_queue(&skbuff_struc_temp, TYPE_REQUEST);
-//		printk(KERN_ALERT "Driver Cmd[%d]\n", i);
-//		udelay(10);
-	}
+//	/* Push Dummy RX Command */
+//	for (i=0; i<NUM_CMDS; i++)
+//	{
+//		skbuff_driver[i].skbuff = &global_skbuff_pass;//(u8*) kmalloc(4,GFP_KERNEL);
+//		skbuff_driver[i].len = i + 1;
+//		skbuff_driver[i].meta.cpu = get_cpu();
+//		skbuff_driver[i].meta.response_flag = 0;
+//		// Half should be TX commands and half should be RX
+//		if ((i % 2) == 0)
+//			skbuff_driver[i].meta.command = PROCESS_RX;
+//		else
+//			skbuff_driver[i].meta.command = PROCESS_TX;
+//		skbuff_struc_temp = &skbuff_driver[i];
+//		push_queue(&skbuff_struc_temp, TYPE_REQUEST);
+////		printk(KERN_ALERT "Driver Cmd[%d]\n", i);
+////		udelay(10);
+//	}
 	printk(KERN_INFO "NIC-C Model Init Ends | CPU = %d!\n", num_online_cpus());
 	ssleep (1);
 	return 0;
