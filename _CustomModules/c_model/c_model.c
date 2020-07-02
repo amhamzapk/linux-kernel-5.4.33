@@ -284,7 +284,7 @@ static int thread_fn(void *unused)
 						printk(KERN_ALERT "RX Command_3\n");
 						flag[skbuff_ptr->meta.cpu] = 'y';
 
-						wake_up_interruptible(&my_wait_queue[skbuff_ptr->meta.cpu]);
+						wake_up(&my_wait_queue[skbuff_ptr->meta.cpu]);
 
 
 						printk(KERN_ALERT "RX Command_4\n");
@@ -318,7 +318,7 @@ static int thread_fn(void *unused)
 
 						flag[skbuff_ptr->meta.cpu] = 'y';
 
-						wake_up_interruptible(&my_wait_queue[skbuff_ptr->meta.cpu]);
+						wake_up(&my_wait_queue[skbuff_ptr->meta.cpu]);
 
 						/* Release semaphore to wake per CPU thread to pass command to stack */
 	    				down (&wait_sem[skbuff_ptr->meta.cpu]);
@@ -364,7 +364,7 @@ static int response_thread_per_cpu(void *unused)
 	while (1)
 	{	
 		printk(KERN_ALERT "Response_1[%d]\n",cpu);
-	    wait_event_interruptible(my_wait_queue[cpu], flag[cpu] != 'n');
+	    wait_event(my_wait_queue[cpu], flag[cpu] != 'n');
 		printk(KERN_ALERT "Response_2[%d]\n",cpu);
 		flag[cpu] = 'n';
 		up (&wait_sem[cpu]);
