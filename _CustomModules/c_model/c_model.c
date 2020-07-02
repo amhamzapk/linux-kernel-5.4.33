@@ -274,6 +274,8 @@ static int thread_fn(void *unused)
 						/* Update response flag */
 						skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_RX;
 #ifdef RESPONSE_NEEDED
+	    				helper_flag[skbuff_ptr->meta.cpu] = 0;
+
 						/* Pass skbuff to response queue */
 						push_queue_response(&skbuff_ptr, TYPE_RESPONSE);
 
@@ -297,6 +299,8 @@ static int thread_fn(void *unused)
 						skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_TX;
 
 #ifdef RESPONSE_NEEDED
+	    				helper_flag[skbuff_ptr->meta.cpu] = 0;
+
 						/* Pass skbuff to response queue */
 						push_queue_response(&skbuff_ptr, TYPE_RESPONSE);
 
