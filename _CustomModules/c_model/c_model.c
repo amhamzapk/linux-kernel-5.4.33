@@ -481,7 +481,7 @@ static int __init nic_c_init(void) {
 	}
 
 	/* Wait for a second to let the thread being schedule */
-	ssleep(1);
+	ssleep(10);
 	printk(KERN_INFO "NIC-C Model Init Ends | CPU = %d!\n", num_online_cpus());
 	ssleep (1);
 	return 0;
