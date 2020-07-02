@@ -29,7 +29,7 @@ MODULE_VERSION("0.1");
 #define NUM_CPUS 	4
 #define THOUSAND	1000
 #define MILLION		THOUSAND*THOUSAND
-#define NUM_CMDS	100 * THOUSAND
+#define NUM_CMDS	10 * THOUSAND
 
 int cnt_resp = 0;
 
@@ -75,6 +75,10 @@ struct queue_ll{
      struct list_head list;
      struct skbuff_nic_c *skbuff_struct;
 };
+
+int alloc_limit = 10000;
+int alloc_index = 0;
+struct queue_ll pool_queue[10000];
 
 //TODO: Make it allocate at runtime
 /* Buffer that driver will use */
@@ -147,7 +151,7 @@ static int pop_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
 
 	/* Clear the node */
 	list_del(&temp_node->list);
-	kvfree(temp_node);
+//	kvfree(temp_node);
 
 	/* Return 0, element is found */
 	return 0;
@@ -159,10 +163,11 @@ static int pop_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
 *	Element will be passed by reference
 */ 
 void push_queue(struct skbuff_nic_c **skbuff_struct, int type) {
-	static struct queue_ll *temp_node;
+	struct queue_ll *temp_node = (struct queue_ll*)&pool_queue[alloc_index++];
 
 	/* Allocate Node */
-	temp_node=kvmalloc(sizeof(struct queue_ll),GFP_KERNEL);
+//	temp_node=kvmalloc(sizeof(struct queue_ll),GFP_KERNEL);
+//	pool_queue[alloc_index] =
 
 	/* skbuff needs to be add to link list */
 	temp_node->skbuff_struct = *skbuff_struct;
