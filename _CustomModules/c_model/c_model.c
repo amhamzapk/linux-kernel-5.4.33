@@ -27,7 +27,7 @@ MODULE_VERSION("0.1");
 #define TYPE_RESPONSE	1
 
 #define NUM_CPUS 	4
-#define NUM_CMDS	8096 * 2
+#define NUM_CMDS	8096 * 10
 
 u8 response_thread_exit = 0;
 
@@ -406,7 +406,12 @@ static void __exit nic_c_exit(void) {
 
 	//TODO: Do something better than sleep
 	/* Wait until threads to exit */
-	ssleep (5);
+	ssleep (1);
+
+	/* Dealocate all memories */
+	kfree(head);
+	kfree(head_response);
+
    	printk(KERN_INFO "NIC-C Model Exit!\n");
 }
 
