@@ -147,7 +147,7 @@ static int pop_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
 
 	/* Clear the node */
 	list_del(&temp_node->list);
-	free(temp_node);
+	vfree(temp_node);
 
 	/* Return 0, element is found */
 	return 0;
@@ -162,8 +162,7 @@ void push_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 	static struct queue_ll *temp_node;
 
 	/* Allocate Node */
-	temp_node = malloc(sizeof(struct queue_ll));
-//	temp_node=kmalloc(,GFP_ATOMIC);
+	temp_node=vmalloc(sizeof(struct queue_ll));
 
 	/* skbuff needs to be add to link list */
 	temp_node->skbuff_struct = *skbuff_struct;
