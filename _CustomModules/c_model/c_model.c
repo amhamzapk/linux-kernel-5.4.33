@@ -34,6 +34,7 @@ MODULE_VERSION("0.1");
 #define NUM_CMDS	8//1*MILLION
 
 int cnt_resp = 0;
+
 volatile char flag[NUM_CMDS] = {'n'};
 volatile u8   helper_flag[NUM_CMDS] = {0};
 
@@ -294,7 +295,7 @@ static int thread_fn(void *unused)
 
 						printk(KERN_ALERT "RX Command_5 | Flag -> %c\n", flag[skbuff_ptr->meta.cpu]);
 
-						while (skbuff_ptr->meta.poll_flag == 0);
+//						while (skbuff_ptr->meta.poll_flag == 0);
 
 //						printk(KERN_ALERT "RX Command_6\n");
 //
@@ -323,7 +324,7 @@ static int thread_fn(void *unused)
 						/* Release semaphore to wake per CPU thread to pass command to stack */
 	    				down (&wait_sem[skbuff_ptr->meta.cpu]);
 
-	    				while (skbuff_ptr->meta.poll_flag == 0);
+//	    				while (skbuff_ptr->meta.poll_flag == 0);
 //						skbuff_ptr->meta.poll_flag = 1;
 #endif
 						break;
@@ -373,7 +374,7 @@ static int response_thread_per_cpu(void *unused)
 		if (pop_queue_response(&skbuff_ptr, TYPE_RESPONSE) != -1)
 		{
 //			printk(KERN_ALERT "Response_4[%d]\n",cpu);
-			skbuff_ptr->meta.poll_flag = 1;
+//			skbuff_ptr->meta.poll_flag = 1;
 			repsonse_cnt++;
 //			printk(KERN_ALERT "Responses => [%d]\n", repsonse_cnt);
 			switch (skbuff_ptr->meta.response_flag)
@@ -382,7 +383,7 @@ static int response_thread_per_cpu(void *unused)
 				{
 //					printk(KERN_ALERT "Response_5[%d]\n",cpu);
 					/* Parse the thread data */
-					printk(KERN_ALERT "Response RX | Len -> %d | CNT -> %d\n",cpu, skbuff_ptr->len, repsonse_cnt);
+					printk(KERN_ALERT "Response RX[%d] | Len -> %d | CNT -> %d\n", cpu, skbuff_ptr->len, repsonse_cnt);
 
 //					printk(KERN_ALERT "Response_6[%d]\n",cpu);
 					break;
@@ -432,6 +433,8 @@ static int __init nic_c_init(void) {
 		kthread_bind(thread_per_cpu[i], i);
 		wake_up_process(thread_per_cpu[i]);
 		sema_init(&wait_sem[i], 1);
+		/* Release semaphore to wake per CPU thread to pass command to stack */
+		down (&wait_sem[i]);
 		flag[i] = 'n';
 	}
 
