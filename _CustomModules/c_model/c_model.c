@@ -27,7 +27,7 @@ MODULE_VERSION("0.1");
 #define TYPE_RESPONSE	1
 
 #define NUM_CPUS 	8
-#define NUM_CMDS	128
+#define NUM_CMDS	8
 
 u8 response_thread_exit = 0;
 
@@ -330,7 +330,6 @@ static int response_thread_per_cpu(void *unused)
 }
 
 static int __init nic_c_init(void) {
-#if 0
 	struct skbuff_nic_c *skbuff_struc_temp;
 	int i = 0;
 	/* Initilize Queue */
@@ -373,14 +372,12 @@ static int __init nic_c_init(void) {
 		skbuff_struc_temp = &skbuff_driver[i];
 		push_queue(&skbuff_struc_temp, TYPE_REQUEST); 	
 	}
-#endif
 	printk(KERN_INFO "NIC-C Model Init Ends | CPU = %d!\n", num_online_cpus());
 	ssleep (1);
 	return 0;
 }
 
 static void __exit nic_c_exit(void) {
-#if 0
 	int i = 0;
 #if 0
    struct queue_ll *temp1, *temp2;
@@ -408,7 +405,6 @@ static void __exit nic_c_exit(void) {
 	//TODO: Do something better than sleep
 	/* Wait until threads to exit */
 	ssleep (5);
-#endif
    	printk(KERN_INFO "NIC-C Model Exit!\n");
 }
 
