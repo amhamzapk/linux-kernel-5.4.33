@@ -30,6 +30,8 @@ MODULE_VERSION("0.1");
 #define MILLION		1000000
 #define NUM_CMDS	10*MILLION
 
+int cnt_resp = 0;
+
 u8 response_thread_exit = 0;
 
 static DEFINE_MUTEX(push_lock);
@@ -134,9 +136,9 @@ static int pop_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
 		return -1;
 	}
 	else {
-		mutex_lock(&pop_resp_lock);
+//		mutex_lock(&pop_resp_lock);
 		temp_node = list_first_entry(head_response,struct queue_ll ,list);
-		mutex_unlock(&pop_resp_lock);
+//		mutex_unlock(&pop_resp_lock);
 	}
 
 	/* This structure needs to be passed to thread */
@@ -165,9 +167,9 @@ void push_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 	temp_node->skbuff_struct = *skbuff_struct;
 	
 	/* Add element to link list */
-	mutex_lock(&push_lock);
+//	mutex_lock(&push_lock);
 	list_add_tail(&temp_node->list,head);
-	mutex_unlock(&push_lock);
+//	mutex_unlock(&push_lock);
 }
 
 
@@ -181,9 +183,9 @@ void push_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
 	temp_node->skbuff_struct = *skbuff_struct;
 	
 	/* Add element to link list */
-	mutex_lock(&push_resp_lock);
+//	mutex_lock(&push_resp_lock);
 	list_add_tail(&temp_node->list,head_response);
-	mutex_unlock(&push_resp_lock);
+//	mutex_unlock(&push_resp_lock);
 }
 
 /*
@@ -231,7 +233,7 @@ static int thread_fn(void *unused)
 
 						/* Update response flag */
 						skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_RX;
-#if 1
+#if 0
 						/* Pass skbuff to response queue */
 						push_queue_response(&skbuff_ptr, TYPE_RESPONSE);
 						
@@ -252,7 +254,7 @@ static int thread_fn(void *unused)
 						/* Update response flag */
 						skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_TX;
 
-#if 1
+#if 0
 						/* Pass skbuff to response queue */
 						push_queue_response(&skbuff_ptr, TYPE_RESPONSE);
 
