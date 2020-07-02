@@ -31,7 +31,7 @@ MODULE_VERSION("0.1");
 #define NUM_CPUS 	4
 #define THOUSAND	1000
 #define MILLION		THOUSAND*THOUSAND
-#define NUM_CMDS	1024//10*MILLION
+#define NUM_CMDS	8//10*MILLION
 
 int cnt_resp = 0;
 char flag = 'n';
@@ -353,20 +353,20 @@ static int response_thread_per_cpu(void *unused)
 		if (pop_queue_response(&skbuff_ptr, TYPE_RESPONSE) != -1)
 		{
 			repsonse_cnt++;
-//			printk(KERN_ALERT "Responses => %d\n", repsonse_cnt);
+			printk(KERN_ALERT "Responses => %d\n", repsonse_cnt);
 			switch (skbuff_ptr->meta.response_flag)
 			{
 				case CASE_NOTIFY_STACK_RX:
 				{
 					/* Parse the thread data */
-//					printk(KERN_ALERT "Response RX | Len -> %d\n", skbuff_ptr->len);
+					printk(KERN_ALERT "Response RX | Len -> %d\n", skbuff_ptr->len);
 
 					break;
 				}
 				case CASE_NOTIFY_STACK_TX:
 				{
 					/* Parse the thread data */
-//					printk(KERN_ALERT "Response TX | Len -> %d\n", skbuff_ptr->len);
+					printk(KERN_ALERT "Response TX | Len -> %d\n", skbuff_ptr->len);
 
 					break;
 				}
