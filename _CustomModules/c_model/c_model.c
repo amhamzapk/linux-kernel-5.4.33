@@ -37,6 +37,7 @@ int cnt_resp = 0;
 
 u8 response_thread_exit = 0;
 
+static DEFINE_MUTEX(dealloc_lock);
 static DEFINE_MUTEX(alloc_lock);
 static DEFINE_MUTEX(push_lock);
 static DEFINE_MUTEX(pop_lock);
@@ -115,6 +116,14 @@ static inline void *kvmalloc_custom(size_t size)
 	return ret_alloc;
 }
 
+static inline kfree_custom(void *addr)
+{
+	mutex_lock(&dealloc_lock);
+	kfree(addr);
+	mutex_unlock(&dealloc_lock);
+	return 0;
+}
+
 /* 
 *	Pop last element from the queue
 *	Return-> 0  if found
@@ -143,7 +152,7 @@ static int pop_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 
 	/* Clear the node */
 	list_del(&temp_node->list);
-	kfree(temp_node);
+	kfree_custom(temp_node);
 
 	/* Return 0, element is found */
 	return 0;
@@ -170,7 +179,7 @@ static int pop_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
 
 	/* Clear the node */
 	list_del(&temp_node->list);
-	kfree(temp_node);
+	kfree_custom(temp_node);
 
 	/* Return 0, element is found */
 	return 0;
