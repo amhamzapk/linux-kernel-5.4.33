@@ -350,90 +350,90 @@ static int response_thread_per_cpu(void *unused)
 
 u64 global_skbuff_pass = 0xDEADBEEFBEEFDEAD;
 static int __init nic_c_init(void) {
-	struct skbuff_nic_c *skbuff_struc_temp;
-	int i = 0;
-	/* Initilize Queue */
-	printk(KERN_INFO "NIC-C Model Init!\n");
-	head=kmalloc(sizeof(struct list_head *),GFP_KERNEL);
-	INIT_LIST_HEAD(head);
-
-	head_response=kmalloc(sizeof(struct list_head *),GFP_KERNEL);
-	INIT_LIST_HEAD(head_response);
-
-//	// Create and bind and execute thread to core-2
-//	thread_st_nic = kthread_create(thread_fn, NULL, "kthread");
+//	struct skbuff_nic_c *skbuff_struc_temp;
+//	int i = 0;
+//	/* Initilize Queue */
+//	printk(KERN_INFO "NIC-C Model Init!\n");
+//	head=kmalloc(sizeof(struct list_head *),GFP_KERNEL);
+//	INIT_LIST_HEAD(head);
 //
-//	kthread_bind(thread_st_nic, 2);
-//	wake_up_process(thread_st_nic);
-
-//	for (i=0; i<NUM_CPUS; i++)
-//	{
-//		thread_per_cpu[i] = kthread_create(response_thread_per_cpu, NULL, "kthread_cpu");
-//		kthread_bind(thread_per_cpu[i], i);
-//		wake_up_process(thread_per_cpu[i]);
-//		sema_init(&wait_sem[i], 0);
-//	}
-
-	/* Wait for a second to let the thread being schedule */
-	ssleep(1);
-
-//	/* Push Dummy RX Command */
-//	for (i=0; i<NUM_CMDS; i++)
-//	{
-//		skbuff_driver[i].skbuff = &global_skbuff_pass;//(u8*) kmalloc(4,GFP_KERNEL);
-//		skbuff_driver[i].len = i + 1;
-//		skbuff_driver[i].meta.cpu = get_cpu();
-//		skbuff_driver[i].meta.response_flag = 0;
-//		// Half should be TX commands and half should be RX
-//		if ((i % 2) == 0)
-//			skbuff_driver[i].meta.command = PROCESS_RX;
-//		else
-//			skbuff_driver[i].meta.command = PROCESS_TX;
-//		skbuff_struc_temp = &skbuff_driver[i];
-//		push_queue(&skbuff_struc_temp, TYPE_REQUEST);
-////		printk(KERN_ALERT "Driver Cmd[%d]\n", i);
-////		udelay(10);
-//	}
+//	head_response=kmalloc(sizeof(struct list_head *),GFP_KERNEL);
+//	INIT_LIST_HEAD(head_response);
+//
+////	// Create and bind and execute thread to core-2
+////	thread_st_nic = kthread_create(thread_fn, NULL, "kthread");
+////
+////	kthread_bind(thread_st_nic, 2);
+////	wake_up_process(thread_st_nic);
+//
+////	for (i=0; i<NUM_CPUS; i++)
+////	{
+////		thread_per_cpu[i] = kthread_create(response_thread_per_cpu, NULL, "kthread_cpu");
+////		kthread_bind(thread_per_cpu[i], i);
+////		wake_up_process(thread_per_cpu[i]);
+////		sema_init(&wait_sem[i], 0);
+////	}
+//
+//	/* Wait for a second to let the thread being schedule */
+//	ssleep(1);
+//
+////	/* Push Dummy RX Command */
+////	for (i=0; i<NUM_CMDS; i++)
+////	{
+////		skbuff_driver[i].skbuff = &global_skbuff_pass;//(u8*) kmalloc(4,GFP_KERNEL);
+////		skbuff_driver[i].len = i + 1;
+////		skbuff_driver[i].meta.cpu = get_cpu();
+////		skbuff_driver[i].meta.response_flag = 0;
+////		// Half should be TX commands and half should be RX
+////		if ((i % 2) == 0)
+////			skbuff_driver[i].meta.command = PROCESS_RX;
+////		else
+////			skbuff_driver[i].meta.command = PROCESS_TX;
+////		skbuff_struc_temp = &skbuff_driver[i];
+////		push_queue(&skbuff_struc_temp, TYPE_REQUEST);
+//////		printk(KERN_ALERT "Driver Cmd[%d]\n", i);
+//////		udelay(10);
+////	}
 	printk(KERN_INFO "NIC-C Model Init Ends | CPU = %d!\n", num_online_cpus());
 	ssleep (1);
 	return 0;
 }
 
 static void __exit nic_c_exit(void) {
-	int i = 0;
-#if 0
-   struct queue_ll *temp1, *temp2;
-   int count = 0;
-#endif
-   printk("Exit_1\n");
-//   kthread_stop(thread_st_nic);
-
-   printk("Exit_2\n");
-#if 0
-   list_for_each_entr y_safe(temp1, temp2, head, list) {
-	   printk(KERN_INFO "Node %d data = %d\n" , count++, temp1->skbuff_struct->len);
-
-			list_del(&temp1->list);list_first_entry(head,struct queue_ll ,list);
-			kfree(temp1);
-   }
-#endif
-
-	response_thread_exit = 1;
-
-//	for (i=0; i<NUM_CPUS; i++)
-//	{
-//	    up (&wait_sem[i]);
-//	}
-
-	   printk("Exit_3\n");
-	//TODO: Do something better than sleep
-	/* Wait until threads to exit */
-	ssleep (1);
-
-	/* Dealocate all memories */
-	kfree(head);
-	   printk("Exit_4\n");
-	kfree(head_response);
+//	int i = 0;
+//#if 0
+//   struct queue_ll *temp1, *temp2;
+//   int count = 0;
+//#endif
+//   printk("Exit_1\n");
+////   kthread_stop(thread_st_nic);
+//
+//   printk("Exit_2\n");
+//#if 0
+//   list_for_each_entr y_safe(temp1, temp2, head, list) {
+//	   printk(KERN_INFO "Node %d data = %d\n" , count++, temp1->skbuff_struct->len);
+//
+//			list_del(&temp1->list);list_first_entry(head,struct queue_ll ,list);
+//			kfree(temp1);
+//   }
+//#endif
+//
+//	response_thread_exit = 1;
+//
+////	for (i=0; i<NUM_CPUS; i++)
+////	{
+////	    up (&wait_sem[i]);
+////	}
+//
+//	   printk("Exit_3\n");
+//	//TODO: Do something better than sleep
+//	/* Wait until threads to exit */
+//	ssleep (1);
+//
+//	/* Dealocate all memories */
+//	kfree(head);
+//	   printk("Exit_4\n");
+//	kfree(head_response);
 
    	printk(KERN_INFO "NIC-C Model Exit!\n");
 }
