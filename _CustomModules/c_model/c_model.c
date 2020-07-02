@@ -411,7 +411,7 @@ static int __init nic_c_init(void) {
 		thread_per_cpu[i] = kthread_create(response_thread_per_cpu, NULL, "kthread_cpu");
 		kthread_bind(thread_per_cpu[i], i);
 		wake_up_process(thread_per_cpu[i]);
-		sema_init(&wait_sem[i], 0);
+		sema_init(&wait_sem[i], 1);
 	}
 
 	/* Wait for a second to let the thread being schedule */
