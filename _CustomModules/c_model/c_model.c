@@ -151,7 +151,7 @@ static int pop_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 
 	/* Clear the node */
 	list_del(&temp_node->list);
-//	kvfree_custom(temp_node);
+	kfree(temp_node);
 
 	/* Return 0, element is found */
 	return 0;
@@ -178,7 +178,7 @@ static int pop_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
 
 	/* Clear the node */
 	list_del(&temp_node->list);
-	kvfree(temp_node);
+//	kvfree(temp_node);
 
 	/* Return 0, element is found */
 	return 0;
@@ -190,11 +190,11 @@ static int pop_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
 *	Element will be passed by reference
 */ 
 void push_queue(struct skbuff_nic_c **skbuff_struct, int type) {
-	struct queue_ll *temp_node = (struct queue_ll*)&pool_queue[alloc_index++];
+	struct queue_ll *temp_node;// = (struct queue_ll*)&pool_queue[alloc_index++];
 
 	/* Allocate Node */
-//	temp_node=kvmalloc_custom(sizeof(struct queue_ll));
-//	temp_node=kvmalloc(sizeof(struct queue_ll),GFP_ATOMIC);
+//	temp_node=kmalloc(sizeof(struct queue_ll));
+	temp_node=kmalloc(sizeof(struct queue_ll),GFP_ATOMIC);
 //	pool_queue[alloc_index] =
 
 	/* skbuff needs to be add to link list */
@@ -208,12 +208,12 @@ void push_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 #ifdef RESPONSE_NEEDED
 
 void push_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
-	static struct queue_ll_resp *temp_node;
-//	struct queue_ll_resp *temp_node = (struct queue_ll_resp*)&pool_queue_2[alloc_index_2++];
+//	static struct queue_ll_resp *temp_node;
+	struct queue_ll_resp *temp_node = (struct queue_ll_resp*)&pool_queue_2[alloc_index_2++];
 
 	/* Allocate Node */
 //	temp_node=kvmalloc_custom(sizeof(struct queue_ll_resp));
-	temp_node=kvmalloc(sizeof(struct queue_ll_resp), GFP_ATOMIC);
+//	temp_node=kvmalloc(sizeof(struct queue_ll_resp), GFP_ATOMIC);
 
 	/* skbuff needs to be add to link list */
 	temp_node->skbuff_struct = *skbuff_struct;
