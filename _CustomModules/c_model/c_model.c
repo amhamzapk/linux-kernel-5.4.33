@@ -111,7 +111,7 @@ static inline void *kvmalloc_custom(size_t size)
 {
 	void *ret_alloc;
 	mutex_lock(&alloc_lock);
-	ret_alloc = kmalloc(size, GFP_ATOMIC);
+	ret_alloc = kvmalloc(size, GFP_ATOMIC);
 	mutex_unlock(&alloc_lock);
 	return ret_alloc;
 }
@@ -119,7 +119,7 @@ static inline void *kvmalloc_custom(size_t size)
 void kfree_custom(void *addr)
 {
 	mutex_lock(&dealloc_lock);
-	kfree(addr);
+	kvfree(addr);
 	mutex_unlock(&dealloc_lock);
 }
 
@@ -178,7 +178,7 @@ static int pop_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
 
 	/* Clear the node */
 	list_del(&temp_node->list);
-	kfree_custom(temp_node);
+	kfree(temp_node);
 
 	/* Return 0, element is found */
 	return 0;
