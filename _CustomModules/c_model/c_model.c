@@ -39,6 +39,9 @@ u8 response_thread_exit = 0;
 
 static DEFINE_MUTEX(push_lock);
 static DEFINE_MUTEX(pop_lock);
+static DEFINE_MUTEX(push_lock_resp);
+static DEFINE_MUTEX(pop_lock_resp);
+static DEFINE_MUTEX(temp_lock);
 static DEFINE_MUTEX(push_resp_lock);
 static DEFINE_MUTEX(pop_resp_lock);
 static DEFINE_MUTEX(response_lock);
@@ -114,10 +117,12 @@ static int pop_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 	if (type == TYPE_RESPONSE)
 	{
 		head_temp = head_response;
+		temp_lock = pop_lock_resp;
 	}
 	else
 	{
 		head_temp = head;
+		temp_lock = pop_lock;
 	}
 
 	/* Check if there is something in the queue */
@@ -126,9 +131,9 @@ static int pop_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 		return -1;
 	}
 	else {
-		mutex_lock(&pop_lock);
+		mutex_lock(&temp_lock);
 		temp_node = list_first_entry(head_temp,struct queue_ll ,list);
-		mutex_unlock(&pop_lock);
+		mutex_unlock(&temp_lock);
 	}
 
 
@@ -181,10 +186,12 @@ void push_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 	if (type == TYPE_RESPONSE)
 	{
 		head_temp = head_response;
+		temp_lock = push_lock_resp;
 	}
 	else
 	{
 		head_temp = head;
+		temp_lock = push_lock;
 	}
 
 	/* Allocate Node */
@@ -195,9 +202,9 @@ void push_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 	temp_node->skbuff_struct = *skbuff_struct;
 	
 	/* Add element to link list */
-	mutex_lock(&push_lock);
+	mutex_lock(&temp_lock);
 	list_add_tail(&temp_node->list,head_temp);
-	mutex_unlock(&push_lock);
+	mutex_unlock(&temp_lock);
 }
 #if	0//def RESPONSE_NEEDED
 
