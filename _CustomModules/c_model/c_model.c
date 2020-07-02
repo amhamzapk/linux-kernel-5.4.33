@@ -360,10 +360,10 @@ static int __init nic_c_init(void) {
 	head_response=kmalloc(sizeof(struct list_head *),GFP_KERNEL);
 	INIT_LIST_HEAD(head_response);
 
-	// Create and bind and execute thread to core-2
-	thread_st_nic = kthread_create(thread_fn, NULL, "kthread");
-
-	kthread_bind(thread_st_nic, 2);
+//	// Create and bind and execute thread to core-2
+//	thread_st_nic = kthread_create(thread_fn, NULL, "kthread");
+//
+//	kthread_bind(thread_st_nic, 2);
 //	wake_up_process(thread_st_nic);
 
 //	for (i=0; i<NUM_CPUS; i++)
