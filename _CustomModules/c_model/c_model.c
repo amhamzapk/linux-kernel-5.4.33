@@ -116,12 +116,11 @@ static inline void *kvmalloc_custom(size_t size)
 	return ret_alloc;
 }
 
-static inline kfree_custom(void *addr)
+void kfree_custom(void *addr)
 {
 	mutex_lock(&dealloc_lock);
 	kfree(addr);
 	mutex_unlock(&dealloc_lock);
-	return 0;
 }
 
 /* 
@@ -213,7 +212,8 @@ void push_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
 //	struct queue_ll_resp *temp_node = (struct queue_ll_resp*)&pool_queue_2[alloc_index_2++];
 
 	/* Allocate Node */
-	temp_node=kvmalloc_custom(sizeof(struct queue_ll_resp));
+//	temp_node=kvmalloc_custom(sizeof(struct queue_ll_resp));
+	temp_node=kmalloc(sizeof(struct queue_ll_resp), GFP_ATOMIC);
 
 	/* skbuff needs to be add to link list */
 	temp_node->skbuff_struct = *skbuff_struct;
