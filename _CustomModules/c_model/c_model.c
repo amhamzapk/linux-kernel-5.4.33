@@ -350,7 +350,7 @@ static int response_thread_per_cpu(void *unused)
 	int cpu = get_cpu();
 	while (1)
 	{	
-	    wait_event_interruptible(my_wait_queue, flag != 'n');
+	    wait_event_interruptible(my_wait_queue, flag != 'y');
 		flag = 'n';
 //		up (&wait_sem[cpu]);
 #ifdef RESPONSE_NEEDED
