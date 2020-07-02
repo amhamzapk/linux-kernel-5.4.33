@@ -28,7 +28,7 @@ MODULE_VERSION("0.1");
 
 #define NUM_CPUS 	4
 #define MILLION		1000000
-#define NUM_CMDS	1000*MILLION
+#define NUM_CMDS	10*MILLION
 
 u8 response_thread_exit = 0;
 
