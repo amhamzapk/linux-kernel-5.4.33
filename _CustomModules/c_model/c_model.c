@@ -281,18 +281,18 @@ static int thread_fn(void *unused)
 						push_queue_response(&skbuff_ptr, TYPE_RESPONSE);
 
 
-//						printk(KERN_ALERT "RX Command_3\n");
+						printk(KERN_ALERT "RX Command_3 | Flag -> %c\n", flag[skbuff_ptr->meta.cpu]);
 						flag[skbuff_ptr->meta.cpu] = 'y';
 
 						wake_up(&my_wait_queue[skbuff_ptr->meta.cpu]);
 
 
-//						printk(KERN_ALERT "RX Command_4\n");
+						printk(KERN_ALERT "RX Command_4 | Flag -> %c\n", flag[skbuff_ptr->meta.cpu]);
 
 						/* Release semaphore to wake per CPU thread to pass command to stack */
 	    				down (&wait_sem[skbuff_ptr->meta.cpu]);
 
-//						printk(KERN_ALERT "RX Command_5\n");
+						printk(KERN_ALERT "RX Command_5 | Flag -> %c\n", flag[skbuff_ptr->meta.cpu]);
 
 						while (skbuff_ptr->meta.poll_flag == 0);
 
@@ -363,9 +363,9 @@ static int response_thread_per_cpu(void *unused)
 	int cpu = get_cpu();
 	while (1)
 	{	
-//		printk(KERN_ALERT "Response_1[%d]\n",cpu);
+		printk(KERN_ALERT "Response_1[%d]\n",cpu);
 	    wait_event(my_wait_queue[cpu], flag[cpu] != 'n');
-//		printk(KERN_ALERT "Response_2[%d]\n",cpu);
+		printk(KERN_ALERT "Response_2[%d]\n",cpu);
 		flag[cpu] = 'n';
 		up (&wait_sem[cpu]);
 #ifdef RESPONSE_NEEDED
