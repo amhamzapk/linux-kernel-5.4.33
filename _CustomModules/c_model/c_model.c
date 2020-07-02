@@ -274,7 +274,7 @@ static int thread_fn(void *unused)
 						/* Update response flag */
 						skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_RX;
 #ifdef RESPONSE_NEEDED
-	    				helper_flag[skbuff_ptr->meta.cpu] = 0;
+						skbuff_ptr->meta.poll_flag = 0;
 
 						/* Pass skbuff to response queue */
 						push_queue_response(&skbuff_ptr, TYPE_RESPONSE);
@@ -286,7 +286,7 @@ static int thread_fn(void *unused)
 						/* Release semaphore to wake per CPU thread to pass command to stack */
 	    				down (&wait_sem[skbuff_ptr->meta.cpu]);
 
-						helper_flag[skbuff_ptr->meta.cpu] = 1;
+	    				while (skbuff_ptr->meta.poll_flag == 0);
 #endif
 						break;
 					}
@@ -299,7 +299,7 @@ static int thread_fn(void *unused)
 						skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_TX;
 
 #ifdef RESPONSE_NEEDED
-	    				helper_flag[skbuff_ptr->meta.cpu] = 0;
+						skbuff_ptr->meta.poll_flag = 0;
 
 						/* Pass skbuff to response queue */
 						push_queue_response(&skbuff_ptr, TYPE_RESPONSE);
@@ -311,7 +311,7 @@ static int thread_fn(void *unused)
 						/* Release semaphore to wake per CPU thread to pass command to stack */
 	    				down (&wait_sem[skbuff_ptr->meta.cpu]);
 
-	    				helper_flag[skbuff_ptr->meta.cpu] = 1;
+	    				while (skbuff_ptr->meta.poll_flag == 0);
 #endif
 						break;
 					}
@@ -353,11 +353,10 @@ static int response_thread_per_cpu(void *unused)
 	    wait_event_interruptible(my_wait_queue[cpu], flag[cpu] != 'n');
 		flag[cpu] = 'n';
 		up (&wait_sem[cpu]);
-		while (helper_flag[cpu] == 0);
 #ifdef RESPONSE_NEEDED
 		if (pop_queue_response(&skbuff_ptr, TYPE_RESPONSE) != -1)
 		{
-//			skbuff_ptr->meta.poll_flag = 1;
+			skbuff_ptr->meta.poll_flag = 1;
 			repsonse_cnt++;
 			printk(KERN_ALERT "Responses => %d\n", repsonse_cnt);
 			switch (skbuff_ptr->meta.response_flag)
