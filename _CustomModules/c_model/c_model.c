@@ -430,7 +430,7 @@ static int request_thread_per_cpu(void *unused)
 		skbuff_struc_temp = &skbuff_driver[get_cpu()][i];
 		push_queue(&skbuff_struc_temp, TYPE_REQUEST);
 //		printk(KERN_ALERT "Driver Cmd[%d]\n", i);
-//		udelay(10);
+		msleep(1);
 	}
 
     return 0;
