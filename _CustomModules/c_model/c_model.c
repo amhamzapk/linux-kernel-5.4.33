@@ -20,8 +20,8 @@ MODULE_DESCRIPTION("NIC-C Model Description");
 MODULE_VERSION("0.1");
 #define CASE_WAIT_IDLE			'a'
 #define CASE_WAIT_EXIT   		'b'
-#define CASE_NOTIFY_STACK_TX   	'c'
-#define CASE_NOTIFY_STACK_RX   	'd'
+#define CASE_NOTIFY_STACK_TX   	123
+#define CASE_NOTIFY_STACK_RX   	456
 
 #define RESPONSE_NEEDED
 
@@ -318,11 +318,10 @@ static int response_thread_per_cpu(void *unused)
 		{
 
 			printk(KERN_ALERT "Some Response | %d, %d\n", skbuff_ptr->meta.command, skbuff_ptr->meta.response_flag);
-			switch (skbuff_ptr->meta.command)
+			switch (skbuff_ptr->meta.response_flag)
 			{
 				case PROCESS_RX:
 				{
-					skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_RX;
 					/* Parse the thread data */
 					printk(KERN_ALERT "Response RX | Len -> %d\n", skbuff_ptr->len);
 
@@ -330,7 +329,6 @@ static int response_thread_per_cpu(void *unused)
 				}
 				case PROCESS_TX:
 				{
-					skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_TX;
 					/* Parse the thread data */
 					printk(KERN_ALERT "Response TX | Len -> %d\n", skbuff_ptr->len);
 
