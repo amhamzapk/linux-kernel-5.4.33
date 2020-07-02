@@ -53,8 +53,8 @@ static DEFINE_MUTEX(response_lock);
 static struct semaphore   wait_sem[NUM_CPUS];
 static struct task_struct *thread_st_nic;
 static struct task_struct *thread_per_cpu[NUM_CPUS];
-static struct list_head   *head;
-static struct list_head   *head_response;
+static struct list_head   head;
+static struct list_head   head_response;
 
 static int 	  thread_fn(void *unused);
 
@@ -112,13 +112,13 @@ static int pop_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 	struct queue_ll *temp_node;
 
 	/* Check if there is something in the queue */
-	if(list_empty(head)) {
+	if(list_empty(&head)) {
 		/* Return -1, no element is found */
 		return -1;
 	}
 	else {
 		mutex_lock(&pop_lock);
-		temp_node = list_first_entry(head,struct queue_ll ,list);
+		temp_node = list_first_entry(&head,struct queue_ll ,list);
 		mutex_unlock(&pop_lock);
 	}
 
@@ -140,13 +140,13 @@ static int pop_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
 	struct queue_ll *temp_node;
 
 	/* Check if there is something in the queue */
-	if(list_empty(head_response)) {
+	if(list_empty(&head_response)) {
 		/* Return -1, no element is found */
 		return -1;
 	}
 	else {
 		mutex_lock(&pop_resp_lock);
-		temp_node = list_first_entry(head_response,struct queue_ll ,list);
+		temp_node = list_first_entry(&head_response,struct queue_ll ,list);
 		mutex_unlock(&pop_resp_lock);
 	}
 
@@ -178,7 +178,7 @@ void push_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 	
 	/* Add element to link list */
 	mutex_lock(&push_lock);
-	list_add_tail(&temp_node->list,head);
+	list_add_tail(&temp_node->list,&head);
 	mutex_unlock(&push_lock);
 }
 #ifdef RESPONSE_NEEDED
@@ -195,7 +195,7 @@ void push_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
 	
 	/* Add element to link list */
 	mutex_lock(&push_resp_lock);
-	list_add_tail(&temp_node->list,head_response);
+	list_add_tail(&temp_node->list,&head_response);
 	mutex_unlock(&push_resp_lock);
 }
 #endif
@@ -354,11 +354,11 @@ static int __init nic_c_init(void) {
 	int i = 0;
 	/* Initilize Queue */
 	printk(KERN_INFO "NIC-C Model Init!\n");
-	head=kmalloc(sizeof(struct list_head *),GFP_KERNEL);
-	INIT_LIST_HEAD(head);
+//	head=kmalloc(sizeof(struct list_head *),GFP_KERNEL);
+	INIT_LIST_HEAD(&head);
 
-	head_response=kmalloc(sizeof(struct list_head *),GFP_KERNEL);
-	INIT_LIST_HEAD(head_response);
+//	head_response=kmalloc(sizeof(struct list_head *),GFP_KERNEL);
+	INIT_LIST_HEAD(&head_response);
 
 	// Create and bind and execute thread to core-2
 	thread_st_nic = kthread_create(thread_fn, NULL, "kthread");
