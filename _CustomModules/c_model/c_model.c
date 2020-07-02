@@ -406,7 +406,7 @@ static void __exit nic_c_exit(void) {
    int count = 0;
 #endif
    printk("Exit_1\n");
-   kthread_stop(thread_st_nic);
+//   kthread_stop(thread_st_nic);
 
    printk("Exit_2\n");
 #if 0
