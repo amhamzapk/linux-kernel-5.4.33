@@ -31,7 +31,7 @@ MODULE_VERSION("0.1");
 #define NUM_CPUS 	4
 #define THOUSAND	1000
 #define MILLION		THOUSAND*THOUSAND
-#define NUM_CMDS	32//1*MILLION
+#define NUM_CMDS	1024//1*MILLION
 
 int cnt_resp = 0;
 
@@ -362,6 +362,7 @@ static int response_thread_per_cpu(void *unused)
 #ifdef RESPONSE_NEEDED
 	struct skbuff_nic_c *skbuff_ptr;
 #endif
+	int repsonse_cnt_local = 0;
 	int cpu = get_cpu();
 	while (1)
 	{	
@@ -377,6 +378,7 @@ static int response_thread_per_cpu(void *unused)
 //			printk(KERN_ALERT "Response_4[%d]\n",cpu);
 			skbuff_ptr->meta.poll_flag = 1;
 			repsonse_cnt++;
+			repsonse_cnt_local++;
 //			printk(KERN_ALERT "Responses => [%d]\n", repsonse_cnt);
 			switch (skbuff_ptr->meta.response_flag)
 			{
@@ -384,7 +386,7 @@ static int response_thread_per_cpu(void *unused)
 				{
 //					printk(KERN_ALERT "Response_5[%d]\n",cpu);
 					/* Parse the thread data */
-					printk(KERN_ALERT "Response RX - %d | Len -> %d | Num \n", repsonse_cnt, skbuff_ptr->len);
+					printk(KERN_ALERT "\nResponse | Core-%d | Total->%d\n", cpu, repsonse_cnt_local);
 
 //					printk(KERN_ALERT "Response_6[%d]\n",cpu);
 					break;
@@ -392,7 +394,7 @@ static int response_thread_per_cpu(void *unused)
 				case CASE_NOTIFY_STACK_TX:
 				{
 					/* Parse the thread data */
-					printk(KERN_ALERT "Response TX - %d | Len -> %d\n", repsonse_cnt, skbuff_ptr->len);
+					printk(KERN_ALERT "\nResponse | Core-%d | Total->%d\n", cpu, repsonse_cnt_local);
 
 					break;
 				}
@@ -403,8 +405,8 @@ static int response_thread_per_cpu(void *unused)
 			break;
 	}
 
-	printk(KERN_ALERT "Responses => %d\n", repsonse_cnt);
-	printk("Thread-%d exitting...\n", get_cpu());
+	printk(KERN_ALERT "Core-%d | Responses => %d\n", repsonse_cnt_local);
+//	printk("Thread-%d exitting...\n", get_cpu());
 
     return 0;
 }
@@ -484,10 +486,8 @@ static void __exit nic_c_exit(void) {
    struct queue_ll *temp1, *temp2;
    int count = 0;
 #endif
-   printk("Exit_1\n");
    kthread_stop(thread_st_nic);
 
-   printk("Exit_2\n");
 #if 0
    list_for_each_entr y_safe(temp1, temp2, head, list) {
 	   printk(KERN_INFO "Node %d data = %d\n" , count++, temp1->skbuff_struct->len);
@@ -512,15 +512,15 @@ static void __exit nic_c_exit(void) {
 		down (&wait_sem[i]);
 	}
 
-	   printk("Exit_3\n");
 	//TODO: Do something better than sleep
 	/* Wait until threads to exit */
 
 	/* Dealocate all memories */
 //	kfree(head);
-	   printk("Exit_4\n");
 //	kfree(head_response);
 
+
+	printk(KERN_ALERT "Total Responses => %d\n", repsonse_cnt);
    	printk(KERN_INFO "NIC-C Model Exit!\n");
 }
 
