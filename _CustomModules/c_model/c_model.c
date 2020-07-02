@@ -29,7 +29,7 @@ MODULE_VERSION("0.1");
 #define NUM_CPUS 	4
 #define THOUSAND	1000
 #define MILLION		THOUSAND*THOUSAND
-#define NUM_CMDS	10 * MILLION
+#define NUM_CMDS	100 * THOUSAND
 
 int cnt_resp = 0;
 
@@ -76,11 +76,11 @@ struct queue_ll{
      struct skbuff_nic_c *skbuff_struct;
 };
 
-int alloc_limit = 100000;
+int alloc_limit = NUM_CMDS;
 int alloc_index = 0;
 int alloc_index_2 = 0;
-struct queue_ll pool_queue[100 * THOUSAND];
-struct queue_ll pool_queue_2[100 * THOUSAND];
+struct queue_ll pool_queue[NUM_CMDS];
+struct queue_ll pool_queue_2[NUM_CMDS];
 
 //TODO: Make it allocate at runtime
 /* Buffer that driver will use */
