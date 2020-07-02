@@ -37,6 +37,7 @@ int cnt_resp = 0;
 
 u8 response_thread_exit = 0;
 
+static DEFINE_MUTEX(alloc_lock);
 static DEFINE_MUTEX(push_lock);
 static DEFINE_MUTEX(pop_lock);
 static DEFINE_MUTEX(push_resp_lock);
@@ -104,6 +105,12 @@ static inline u64 read_rdtsc(void)
     __asm__ __volatile__("rdtscp" : "=a"(lo), "=d"(hi) :: "ecx" );
 
     return (u64) ((hi << 32) | lo);
+}
+static inline void *kvmalloc_custom(size_t size)
+{
+	mutex_lock(&alloc_lock);
+	return kvmalloc(size, GFP_ATOMIC);
+	mutex_unlock(&alloc_lock);
 }
 
 /* 
@@ -176,7 +183,8 @@ void push_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 	struct queue_ll *temp_node;// = (struct queue_ll*)&pool_queue[alloc_index++];
 
 	/* Allocate Node */
-	temp_node=kvmalloc(sizeof(struct queue_ll),GFP_ATOMIC);
+	temp_node=kvmalloc_custom(sizeof(struct queue_ll));
+//	temp_node=kvmalloc(sizeof(struct queue_ll),GFP_ATOMIC);
 //	pool_queue[alloc_index] =
 
 	/* skbuff needs to be add to link list */
