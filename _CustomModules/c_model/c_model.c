@@ -288,12 +288,12 @@ static int thread_fn(void *unused)
 
 //						while (flag[skbuff_ptr->meta.cpu] == 'y');
 //
-//						helper_flag[skbuff_ptr->meta.cpu] = 1;
+						helper_flag[skbuff_ptr->meta.cpu] = 1;
 
-						while (skbuff_ptr->meta.poll_flag == 0);
+//						while (skbuff_ptr->meta.poll_flag == 0);
 
 						/* Release semaphore to wake per CPU thread to pass command to stack */
-//	    				down (&wait_sem[skbuff_ptr->meta.cpu]);
+	    				down (&wait_sem[skbuff_ptr->meta.cpu]);
 
 //						mutex_unlock(&response_lock);
 #endif
@@ -319,12 +319,12 @@ static int thread_fn(void *unused)
 
 //						while (flag[skbuff_ptr->meta.cpu] == 'y');
 //
-//						helper_flag[skbuff_ptr->meta.cpu] = 1;
+						helper_flag[skbuff_ptr->meta.cpu] = 1;
 
-						while (skbuff_ptr->meta.poll_flag == 0);
+//						while (skbuff_ptr->meta.poll_flag == 0);
 
 						/* Release semaphore to wake per CPU thread to pass command to stack */
-//	    				down (&wait_sem[skbuff_ptr->meta.cpu]);
+	    				down (&wait_sem[skbuff_ptr->meta.cpu]);
 
 //						mutex_unlock(&response_lock);
 #endif
@@ -367,14 +367,12 @@ static int response_thread_per_cpu(void *unused)
 	{	
 	    wait_event_interruptible(my_wait_queue[cpu], flag[cpu] != 'n');
 		flag[cpu] = 'n';
-
-//		while (helper_flag[cpu] == 0);
-
-//		up (&wait_sem[cpu]);
+		up (&wait_sem[cpu]);
+		while (helper_flag[cpu] == 0);
 #ifdef RESPONSE_NEEDED
 		if (pop_queue_response(&skbuff_ptr, TYPE_RESPONSE) != -1)
 		{
-			skbuff_ptr->meta.poll_flag = 1;
+//			skbuff_ptr->meta.poll_flag = 1;
 			repsonse_cnt++;
 			printk(KERN_ALERT "Responses => %d\n", repsonse_cnt);
 			switch (skbuff_ptr->meta.response_flag)
