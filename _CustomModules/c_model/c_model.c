@@ -364,7 +364,7 @@ static int __init nic_c_init(void) {
 	thread_st_nic = kthread_create(thread_fn, NULL, "kthread");
 
 	kthread_bind(thread_st_nic, 2);
-	wake_up_process(thread_st_nic);
+//	wake_up_process(thread_st_nic);
 
 //	for (i=0; i<NUM_CPUS; i++)
 //	{
