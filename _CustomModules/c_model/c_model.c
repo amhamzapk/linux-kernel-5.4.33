@@ -61,7 +61,7 @@ struct meta_skbuff {
 
 /* Main Structure for NIC-C Model */
 struct skbuff_nic_c {
-	u8 *skbuff;
+	u64 *skbuff;
 	u32 len;
 	struct meta_skbuff meta;
 };
@@ -329,6 +329,7 @@ static int response_thread_per_cpu(void *unused)
     return 0;
 }
 
+u64 global_skbuff_pass = 0xDEADBEEFBEEFDEAD;
 static int __init nic_c_init(void) {
 	struct skbuff_nic_c *skbuff_struc_temp;
 	int i = 0;
@@ -360,7 +361,7 @@ static int __init nic_c_init(void) {
 	/* Push Dummy RX Command */
 	for (i=0; i<NUM_CMDS; i++)
 	{
-		skbuff_driver[i].skbuff = (u8*) kmalloc(4,GFP_KERNEL);
+		skbuff_driver[i].skbuff = &global_skbuff_pass;//(u8*) kmalloc(4,GFP_KERNEL);
 		skbuff_driver[i].len = i + 1;
 		skbuff_driver[i].meta.cpu = get_cpu();
 		skbuff_driver[i].meta.response_flag = 0;
