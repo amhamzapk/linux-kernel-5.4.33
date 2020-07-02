@@ -35,7 +35,7 @@ MODULE_VERSION("0.1");
 
 int cnt_resp = 0;
 volatile char flag[NUM_CMDS] = {'n'};
-volatile u8   helper_flag[NUM_CMDS] = 0;
+volatile u8   helper_flag[NUM_CMDS] = {0};
 
 u8 response_thread_exit = 0;
 
@@ -362,7 +362,8 @@ static int response_thread_per_cpu(void *unused)
 	    wait_event_interruptible(my_wait_queue[cpu], flag[cpu] != 'n');
 		flag[cpu] = 'n';
 
-		while (helper_flag[skbuff_ptr->meta.cpu] == 0);
+		while (helper_flag[cpu] == 0);
+
 //		up (&wait_sem[cpu]);
 #ifdef RESPONSE_NEEDED
 		if (pop_queue_response(&skbuff_ptr, TYPE_RESPONSE) != -1)
