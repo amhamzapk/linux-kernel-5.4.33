@@ -395,9 +395,10 @@ static void __exit nic_c_exit(void) {
    struct queue_ll *temp1, *temp2;
    int count = 0;
 #endif
-
+   printk("Exit_1\n");
    kthread_stop(thread_st_nic);
 
+   printk("Exit_2\n");
 #if 0
    list_for_each_entr y_safe(temp1, temp2, head, list) {
 	   printk(KERN_INFO "Node %d data = %d\n" , count++, temp1->skbuff_struct->len);
@@ -414,12 +415,14 @@ static void __exit nic_c_exit(void) {
 	    up (&wait_sem[i]);
 	}
 
+	   printk("Exit_3\n");
 	//TODO: Do something better than sleep
 	/* Wait until threads to exit */
 	ssleep (1);
 
 	/* Dealocate all memories */
 	kfree(head);
+	   printk("Exit_4\n");
 	kfree(head_response);
 
    	printk(KERN_INFO "NIC-C Model Exit!\n");
