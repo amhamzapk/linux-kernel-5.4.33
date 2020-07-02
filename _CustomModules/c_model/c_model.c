@@ -107,18 +107,27 @@ static inline u64 read_rdtsc(void)
 *	Element will be get by reference
 *   Type will tell if Request or Response
 */ 
-static int pop_queue(struct skbuff_nic_c **skbuff_struct, struct list_head **head_type) {
+static int pop_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 
 	struct queue_ll *temp_node;
+	static struct list_head   *head_temp;
+	if (type == TYPE_RESPONSE)
+	{
+		head_temp = head_response;
+	}
+	else
+	{
+		head_temp = head;
+	}
 
 	/* Check if there is something in the queue */
-	if(list_empty(*head_type)) {
+	if(list_empty(head_temp)) {
 		/* Return -1, no element is found */
 		return -1;
 	}
 	else {
 		mutex_lock(&pop_lock);
-		temp_node = list_first_entry(*head_type,struct queue_ll ,list);
+		temp_node = list_first_entry(head_temp,struct queue_ll ,list);
 		mutex_unlock(&pop_lock);
 	}
 
@@ -166,8 +175,17 @@ static int pop_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
 *	Push element in queue head
 *	Element will be passed by reference
 */ 
-void push_queue(struct skbuff_nic_c **skbuff_struct, struct list_head **head_type) {
+void push_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 	struct queue_ll *temp_node;// = (struct queue_ll*)&pool_queue[alloc_index++];
+	static struct list_head   *head_temp;
+	if (type == TYPE_RESPONSE)
+	{
+		head_temp = head_response;
+	}
+	else
+	{
+		head_temp = head;
+	}
 
 	/* Allocate Node */
 	temp_node=kvmalloc(sizeof(struct queue_ll),GFP_ATOMIC);
@@ -178,7 +196,7 @@ void push_queue(struct skbuff_nic_c **skbuff_struct, struct list_head **head_typ
 	
 	/* Add element to link list */
 	mutex_lock(&push_lock);
-	list_add_tail(&temp_node->list,*head_type);
+	list_add_tail(&temp_node->list,head_temp);
 	mutex_unlock(&push_lock);
 }
 #if	0//def RESPONSE_NEEDED
@@ -232,7 +250,7 @@ static int thread_fn(void *unused)
 			
 			/* Check if some command is in queue */
 			/* If found, element will be point to skbuff_ptr */
-        	if (pop_queue(&skbuff_ptr, &head) != -1) {
+        	if (pop_queue(&skbuff_ptr, TYPE_REQUEST) != -1) {
 
 				switch (skbuff_ptr->meta.command)
 				{
@@ -246,7 +264,7 @@ static int thread_fn(void *unused)
 						skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_RX;
 #ifdef RESPONSE_NEEDED
 						/* Pass skbuff to response queue */
-						push_queue(&skbuff_ptr, &head_response);
+						push_queue(&skbuff_ptr, TYPE_RESPONSE);
 						
     					mutex_lock(&response_lock);
 						
@@ -267,7 +285,7 @@ static int thread_fn(void *unused)
 
 #ifdef RESPONSE_NEEDED
 						/* Pass skbuff to response queue */
-						push_queue(&skbuff_ptr, &head_response);
+						push_queue(&skbuff_ptr, TYPE_RESPONSE);
 
     					mutex_lock(&response_lock);
 
@@ -315,7 +333,7 @@ static int response_thread_per_cpu(void *unused)
 	{	
 		down (&wait_sem[cpu]);
 #ifdef RESPONSE_NEEDED
-		if (pop_queue(&skbuff_ptr, &head_response) != -1)
+		if (pop_queue(&skbuff_ptr, TYPE_RESPONSE) != -1)
 		{
 			repsonse_cnt++;
 			printk(KERN_ALERT "Responses => %d\n", repsonse_cnt);
@@ -389,7 +407,7 @@ static int __init nic_c_init(void) {
 		else
 			skbuff_driver[i].meta.command = PROCESS_TX;
 		skbuff_struc_temp = &skbuff_driver[i];
-		push_queue(&skbuff_struc_temp, &head);
+		push_queue(&skbuff_struc_temp, TYPE_REQUEST);
 		printk(KERN_ALERT "Driver Cmd[%d]\n", i);
 //		udelay(10);
 	}
