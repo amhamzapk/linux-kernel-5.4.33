@@ -31,9 +31,10 @@ MODULE_VERSION("0.1");
 #define NUM_CPUS 	4
 #define THOUSAND	1000
 #define MILLION		THOUSAND*THOUSAND
-#define NUM_CMDS	10*MILLION
+#define NUM_CMDS	1024//10*MILLION
 
 int cnt_resp = 0;
+char flag = 'n';
 
 u8 response_thread_exit = 0;
 
@@ -52,6 +53,7 @@ static DEFINE_MUTEX(response_lock);
 #define PROCESS_TX 			2
 
 /* Global data types */
+static wait_queue_head_t my_wait_queue;
 static struct semaphore   wait_sem[NUM_CPUS];
 static struct task_struct *thread_st_nic;
 static struct task_struct *thread_per_cpu[NUM_CPUS];
@@ -273,12 +275,16 @@ static int thread_fn(void *unused)
 						/* Pass skbuff to response queue */
 						push_queue_response(&skbuff_ptr, TYPE_RESPONSE);
 						
-    					mutex_lock(&response_lock);
-						
+//    					mutex_lock(&response_lock);
+
+						flag = 'y';
+
+						wake_up_interruptible(&my_wait_queue);
+
 						/* Release semaphore to wake per CPU thread to pass command to stack */
-	    				up (&wait_sem[skbuff_ptr->meta.cpu]);
+	    				down (&wait_sem[skbuff_ptr->meta.cpu]);
     					
-						mutex_unlock(&response_lock);
+//						mutex_unlock(&response_lock);
 #endif
 						break;
 					}
@@ -294,12 +300,14 @@ static int thread_fn(void *unused)
 						/* Pass skbuff to response queue */
 						push_queue_response(&skbuff_ptr, TYPE_RESPONSE);
 
-    					mutex_lock(&response_lock);
+						flag = 'y';
+
+						wake_up_interruptible(&my_wait_queue);
 
 						/* Release semaphore to wake per CPU thread to pass command to stack */
-	    				up (&wait_sem[skbuff_ptr->meta.cpu]);
+	    				down (&wait_sem[skbuff_ptr->meta.cpu]);
 
-						mutex_unlock(&response_lock);
+//						mutex_unlock(&response_lock);
 #endif
 						break;
 					}
@@ -338,7 +346,9 @@ static int response_thread_per_cpu(void *unused)
 	int cpu = get_cpu();
 	while (1)
 	{	
-		down (&wait_sem[cpu]);
+	    wait_event_interruptible(my_wait_queue, flag != 'n');
+		flag = 'n';
+		up (&wait_sem[cpu]);
 #ifdef RESPONSE_NEEDED
 		if (pop_queue_response(&skbuff_ptr, TYPE_RESPONSE) != -1)
 		{
@@ -390,6 +400,7 @@ static int __init nic_c_init(void) {
 
 	kthread_bind(thread_st_nic, 2);
 	wake_up_process(thread_st_nic);
+	init_waitqueue_head(& my_wait_queue);
 
 	for (i=0; i<NUM_CPUS; i++)
 	{
