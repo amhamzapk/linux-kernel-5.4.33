@@ -27,7 +27,7 @@ MODULE_VERSION("0.1");
 #define TYPE_RESPONSE	1
 
 #define NUM_CPUS 	4
-#define NUM_CMDS	2048
+#define NUM_CMDS	8096
 
 u8 response_thread_exit = 0;
 
