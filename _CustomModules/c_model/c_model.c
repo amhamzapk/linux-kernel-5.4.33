@@ -100,7 +100,7 @@ struct queue_ll_resp pool_queue_2[NUM_CMDS];
 
 //TODO: Make it allocate at runtime
 /* Buffer that driver will use */
-struct skbuff_nic_c skbuff_driver[NUM_CMDS];
+struct skbuff_nic_c skbuff_driver[NUM_CPUS][NUM_CMDS];
 
 /* 
 *	Get CPU Cycles from Read RDTSC Function
@@ -418,16 +418,16 @@ static int request_thread_per_cpu(void *unused)
 	/* Push Dummy RX Command */
 	for (i=0; i<NUM_CMDS; i++)
 	{
-		skbuff_driver[i].skbuff = &global_skbuff_pass;//(u8*) kmalloc(4,GFP_KERNEL);
-		skbuff_driver[i].len = i + 1;
-		skbuff_driver[i].meta.cpu = get_cpu();
-		skbuff_driver[i].meta.response_flag = 0;
+		skbuff_driver[get_cpu()][i].skbuff = &global_skbuff_pass;//(u8*) kmalloc(4,GFP_KERNEL);
+		skbuff_driver[get_cpu()][i].len = i + 1;
+		skbuff_driver[get_cpu()][i].meta.cpu = get_cpu();
+		skbuff_driver[get_cpu()][i].meta.response_flag = 0;
 		// Half should be TX commands and half should be RX
 		if ((i % 2) == 0)
-			skbuff_driver[i].meta.command = PROCESS_RX;
+			skbuff_driver[get_cpu()][i].meta.command = PROCESS_RX;
 		else
-			skbuff_driver[i].meta.command = PROCESS_TX;
-		skbuff_struc_temp = &skbuff_driver[i];
+			skbuff_driver[get_cpu()][i].meta.command = PROCESS_TX;
+		skbuff_struc_temp = &skbuff_driver[get_cpu()][i];
 		push_queue(&skbuff_struc_temp, TYPE_REQUEST);
 //		printk(KERN_ALERT "Driver Cmd[%d]\n", i);
 //		udelay(10);
@@ -464,7 +464,7 @@ static int __init nic_c_init(void) {
 		flag[i] = 'n';
 	}
 
-	for (i=0; i<3; i++)
+	for (i=0; i<NUM_CPUS; i++)
 	{
 		req_thread_per_cpu[i] = kthread_create(request_thread_per_cpu, NULL, "kthread_cpu_req");
 		kthread_bind(req_thread_per_cpu[i], i);
