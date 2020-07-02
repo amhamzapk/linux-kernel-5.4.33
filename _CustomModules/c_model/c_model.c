@@ -53,8 +53,12 @@ static DEFINE_MUTEX(response_lock);
 static struct semaphore   wait_sem[NUM_CPUS];
 static struct task_struct *thread_st_nic;
 static struct task_struct *thread_per_cpu[NUM_CPUS];
-static struct list_head   head;
-static struct list_head   head_response;
+static struct list_head   *head;
+static struct list_head   *head_response;
+
+
+static struct list_head   head_temp;
+static struct list_head   head_response_temp;
 
 static int 	  thread_fn(void *unused);
 
@@ -355,10 +359,10 @@ static int __init nic_c_init(void) {
 	/* Initilize Queue */
 	printk(KERN_INFO "NIC-C Model Init!\n");
 //	head=kvmalloc(sizeof(struct list_head *),GFP_ATOMIC);
-	INIT_LIST_HEAD(&head);
+	INIT_LIST_HEAD(&head_temp);
 
 //	head_response=kvmalloc(sizeof(struct list_head *),GFP_ATOMIC);
-	INIT_LIST_HEAD(&head_response);
+	INIT_LIST_HEAD(&head_response_temp);
 
 //	// Create and bind and execute thread to core-2
 //	thread_st_nic = kthread_create(thread_fn, NULL, "kthread");
