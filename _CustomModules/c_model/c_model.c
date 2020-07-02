@@ -162,7 +162,7 @@ void push_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 	static struct queue_ll *temp_node;
 
 	/* Allocate Node */
-	temp_node=kmalloc(sizeof(struct queue_ll),GFP_KERNEL);
+	temp_node=kmalloc(sizeof(struct queue_ll),GFP_ATOMIC);
 
 	/* skbuff needs to be add to link list */
 	temp_node->skbuff_struct = *skbuff_struct;
