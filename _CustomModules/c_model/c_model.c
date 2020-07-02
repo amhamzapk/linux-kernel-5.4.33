@@ -112,13 +112,13 @@ static int pop_queue(struct skbuff_nic_c **skbuff_struct, struct list_head **hea
 	struct queue_ll *temp_node;
 
 	/* Check if there is something in the queue */
-	if(list_empty(head)) {
+	if(list_empty(*head_type)) {
 		/* Return -1, no element is found */
 		return -1;
 	}
 	else {
 		mutex_lock(&pop_lock);
-		temp_node = list_first_entry(head,struct queue_ll ,list);
+		temp_node = list_first_entry(*head_type,struct queue_ll ,list);
 		mutex_unlock(&pop_lock);
 	}
 
@@ -178,7 +178,7 @@ void push_queue(struct skbuff_nic_c **skbuff_struct, struct list_head **head_typ
 	
 	/* Add element to link list */
 	mutex_lock(&push_lock);
-	list_add_tail(&temp_node->list,head);
+	list_add_tail(&temp_node->list,*head_type);
 	mutex_unlock(&push_lock);
 }
 #if	0//def RESPONSE_NEEDED
