@@ -278,21 +278,17 @@ static int thread_fn(void *unused)
 
 						/* Pass skbuff to response queue */
 						push_queue_response(&skbuff_ptr, TYPE_RESPONSE);
-						
-//    					mutex_lock(&response_lock);
 
 						flag[skbuff_ptr->meta.cpu] = 'y';
 
 						wake_up_interruptible(&my_wait_queue[skbuff_ptr->meta.cpu]);
 
-						while (skbuff_ptr->meta.poll_flag == 1);
+//						while (skbuff_ptr->meta.poll_flag == 1);
 
-//						while (flag[skbuff_ptr->meta.cpu] == 'y');
+						while (flag[skbuff_ptr->meta.cpu] == 'y');
 
 						/* Release semaphore to wake per CPU thread to pass command to stack */
 //	    				down (&wait_sem[skbuff_ptr->meta.cpu]);
-    					
-//						mutex_unlock(&response_lock);
 #endif
 						break;
 					}
@@ -314,12 +310,12 @@ static int thread_fn(void *unused)
 
 						wake_up_interruptible(&my_wait_queue[skbuff_ptr->meta.cpu]);
 
-						while (skbuff_ptr->meta.poll_flag == 1);
+//						while (skbuff_ptr->meta.poll_flag == 1);
+
+						while (flag[skbuff_ptr->meta.cpu] == 'y');
 
 						/* Release semaphore to wake per CPU thread to pass command to stack */
 //	    				down (&wait_sem[skbuff_ptr->meta.cpu]);
-
-//						mutex_unlock(&response_lock);
 #endif
 						break;
 					}
@@ -364,7 +360,7 @@ static int response_thread_per_cpu(void *unused)
 #ifdef RESPONSE_NEEDED
 		if (pop_queue_response(&skbuff_ptr, TYPE_RESPONSE) != -1)
 		{
-			skbuff_ptr->meta.poll_flag = 0;
+//			skbuff_ptr->meta.poll_flag = 0;
 			repsonse_cnt++;
 			printk(KERN_ALERT "Responses => %d\n", repsonse_cnt);
 			switch (skbuff_ptr->meta.response_flag)
