@@ -276,17 +276,29 @@ static int thread_fn(void *unused)
 #ifdef RESPONSE_NEEDED
 						skbuff_ptr->meta.poll_flag = 0;
 
+						printk(KERN_ALERT "RX Command_2\n", skbuff_ptr->len, skbuff_ptr->meta.cpu);
 						/* Pass skbuff to response queue */
 						push_queue_response(&skbuff_ptr, TYPE_RESPONSE);
 
+
+						printk(KERN_ALERT "RX Command_3\n", skbuff_ptr->len, skbuff_ptr->meta.cpu);
 						flag[skbuff_ptr->meta.cpu] = 'y';
 
 						wake_up_interruptible(&my_wait_queue[skbuff_ptr->meta.cpu]);
 
+
+						printk(KERN_ALERT "RX Command_4\n", skbuff_ptr->len, skbuff_ptr->meta.cpu);
+
 						/* Release semaphore to wake per CPU thread to pass command to stack */
 	    				down (&wait_sem[skbuff_ptr->meta.cpu]);
 
-	    				while (skbuff_ptr->meta.poll_flag == 0);
+						printk(KERN_ALERT "RX Command_5\n", skbuff_ptr->len, skbuff_ptr->meta.cpu);
+
+						while (skbuff_ptr->meta.poll_flag == 0);
+
+						printk(KERN_ALERT "RX Command_6\n", skbuff_ptr->len, skbuff_ptr->meta.cpu);
+//
+//						skbuff_ptr->meta.poll_flag = 1;
 #endif
 						break;
 					}
@@ -312,6 +324,7 @@ static int thread_fn(void *unused)
 	    				down (&wait_sem[skbuff_ptr->meta.cpu]);
 
 	    				while (skbuff_ptr->meta.poll_flag == 0);
+//						skbuff_ptr->meta.poll_flag = 1;
 #endif
 						break;
 					}
@@ -350,12 +363,16 @@ static int response_thread_per_cpu(void *unused)
 	int cpu = get_cpu();
 	while (1)
 	{	
+		printk(KERN_ALERT "Response_1\n");
 	    wait_event_interruptible(my_wait_queue[cpu], flag[cpu] != 'n');
+		printk(KERN_ALERT "Response_2\n");
 		flag[cpu] = 'n';
 		up (&wait_sem[cpu]);
 #ifdef RESPONSE_NEEDED
+		printk(KERN_ALERT "Response_3\n");
 		if (pop_queue_response(&skbuff_ptr, TYPE_RESPONSE) != -1)
 		{
+			printk(KERN_ALERT "Response_4\n");
 			skbuff_ptr->meta.poll_flag = 1;
 			repsonse_cnt++;
 			printk(KERN_ALERT "Responses => %d\n", repsonse_cnt);
@@ -363,9 +380,11 @@ static int response_thread_per_cpu(void *unused)
 			{
 				case CASE_NOTIFY_STACK_RX:
 				{
+					printk(KERN_ALERT "Response_5\n");
 					/* Parse the thread data */
 					printk(KERN_ALERT "Response RX | Len -> %d\n", skbuff_ptr->len);
 
+					printk(KERN_ALERT "Response_6\n");
 					break;
 				}
 				case CASE_NOTIFY_STACK_TX:
