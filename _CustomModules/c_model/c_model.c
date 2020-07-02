@@ -31,7 +31,7 @@ MODULE_VERSION("0.1");
 #define NUM_CPUS 	4
 #define THOUSAND	1000
 #define MILLION		THOUSAND*THOUSAND
-#define NUM_CMDS	100*THOUSAND
+#define NUM_CMDS	16//100*THOUSAND
 
 int cnt_resp = 0;
 
@@ -484,15 +484,22 @@ static void __exit nic_c_exit(void) {
 
 	response_thread_exit = 1;
 
+	ssleep (1);
+
 	for (i=0; i<NUM_CPUS; i++)
 	{
-	    up (&wait_sem[i]);
+
+		flag[i] = 'y';
+
+		wake_up(&my_wait_queue[i]);
+
+		/* Release semaphore to wake per CPU thread to pass command to stack */
+		down (&wait_sem[i]);
 	}
 
 	   printk("Exit_3\n");
 	//TODO: Do something better than sleep
 	/* Wait until threads to exit */
-	ssleep (1);
 
 	/* Dealocate all memories */
 //	kfree(head);
