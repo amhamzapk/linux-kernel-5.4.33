@@ -78,7 +78,9 @@ struct queue_ll{
 
 int alloc_limit = 100000;
 int alloc_index = 0;
-struct queue_ll pool_queue[10 * MILLION];
+int alloc_index_2 = 0;
+struct queue_ll pool_queue[100 * THOUSAND];
+struct queue_ll pool_queue_2[100 * THOUSAND];
 
 //TODO: Make it allocate at runtime
 /* Buffer that driver will use */
@@ -180,10 +182,11 @@ void push_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 
 
 void push_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
-	static struct queue_ll *temp_node;
+//	static struct queue_ll *temp_node;
+	struct queue_ll *temp_node = (struct queue_ll*)&pool_queue_2[alloc_index_2++];
 
 	/* Allocate Node */
-	temp_node=kmalloc(sizeof(struct queue_ll),GFP_KERNEL);
+//	temp_node=kmalloc(sizeof(struct queue_ll),GFP_KERNEL);
 
 	/* skbuff needs to be add to link list */
 	temp_node->skbuff_struct = *skbuff_struct;
@@ -239,7 +242,7 @@ static int thread_fn(void *unused)
 
 						/* Update response flag */
 						skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_RX;
-#if 0
+#if 1
 						/* Pass skbuff to response queue */
 						push_queue_response(&skbuff_ptr, TYPE_RESPONSE);
 						
@@ -260,7 +263,7 @@ static int thread_fn(void *unused)
 						/* Update response flag */
 						skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_TX;
 
-#if 0
+#if 1
 						/* Pass skbuff to response queue */
 						push_queue_response(&skbuff_ptr, TYPE_RESPONSE);
 
