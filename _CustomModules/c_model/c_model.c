@@ -166,17 +166,17 @@ static int pop_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 #ifdef RESPONSE_NEEDED
 static int pop_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
 
+	mutex_lock(&pop_resp_lock);
 	struct queue_ll_resp *temp_node;
 
 	/* Check if there is something in the queue */
 	if(list_empty(&head_response)) {
 		/* Return -1, no element is found */
+		mutex_unlock(&pop_resp_lock);
 		return -1;
 	}
 	else {
-//		mutex_lock(&pop_resp_lock);
 		temp_node = list_first_entry(&head_response,struct queue_ll_resp ,list);
-//		mutex_unlock(&pop_resp_lock);
 	}
 
 	/* This structure needs to be passed to thread */
@@ -186,6 +186,7 @@ static int pop_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
 	list_del(&temp_node->list);
 //	kvfree(temp_node);
 
+	mutex_unlock(&pop_resp_lock);
 	/* Return 0, element is found */
 	return 0;
 }
@@ -196,6 +197,8 @@ static int pop_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
 *	Element will be passed by reference
 */ 
 void push_queue(struct skbuff_nic_c **skbuff_struct, int type) {
+
+	mutex_lock(&push_lock);
 	struct queue_ll *temp_node;// = (struct queue_ll*)&pool_queue[alloc_index++];
 
 	/* Allocate Node */
@@ -207,9 +210,8 @@ void push_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 	temp_node->skbuff_struct = *skbuff_struct;
 	
 	/* Add element to link list */
-//	mutex_lock(&push_lock);
 	list_add_tail(&temp_node->list,&head);
-//	mutex_unlock(&push_lock);
+	mutex_unlock(&push_lock);
 }
 #ifdef RESPONSE_NEEDED
 
