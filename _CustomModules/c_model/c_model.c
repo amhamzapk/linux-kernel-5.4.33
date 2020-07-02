@@ -79,9 +79,9 @@ struct queue_ll{
 };
 
 //int alloc_limit = NUM_CMDS;
-//int alloc_index = 0;
+int alloc_index = 0;
 //int alloc_index_2 = 0;
-////struct queue_ll pool_queue[NUM_CMDS];
+struct queue_ll pool_queue[NUM_CMDS];
 //struct queue_ll pool_queue_2[NUM_CMDS];
 
 //TODO: Make it allocate at runtime
@@ -128,7 +128,7 @@ static int pop_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 
 	/* Clear the node */
 	list_del(&temp_node->list);
-	kvfree(temp_node);
+//	kvfree(temp_node);
 
 	/* Return 0, element is found */
 	return 0;
@@ -167,10 +167,10 @@ static int pop_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
 *	Element will be passed by reference
 */ 
 void push_queue(struct skbuff_nic_c **skbuff_struct, int type) {
-	struct queue_ll *temp_node;// = (struct queue_ll*)&pool_queue[alloc_index++];
+	struct queue_ll *temp_node = (struct queue_ll*)&pool_queue[alloc_index++];
 
 	/* Allocate Node */
-	temp_node=kvmalloc(sizeof(struct queue_ll),GFP_ATOMIC);
+//	temp_node=kvmalloc(sizeof(struct queue_ll),GFP_ATOMIC);
 //	pool_queue[alloc_index] =
 
 	/* skbuff needs to be add to link list */
