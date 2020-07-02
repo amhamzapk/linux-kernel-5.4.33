@@ -364,7 +364,7 @@ static int response_thread_per_cpu(void *unused)
 	while (1)
 	{	
 		printk(KERN_ALERT "Response_1[%d]\n",cpu);
-	    wait_event_interruptible(my_wait_queue[cpu], flag[cpu] == 'n');
+	    wait_event_interruptible(my_wait_queue[cpu], flag[cpu] != 'n');
 		printk(KERN_ALERT "Response_2[%d]\n",cpu);
 		flag[cpu] = 'n';
 		up (&wait_sem[cpu]);
@@ -432,6 +432,7 @@ static int __init nic_c_init(void) {
 		kthread_bind(thread_per_cpu[i], i);
 		wake_up_process(thread_per_cpu[i]);
 		sema_init(&wait_sem[i], 1);
+		flag[i] = 'n';
 	}
 
 	/* Wait for a second to let the thread being schedule */
