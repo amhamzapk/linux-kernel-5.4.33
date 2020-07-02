@@ -31,7 +31,7 @@ MODULE_VERSION("0.1");
 #define NUM_CPUS 	4
 #define THOUSAND	1000
 #define MILLION		THOUSAND*THOUSAND
-#define NUM_CMDS	1*MILLION
+#define NUM_CMDS	8//1*MILLION
 
 int cnt_resp = 0;
 
@@ -59,6 +59,7 @@ static wait_queue_head_t my_wait_queue[NUM_CPUS];
 static struct semaphore   wait_sem[NUM_CPUS];
 static struct task_struct *thread_st_nic;
 static struct task_struct *thread_per_cpu[NUM_CPUS];
+static struct task_struct *req_thread_per_cpu[NUM_CPUS];
 static struct list_head   head;
 static struct list_head   head_response;
 
@@ -408,9 +409,34 @@ static int response_thread_per_cpu(void *unused)
     return 0;
 }
 
+
 u64 global_skbuff_pass = 0xDEADBEEFBEEFDEAD;
-static int __init nic_c_init(void) {
+static int request_thread_per_cpu(void *unused)
+{
+	int i = 0;
 	struct skbuff_nic_c *skbuff_struc_temp;
+	/* Push Dummy RX Command */
+	for (i=0; i<NUM_CMDS; i++)
+	{
+		skbuff_driver[i].skbuff = &global_skbuff_pass;//(u8*) kmalloc(4,GFP_KERNEL);
+		skbuff_driver[i].len = i + 1;
+		skbuff_driver[i].meta.cpu = get_cpu();
+		skbuff_driver[i].meta.response_flag = 0;
+		// Half should be TX commands and half should be RX
+		if ((i % 2) == 0)
+			skbuff_driver[i].meta.command = PROCESS_RX;
+		else
+			skbuff_driver[i].meta.command = PROCESS_TX;
+		skbuff_struc_temp = &skbuff_driver[i];
+		push_queue(&skbuff_struc_temp, TYPE_REQUEST);
+//		printk(KERN_ALERT "Driver Cmd[%d]\n", i);
+//		udelay(10);
+	}
+
+    return 0;
+}
+
+static int __init nic_c_init(void) {
 	int i = 0;
 	/* Initilize Queue */
 	printk(KERN_INFO "NIC-C Model Init!\n");
@@ -438,26 +464,16 @@ static int __init nic_c_init(void) {
 		flag[i] = 'n';
 	}
 
+	for (i=0; i<NUM_CPUS; i++)
+	{
+		init_waitqueue_head(&my_wait_queue[i]);
+		req_thread_per_cpu[i] = kthread_create(request_thread_per_cpu, NULL, "kthread_cpu_req");
+		kthread_bind(req_thread_per_cpu[i], i);
+		wake_up_process(req_thread_per_cpu[i]);
+	}
+
 	/* Wait for a second to let the thread being schedule */
 	ssleep(1);
-
-	/* Push Dummy RX Command */
-	for (i=0; i<NUM_CMDS; i++)
-	{
-		skbuff_driver[i].skbuff = &global_skbuff_pass;//(u8*) kmalloc(4,GFP_KERNEL);
-		skbuff_driver[i].len = i + 1;
-		skbuff_driver[i].meta.cpu = get_cpu();
-		skbuff_driver[i].meta.response_flag = 0;
-		// Half should be TX commands and half should be RX
-		if ((i % 2) == 0)
-			skbuff_driver[i].meta.command = PROCESS_RX;
-		else
-			skbuff_driver[i].meta.command = PROCESS_TX;
-		skbuff_struc_temp = &skbuff_driver[i];
-		push_queue(&skbuff_struc_temp, TYPE_REQUEST);
-//		printk(KERN_ALERT "Driver Cmd[%d]\n", i);
-//		udelay(10);
-	}
 	printk(KERN_INFO "NIC-C Model Init Ends | CPU = %d!\n", num_online_cpus());
 	ssleep (1);
 	return 0;
