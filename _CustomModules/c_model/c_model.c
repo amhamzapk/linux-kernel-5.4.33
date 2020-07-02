@@ -170,7 +170,7 @@ void push_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 	struct queue_ll *temp_node;// = (struct queue_ll*)&pool_queue[alloc_index++];
 
 	/* Allocate Node */
-	temp_node=vmalloc(sizeof(struct queue_ll));
+	temp_node=kvmalloc(sizeof(struct queue_ll),GFP_ATOMIC);
 //	pool_queue[alloc_index] =
 
 	/* skbuff needs to be add to link list */
