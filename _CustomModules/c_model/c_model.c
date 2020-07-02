@@ -311,7 +311,9 @@ static int response_thread_per_cpu(void *unused)
 		down (&wait_sem[cpu]);
 		if (pop_queue_response(&skbuff_ptr, TYPE_RESPONSE) != -1) 
 		{
-			switch (skbuff_ptr->meta.command)
+
+			printk(KERN_ALERT "Some Response | %d, %d\n", skbuff_ptr->meta.command, skbuff_ptr->meta.response_flag);
+			switch (skbuff_ptr->meta.response_flag)
 			{
 				case PROCESS_RX:
 				{
