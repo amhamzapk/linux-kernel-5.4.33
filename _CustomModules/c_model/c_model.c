@@ -88,7 +88,7 @@ struct queue_ll_resp{
 //int alloc_index = 0;
 int alloc_index_2 = 0;
 ////struct queue_ll pool_queue[NUM_CMDS];
-struct queue_ll pool_queue_2[NUM_CMDS];
+struct queue_ll_resp pool_queue_2[NUM_CMDS];
 
 //TODO: Make it allocate at runtime
 /* Buffer that driver will use */
@@ -190,8 +190,8 @@ void push_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 #ifdef RESPONSE_NEEDED
 
 void push_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
-	static struct queue_ll_resp *temp_node;
-	struct queue_ll_resp *temp_node = (struct queue_ll*)&pool_queue_2[alloc_index_2++];
+//	static struct queue_ll_resp *temp_node;
+	struct queue_ll_resp *temp_node = (struct queue_ll_resp*)&pool_queue_2[alloc_index_2++];
 
 	/* Allocate Node */
 //	temp_node=kvmalloc(sizeof(struct queue_ll_resp),GFP_ATOMIC);
