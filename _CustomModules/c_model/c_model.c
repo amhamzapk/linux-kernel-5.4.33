@@ -281,8 +281,10 @@ static int thread_fn(void *unused)
 
 						wake_up_interruptible(&my_wait_queue);
 
+						while (flag == 'y');
+
 						/* Release semaphore to wake per CPU thread to pass command to stack */
-	    				down (&wait_sem[skbuff_ptr->meta.cpu]);
+//	    				down (&wait_sem[skbuff_ptr->meta.cpu]);
     					
 //						mutex_unlock(&response_lock);
 #endif
@@ -304,8 +306,10 @@ static int thread_fn(void *unused)
 
 						wake_up_interruptible(&my_wait_queue);
 
+						while (flag == 'y');
+
 						/* Release semaphore to wake per CPU thread to pass command to stack */
-	    				down (&wait_sem[skbuff_ptr->meta.cpu]);
+//	    				down (&wait_sem[skbuff_ptr->meta.cpu]);
 
 //						mutex_unlock(&response_lock);
 #endif
@@ -348,7 +352,7 @@ static int response_thread_per_cpu(void *unused)
 	{	
 	    wait_event_interruptible(my_wait_queue, flag != 'n');
 		flag = 'n';
-		up (&wait_sem[cpu]);
+//		up (&wait_sem[cpu]);
 #ifdef RESPONSE_NEEDED
 		if (pop_queue_response(&skbuff_ptr, TYPE_RESPONSE) != -1)
 		{
