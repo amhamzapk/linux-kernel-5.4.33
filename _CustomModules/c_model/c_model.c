@@ -35,6 +35,7 @@ MODULE_VERSION("0.1");
 
 int cnt_resp = 0;
 volatile char flag[NUM_CMDS] = {'n'};
+volatile u8   helper_flag[NUM_CMDS] = 0;
 
 u8 response_thread_exit = 0;
 
@@ -273,22 +274,25 @@ static int thread_fn(void *unused)
 						/* Update response flag */
 						skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_RX;
 #ifdef RESPONSE_NEEDED
-
-						skbuff_ptr->meta.poll_flag = 1;
-
 						/* Pass skbuff to response queue */
 						push_queue_response(&skbuff_ptr, TYPE_RESPONSE);
+
+//    					mutex_lock(&response_lock);
+
+						helper_flag[skbuff_ptr->meta.cpu] = 0;
 
 						flag[skbuff_ptr->meta.cpu] = 'y';
 
 						wake_up_interruptible(&my_wait_queue[skbuff_ptr->meta.cpu]);
 
-						while (skbuff_ptr->meta.poll_flag == 1);
+						while (flag[skbuff_ptr->meta.cpu] == 'y');
 
-//						while (flag[skbuff_ptr->meta.cpu] == 'y');
+						helper_flag[skbuff_ptr->meta.cpu] = 1;
 
 						/* Release semaphore to wake per CPU thread to pass command to stack */
 //	    				down (&wait_sem[skbuff_ptr->meta.cpu]);
+
+//						mutex_unlock(&response_lock);
 #endif
 						break;
 					}
@@ -301,21 +305,22 @@ static int thread_fn(void *unused)
 						skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_TX;
 
 #ifdef RESPONSE_NEEDED
-						skbuff_ptr->meta.poll_flag = 1;
-
 						/* Pass skbuff to response queue */
 						push_queue_response(&skbuff_ptr, TYPE_RESPONSE);
 
 						flag[skbuff_ptr->meta.cpu] = 'y';
+						helper_flag[skbuff_ptr->meta.cpu] = 0;
 
 						wake_up_interruptible(&my_wait_queue[skbuff_ptr->meta.cpu]);
 
-						while (skbuff_ptr->meta.poll_flag == 1);
+						while (flag[skbuff_ptr->meta.cpu] == 'y');
 
-//						while (flag[skbuff_ptr->meta.cpu] == 'y');
+						helper_flag[skbuff_ptr->meta.cpu] = 1;
 
 						/* Release semaphore to wake per CPU thread to pass command to stack */
 //	    				down (&wait_sem[skbuff_ptr->meta.cpu]);
+
+//						mutex_unlock(&response_lock);
 #endif
 						break;
 					}
@@ -356,11 +361,12 @@ static int response_thread_per_cpu(void *unused)
 	{	
 	    wait_event_interruptible(my_wait_queue[cpu], flag[cpu] != 'n');
 		flag[cpu] = 'n';
+
+		while (helper_flag[skbuff_ptr->meta.cpu] == 0);
 //		up (&wait_sem[cpu]);
 #ifdef RESPONSE_NEEDED
 		if (pop_queue_response(&skbuff_ptr, TYPE_RESPONSE) != -1)
 		{
-			skbuff_ptr->meta.poll_flag = 0;
 			repsonse_cnt++;
 			printk(KERN_ALERT "Responses => %d\n", repsonse_cnt);
 			switch (skbuff_ptr->meta.response_flag)
