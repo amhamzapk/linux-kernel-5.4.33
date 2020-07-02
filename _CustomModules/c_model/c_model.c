@@ -266,9 +266,10 @@ static int thread_fn(void *unused)
 			/* If found, element will be point to skbuff_ptr */
         	if (pop_queue(&skbuff_ptr, TYPE_REQUEST) != -1) {
 
+				cmd_rcv++;
+
 				switch (skbuff_ptr->meta.command)
 				{
-					cmd_rcv++;
 					/* Dummy RX Command */
 					case PROCESS_RX:
 					{
