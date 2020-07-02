@@ -23,6 +23,8 @@ MODULE_VERSION("0.1");
 #define CASE_NOTIFY_STACK_TX   	'c'
 #define CASE_NOTIFY_STACK_RX   	'd'
 
+//#define RESPONSE_NEEDED
+
 #define TYPE_REQUEST 	0
 #define TYPE_RESPONSE	1
 
@@ -126,13 +128,13 @@ static int pop_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 
 	/* Clear the node */
 	list_del(&temp_node->list);
-//	kvfree(temp_node);
+	vfree(temp_node);
 
 	/* Return 0, element is found */
 	return 0;
 }
 
-
+#ifdef RESPONSE_NEEDED
 static int pop_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
 
 	struct queue_ll *temp_node;
@@ -158,17 +160,17 @@ static int pop_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
 	/* Return 0, element is found */
 	return 0;
 }
-
+#endif
 
 /* 
 *	Push element in queue head
 *	Element will be passed by reference
 */ 
 void push_queue(struct skbuff_nic_c **skbuff_struct, int type) {
-	struct queue_ll *temp_node = (struct queue_ll*)&pool_queue[alloc_index++];
+	struct queue_ll *temp_node;// = (struct queue_ll*)&pool_queue[alloc_index++];
 
 	/* Allocate Node */
-//	temp_node=kvmalloc(sizeof(struct queue_ll),GFP_KERNEL);
+	temp_node=vmalloc(sizeof(struct queue_ll));
 //	pool_queue[alloc_index] =
 
 	/* skbuff needs to be add to link list */
@@ -179,7 +181,7 @@ void push_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 	list_add_tail(&temp_node->list,head);
 //	mutex_unlock(&push_lock);
 }
-
+#ifdef RESPONSE_NEEDED
 
 void push_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
 //	static struct queue_ll *temp_node;
@@ -196,7 +198,7 @@ void push_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
 	list_add_tail(&temp_node->list,head_response);
 //	mutex_unlock(&push_resp_lock);
 }
-
+#endif
 /*
 *	Main NIC-C Model Thread
 *	This thread will schedule process request 
@@ -242,7 +244,7 @@ static int thread_fn(void *unused)
 
 						/* Update response flag */
 						skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_RX;
-#if 1
+#ifdef RESPONSE_NEEDED
 						/* Pass skbuff to response queue */
 						push_queue_response(&skbuff_ptr, TYPE_RESPONSE);
 						
@@ -263,7 +265,7 @@ static int thread_fn(void *unused)
 						/* Update response flag */
 						skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_TX;
 
-#if 1
+#ifdef RESPONSE_NEEDED
 						/* Pass skbuff to response queue */
 						push_queue_response(&skbuff_ptr, TYPE_RESPONSE);
 
@@ -309,6 +311,7 @@ static int response_thread_per_cpu(void *unused)
 	while (1)
 	{	
 		down (&wait_sem[cpu]);
+#ifdef RESPONSE_NEEDED
 		if (pop_queue_response(&skbuff_ptr, TYPE_RESPONSE) != -1) 
 		{
 
@@ -333,7 +336,7 @@ static int response_thread_per_cpu(void *unused)
 				}
 			}
 		}
-
+#endif
 		if (response_thread_exit)
 			break;
 	}
