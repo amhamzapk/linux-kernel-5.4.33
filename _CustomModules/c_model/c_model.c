@@ -146,9 +146,9 @@ static int pop_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 		return -1;
 	}
 	else {
-		mutex_lock(&pop_lock);
+//		mutex_lock(&pop_lock);
 		temp_node = list_first_entry(&head,struct queue_ll ,list);
-		mutex_unlock(&pop_lock);
+//		mutex_unlock(&pop_lock);
 	}
 
 
@@ -174,9 +174,9 @@ static int pop_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
 		return -1;
 	}
 	else {
-		mutex_lock(&pop_resp_lock);
+//		mutex_lock(&pop_resp_lock);
 		temp_node = list_first_entry(&head_response,struct queue_ll_resp ,list);
-		mutex_unlock(&pop_resp_lock);
+//		mutex_unlock(&pop_resp_lock);
 	}
 
 	/* This structure needs to be passed to thread */
@@ -207,9 +207,9 @@ void push_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 	temp_node->skbuff_struct = *skbuff_struct;
 	
 	/* Add element to link list */
-	mutex_lock(&push_lock);
+//	mutex_lock(&push_lock);
 	list_add_tail(&temp_node->list,&head);
-	mutex_unlock(&push_lock);
+//	mutex_unlock(&push_lock);
 }
 #ifdef RESPONSE_NEEDED
 
@@ -225,9 +225,9 @@ void push_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
 	temp_node->skbuff_struct = *skbuff_struct;
 	
 	/* Add element to link list */
-	mutex_lock(&push_resp_lock);
+//	mutex_lock(&push_resp_lock);
 	list_add_tail(&temp_node->list,&head_response);
-	mutex_unlock(&push_resp_lock);
+//	mutex_unlock(&push_resp_lock);
 }
 #endif
 /*
