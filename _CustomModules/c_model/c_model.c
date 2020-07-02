@@ -232,7 +232,7 @@ static int thread_fn(void *unused)
 			
 			/* Check if some command is in queue */
 			/* If found, element will be point to skbuff_ptr */
-        	if (pop_queue(&skbuff_ptr, &head_response) != -1) {
+        	if (pop_queue(&skbuff_ptr, &head) != -1) {
 
 				switch (skbuff_ptr->meta.command)
 				{
