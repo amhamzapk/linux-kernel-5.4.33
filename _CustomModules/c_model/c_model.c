@@ -371,7 +371,7 @@ static int __init nic_c_init(void) {
 			skbuff_driver[i].meta.command = PROCESS_TX;
 		skbuff_struc_temp = &skbuff_driver[i];
 		push_queue(&skbuff_struc_temp, TYPE_REQUEST); 	
-		printk(KERN_ALERT "Driver Cmd[%d]\n", %i);
+		printk(KERN_ALERT "Driver Cmd[%d]\n", i);
 	}
 	printk(KERN_INFO "NIC-C Model Init Ends | CPU = %d!\n", num_online_cpus());
 	ssleep (1);
