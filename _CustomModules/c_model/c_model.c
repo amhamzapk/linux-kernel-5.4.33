@@ -108,9 +108,11 @@ static inline u64 read_rdtsc(void)
 }
 static inline void *kvmalloc_custom(size_t size)
 {
+	void *ret_alloc;
 	mutex_lock(&alloc_lock);
-	return kvmalloc(size, GFP_ATOMIC);
+	ret_alloc = kvmalloc(size, GFP_ATOMIC);
 	mutex_unlock(&alloc_lock);
+	return ret_alloc;
 }
 
 /* 
