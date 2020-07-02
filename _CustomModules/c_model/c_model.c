@@ -178,7 +178,7 @@ static int pop_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
 
 	/* Clear the node */
 	list_del(&temp_node->list);
-	kfree(temp_node);
+//	kfree(temp_node);
 
 	/* Return 0, element is found */
 	return 0;
