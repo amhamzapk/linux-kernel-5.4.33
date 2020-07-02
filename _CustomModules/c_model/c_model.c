@@ -31,7 +31,7 @@ MODULE_VERSION("0.1");
 #define NUM_CPUS 	4
 #define THOUSAND	1000
 #define MILLION		THOUSAND*THOUSAND
-#define NUM_CMDS	100 * THOUSAND
+#define NUM_CMDS	128
 
 int cnt_resp = 0;
 
@@ -304,6 +304,7 @@ static int thread_fn(void *unused)
 *	This thread will schedule process request
 *	as soon some element push into the queue
 */
+int repsonse_cnt = 0;
 static int response_thread_per_cpu(void *unused)
 {
 #ifdef RESPONSE_NEEDED
@@ -316,8 +317,8 @@ static int response_thread_per_cpu(void *unused)
 #ifdef RESPONSE_NEEDED
 		if (pop_queue_response(&skbuff_ptr, TYPE_RESPONSE) != -1) 
 		{
-
-			printk(KERN_ALERT "Some Response | %d, %d\n", skbuff_ptr->meta.command, skbuff_ptr->meta.response_flag);
+			repsonse_cnt++;
+			printk(KERN_ALERT "Responses => %d\n", repsonse_cnt);
 			switch (skbuff_ptr->meta.response_flag)
 			{
 				case PROCESS_RX:
