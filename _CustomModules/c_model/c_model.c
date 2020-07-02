@@ -29,7 +29,7 @@ MODULE_VERSION("0.1");
 #define NUM_CPUS 	4
 #define THOUSAND	1000
 #define MILLION		THOUSAND*THOUSAND
-#define NUM_CMDS	10 * THOUSAND
+#define NUM_CMDS	100 * THOUSAND
 
 int cnt_resp = 0;
 
@@ -124,7 +124,7 @@ static int pop_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 
 	/* Clear the node */
 	list_del(&temp_node->list);
-	kfree(temp_node);
+//	kfree(temp_node);
 
 	/* Return 0, element is found */
 	return 0;
