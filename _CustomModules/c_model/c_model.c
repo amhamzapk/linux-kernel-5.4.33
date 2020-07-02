@@ -449,7 +449,7 @@ static int __init nic_c_init(void) {
 	// Create and bind and execute thread to core-2
 	thread_st_nic = kthread_create(thread_fn, NULL, "kthread");
 
-	kthread_bind(thread_st_nic, 2);
+	kthread_bind(thread_st_nic, 3);
 	wake_up_process(thread_st_nic);
 
 	for (i=0; i<NUM_CPUS; i++)
@@ -464,7 +464,7 @@ static int __init nic_c_init(void) {
 		flag[i] = 'n';
 	}
 
-	for (i=0; i<1; i++)
+	for (i=0; i<2; i++)
 	{
 		req_thread_per_cpu[i] = kthread_create(request_thread_per_cpu, NULL, "kthread_cpu_req");
 		kthread_bind(req_thread_per_cpu[i], i);
