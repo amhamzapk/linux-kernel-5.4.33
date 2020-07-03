@@ -169,7 +169,6 @@ static int pop_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
 
 	struct queue_ll_resp *temp_node;
 
-	mutex_lock(&pop_resp_lock);
 
 	/* Check if there is something in the queue */
 	if(list_empty(&head_response)) {
@@ -178,6 +177,7 @@ static int pop_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
 		return -1;
 	}
 	else {
+		mutex_lock(&pop_resp_lock);
 		temp_node = list_first_entry(&head_response,struct queue_ll_resp ,list);
 	}
 
@@ -202,8 +202,6 @@ void push_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 
 	struct queue_ll *temp_node;// = (struct queue_ll*)&pool_queue[alloc_index++];
 
-	mutex_lock(&push_lock);
-
 	/* Allocate Node */
 //	temp_node=kmalloc(sizeof(struct queue_ll));
 	temp_node=kmalloc(sizeof(struct queue_ll),GFP_ATOMIC);
@@ -211,7 +209,8 @@ void push_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 
 	/* skbuff needs to be add to link list */
 	temp_node->skbuff_struct = *skbuff_struct;
-	
+
+	mutex_lock(&push_lock);
 	/* Add element to link list */
 	list_add_tail(&temp_node->list,&head);
 	mutex_unlock(&push_lock);
