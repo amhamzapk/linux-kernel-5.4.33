@@ -87,7 +87,7 @@ struct skbuff_nic_c skbuff_struct_driver[NUM_CPUS][NUM_CMDS];
 //TODO: Find some creative method of allocation
 //struct queue_ll pool_queue[NUM_CMDS];
 
-#define RESPONSE_QUEUE_SIZE	128
+#define RESPONSE_QUEUE_SIZE	2
 int mem_allocator_push_idx = 0;
 int mem_allocator_pop_idx = 0;
 static  struct queue_ll *response_queue_ptr;
