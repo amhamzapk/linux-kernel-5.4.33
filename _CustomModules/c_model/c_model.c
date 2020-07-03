@@ -47,6 +47,7 @@ static DEFINE_MUTEX(pop_lock);
 static DEFINE_MUTEX(push_resp_lock);
 static DEFINE_MUTEX(pop_resp_lock);
 static DEFINE_MUTEX(response_lock);
+static DEFINE_MUTEX(req_lock);
 
 /* Commands */
 #define STATE_IN_POLLING    1
@@ -428,6 +429,7 @@ static int request_thread_per_cpu(void *unused)
 	/* Push Dummy RX Command */
 	for (i=0; i<NUM_CMDS/*/NUM_CPUS*/; i++)
 	{
+		mutex_lock(&req_lock);
 		skbuff_driver[get_cpu()][i].skbuff = &global_skbuff_pass;//(u8*) kmalloc(4,GFP_KERNEL);
 		skbuff_driver[get_cpu()][i].len = i + 1;
 		skbuff_driver[get_cpu()][i].meta.cpu = get_cpu();
@@ -441,6 +443,7 @@ static int request_thread_per_cpu(void *unused)
 		push_queue(&skbuff_struc_temp, TYPE_REQUEST);
 //		printk(KERN_ALERT "Driver Cmd[%d]\n", i);
 		cmd_send++;
+		mutex_unlock(&req_lock);
 //		msleep(1);
 	}
 
@@ -475,7 +478,7 @@ static int __init nic_c_init(void) {
 		flag[i] = 'n';
 	}
 
-	for (i=3; i<4; i++)
+	for (i=0; i<2; i++)
 	{
 		req_thread_per_cpu[i] = kthread_create(request_thread_per_cpu, NULL, "kthread_cpu_req");
 		kthread_bind(req_thread_per_cpu[i], i);
