@@ -237,7 +237,7 @@ static int c_model_worker_thread(void *unused)
 					case PROCESS_RX:
 					{
 						/* Print Information */
-						printk(KERN_ALERT "RX Command | Len = %d | CPU = %d\n", skbuff_ptr->len, skbuff_ptr->meta.cpu);
+//						printk(KERN_ALERT "RX Command | Len = %d | CPU = %d\n", skbuff_ptr->len, skbuff_ptr->meta.cpu);
 
 						/* Update response flag */
 						skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_RX;
@@ -261,7 +261,7 @@ static int c_model_worker_thread(void *unused)
 					case PROCESS_TX:
 					{
 						/* Print Information */
-						printk(KERN_ALERT "TX Command | Len = %d | CPU = %d\n", skbuff_ptr->len, skbuff_ptr->meta.cpu);
+//						printk(KERN_ALERT "TX Command | Len = %d | CPU = %d\n", skbuff_ptr->len, skbuff_ptr->meta.cpu);
 
 						/* Update response flag */
 						skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_TX;
@@ -333,14 +333,14 @@ static int response_per_cpu_thread(void *unused)
 				case CASE_NOTIFY_STACK_RX:
 				{
 					/* Parse the thread data */
-					printk(KERN_ALERT "\nResponse | Core-%d | Total->%d\n", cpu, response_per_cpu);
+//					printk(KERN_ALERT "\nResponse | Core-%d | Total->%d\n", cpu, response_per_cpu);
 
 					break;
 				}
 				case CASE_NOTIFY_STACK_TX:
 				{
 					/* Parse the thread data */
-					printk(KERN_ALERT "\nResponse | Core-%d | Total->%d\n", cpu, response_per_cpu);
+//					printk(KERN_ALERT "\nResponse | Core-%d | Total->%d\n", cpu, response_per_cpu);
 
 					break;
 				}
