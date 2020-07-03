@@ -31,7 +31,7 @@ MODULE_VERSION("0.1");
 #define NUM_CPUS 	4
 #define THOUSAND	1000
 #define MILLION		THOUSAND*THOUSAND
-#define NUM_CMDS	100000//1*MILLION
+#define NUM_CMDS	1*MILLION
 
 int cnt_resp = 0;
 
