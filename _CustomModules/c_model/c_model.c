@@ -82,11 +82,11 @@ struct queue_ll{
      struct skbuff_nic_c *skbuff_struct;
 };
 
-/* Queue to keep track of NIC-C Commands & SKBUFFS */
-struct queue_ll_resp{
-     struct list_head list;
-     struct skbuff_nic_c *skbuff_struct;
-};
+///* Queue to keep track of NIC-C Commands & SKBUFFS */
+//struct queue_ll_resp{
+//     struct list_head list;
+//     struct skbuff_nic_c *skbuff_struct;
+//};
 
 //int alloc_limit = NUM_CMDS;
 int alloc_index = 0;
@@ -144,7 +144,7 @@ static int pop_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 #ifdef RESPONSE_NEEDED
 static int pop_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
 
-	struct queue_ll_resp *temp_node;
+	struct queue_ll *temp_node;
 
 
 	/* Check if there is something in the queue */
@@ -155,7 +155,7 @@ static int pop_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
 	}
 	else {
 		mutex_lock(&pop_resp_lock);
-		temp_node = list_first_entry(&head_response,struct queue_ll_resp ,list);
+		temp_node = list_first_entry(&head_response,struct queue_ll ,list);
 	}
 
 	/* This structure needs to be passed to thread */
@@ -195,7 +195,7 @@ void push_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 #ifdef RESPONSE_NEEDED
 
 void push_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
-	struct queue_ll_resp *temp_node = (struct queue_ll_resp*)&pool_queue[alloc_index++];
+	struct queue_ll *temp_node = (struct queue_ll*)&pool_queue[alloc_index++];
 
 	/* Allocate Node */
 
