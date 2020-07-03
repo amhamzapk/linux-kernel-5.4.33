@@ -85,10 +85,11 @@ struct queue_ll{
 struct skbuff_nic_c skbuff_struct_driver[NUM_CPUS][NUM_CMDS];
 
 //TODO: Find some creative method of allocation
-int    alloc_index = 0;
 //struct queue_ll pool_queue[NUM_CMDS];
 
-#define RESPONSE_QUEUE_SIZE	4096
+#define RESPONSE_QUEUE_SIZE	128
+int mem_allocator_push_idx = 0;
+int mem_allocator_pop_idx = 0;
 static  struct queue_ll *response_queue_ptr;
 
 /* 
@@ -150,6 +151,7 @@ static int pop_response(struct skbuff_nic_c **skbuff_struct, int type) {
 	else {
 		mutex_lock(&pop_response_lock);
 		temp_node = list_first_entry(&head_response,struct queue_ll ,list);
+		mem_allocator_pop_idx = (mem_allocator_pop_idx + 1) % RESPONSE_QUEUE_SIZE;
 	}
 
 	/* This structure needs to be passed to thread */
@@ -189,8 +191,18 @@ void push_request(struct skbuff_nic_c **skbuff_struct, int type) {
 void push_response(struct skbuff_nic_c **skbuff_struct, int type) {
 //	struct queue_ll *temp_node = (struct queue_ll*)&pool_queue[alloc_index++];
 
-	struct queue_ll *temp_node = (struct queue_ll*) (response_queue_ptr + alloc_index);
-	++alloc_index;
+	struct queue_ll *temp_node;
+
+	if (((mem_allocator_push_idx) % RESPONSE_QUEUE_SIZE) != ((mem_allocator_pop_idx + 1) % RESPONSE_QUEUE_SIZE))
+	{
+		temp_node = (struct queue_ll*) (response_queue_ptr + mem_allocator_push_idx);
+		mem_allocator_push_idx = (mem_allocator_push_idx + 1) % RESPONSE_QUEUE_SIZE;
+	}
+	else
+	{
+		while(((mem_allocator_push_idx) % RESPONSE_QUEUE_SIZE) == ((mem_allocator_pop_idx + 1) % RESPONSE_QUEUE_SIZE));
+		mem_allocator_push_idx = (mem_allocator_push_idx + 1) % RESPONSE_QUEUE_SIZE;
+	}
 
 	/* Allocate Node */
 
