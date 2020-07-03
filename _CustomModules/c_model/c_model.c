@@ -34,20 +34,14 @@ MODULE_VERSION("0.1");
 #define MILLION		THOUSAND*THOUSAND
 #define NUM_CMDS	1*MILLION
 
-int cnt_resp = 0;
-
 volatile char flag[NUM_CMDS] = {'n'};
-volatile u8   helper_flag[NUM_CMDS] = {0};
-
 u8 response_thread_exit = 0;
+u64 global_skbuff_pass = 0xDEADBEEFBEEFDEAD;
+int cmd_send = 0;
+int cmd_rcv = 0;
 
-static DEFINE_MUTEX(dealloc_lock);
-static DEFINE_MUTEX(alloc_lock);
 static DEFINE_MUTEX(push_lock);
-static DEFINE_MUTEX(pop_lock);
-static DEFINE_MUTEX(push_resp_lock);
 static DEFINE_MUTEX(pop_resp_lock);
-static DEFINE_MUTEX(response_lock);
 static DEFINE_MUTEX(req_lock);
 
 /* Commands */
@@ -96,9 +90,7 @@ struct queue_ll_resp{
 
 //int alloc_limit = NUM_CMDS;
 int alloc_index = 0;
-int alloc_index_2 = 0;
 struct queue_ll pool_queue[NUM_CMDS];
-struct queue_ll_resp pool_queue_2[NUM_CMDS];
 
 //TODO: Make it allocate at runtime
 /* Buffer that driver will use */
@@ -115,15 +107,6 @@ static inline u64 read_rdtsc(void)
 
     return (u64) ((hi << 32) | lo);
 }
-static inline void *kvmalloc_custom(size_t size)
-{
-	void *ret_alloc;
-	mutex_lock(&alloc_lock);
-	ret_alloc = kvmalloc(size, GFP_ATOMIC);
-	mutex_unlock(&alloc_lock);
-	return ret_alloc;
-}
-
 
 /* 
 *	Pop last element from the queue
@@ -142,9 +125,7 @@ static int pop_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 		return -1;
 	}
 	else {
-//		mutex_lock(&pop_lock);
 		temp_node = list_first_entry(&head,struct queue_ll ,list);
-//		mutex_unlock(&pop_lock);
 	}
 
 
@@ -153,6 +134,7 @@ static int pop_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 
 	/* Clear the node */
 	list_del(&temp_node->list);
+
 	kfree(temp_node);
 
 	/* Return 0, element is found */
@@ -167,8 +149,8 @@ static int pop_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
 
 	/* Check if there is something in the queue */
 	if(list_empty(&head_response)) {
+
 		/* Return -1, no element is found */
-//		mutex_unlock(&pop_resp_lock);
 		return -1;
 	}
 	else {
@@ -181,9 +163,9 @@ static int pop_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
 
 	/* Clear the node */
 	list_del(&temp_node->list);
-//	kvfree(temp_node);
 
 	mutex_unlock(&pop_resp_lock);
+
 	/* Return 0, element is found */
 	return 0;
 }
@@ -213,7 +195,7 @@ void push_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 #ifdef RESPONSE_NEEDED
 
 void push_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
-	struct queue_ll_resp *temp_node = (struct queue_ll_resp*)&pool_queue_2[alloc_index_2++];
+	struct queue_ll_resp *temp_node = (struct queue_ll_resp*)&pool_queue[alloc_index++];
 
 	/* Allocate Node */
 
@@ -224,12 +206,12 @@ void push_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
 	list_add_tail(&temp_node->list,&head_response);
 }
 #endif
+
 /*
 *	Main NIC-C Model Thread
 *	This thread will schedule process request 
 *	as soon some element push into the queue
 */
-int cmd_rcv = 0;
 static int thread_fn(void *unused)
 {
     struct skbuff_nic_c *skbuff_ptr;
@@ -275,30 +257,20 @@ static int thread_fn(void *unused)
 #ifdef RESPONSE_NEEDED
 						skbuff_ptr->meta.poll_flag = 0;
 
-//						printk(KERN_ALERT "RX Command_2\n");
 						/* Pass skbuff to response queue */
 						push_queue_response(&skbuff_ptr, TYPE_RESPONSE);
 
 
-//						printk(KERN_ALERT "RX Command_3 | Flag -> %c\n", flag[skbuff_ptr->meta.cpu]);
 						flag[skbuff_ptr->meta.cpu] = 'y';
 
 						wake_up(&my_wait_queue[skbuff_ptr->meta.cpu]);
 
-
-//						printk(KERN_ALERT "RX Command_4 | Flag -> %c\n", flag[skbuff_ptr->meta.cpu]);
-
 						/* Release semaphore to wake per CPU thread to pass command to stack */
 	    				down (&wait_sem[skbuff_ptr->meta.cpu]);
 
-//						printk(KERN_ALERT "RX Command_5 | Flag -> %c\n", flag[skbuff_ptr->meta.cpu]);
-
 						while (skbuff_ptr->meta.poll_flag == 0);
-
-//						printk(KERN_ALERT "RX Command_6\n");
-//
-//						skbuff_ptr->meta.poll_flag = 1;
 #endif
+
 						break;
 					}
 					case PROCESS_TX:
@@ -323,7 +295,6 @@ static int thread_fn(void *unused)
 	    				down (&wait_sem[skbuff_ptr->meta.cpu]);
 
 	    				while (skbuff_ptr->meta.poll_flag == 0);
-//						skbuff_ptr->meta.poll_flag = 1;
 #endif
 						break;
 					}
@@ -359,33 +330,30 @@ static int response_thread_per_cpu(void *unused)
 #ifdef RESPONSE_NEEDED
 	struct skbuff_nic_c *skbuff_ptr;
 #endif
+
 	int repsonse_cnt_local = 0;
 	int cpu = get_cpu();
 	while (1)
 	{	
-//		printk(KERN_ALERT "Response_1[%d]\n",cpu);
 	    wait_event(my_wait_queue[cpu], flag[cpu] != 'n');
-//		printk(KERN_ALERT "Response_2[%d]\n",cpu);
 		flag[cpu] = 'n';
 		up (&wait_sem[cpu]);
+
 #ifdef RESPONSE_NEEDED
-//		printk(KERN_ALERT "Response_3[%d]\n",cpu);
+
 		if (pop_queue_response(&skbuff_ptr, TYPE_RESPONSE) != -1)
 		{
-//			printk(KERN_ALERT "Response_4[%d]\n",cpu);
 			skbuff_ptr->meta.poll_flag = 1;
 			repsonse_cnt++;
 			repsonse_cnt_local++;
-//			printk(KERN_ALERT "Responses => [%d]\n", repsonse_cnt);
+
 			switch (skbuff_ptr->meta.response_flag)
 			{
 				case CASE_NOTIFY_STACK_RX:
 				{
-//					printk(KERN_ALERT "Response_5[%d]\n",cpu);
 					/* Parse the thread data */
 					printk(KERN_ALERT "\nResponse | Core-%d | Total->%d\n", cpu, repsonse_cnt_local);
 
-//					printk(KERN_ALERT "Response_6[%d]\n",cpu);
 					break;
 				}
 				case CASE_NOTIFY_STACK_TX:
@@ -403,14 +371,10 @@ static int response_thread_per_cpu(void *unused)
 	}
 
 	printk(KERN_ALERT "Core-%d | Responses => %d\n", cpu, repsonse_cnt_local);
-//	printk("Thread-%d exitting...\n", get_cpu());
 
     return 0;
 }
 
-
-u64 global_skbuff_pass = 0xDEADBEEFBEEFDEAD;
-int cmd_send = 0;
 static int request_thread_per_cpu(void *unused)
 {
 	int i = 0;
@@ -418,7 +382,6 @@ static int request_thread_per_cpu(void *unused)
 	/* Push Dummy RX Command */
 	for (i=0; i<NUM_CMDS/NUM_CPUS; i++)
 	{
-//		printk("Driver:: Core[%d] -> %d", get_cpu(), i);
 		skbuff_driver[get_cpu()][i].skbuff = &global_skbuff_pass;//(u8*) kmalloc(4,GFP_KERNEL);
 		skbuff_driver[get_cpu()][i].len = i + 1;
 		skbuff_driver[get_cpu()][i].meta.cpu = get_cpu();
@@ -430,30 +393,28 @@ static int request_thread_per_cpu(void *unused)
 			skbuff_driver[get_cpu()][i].meta.command = PROCESS_TX;
 		skbuff_struc_temp = &skbuff_driver[get_cpu()][i];
 		push_queue(&skbuff_struc_temp, TYPE_REQUEST);
-//		printk(KERN_ALERT "Driver Cmd[%d]\n", i);
 		mutex_lock(&req_lock);
 		cmd_send++;
 		mutex_unlock(&req_lock);
-//		msleep(1);
 	}
 
     return 0;
 }
 
 static int __init nic_c_init(void) {
+
 	int i = 0;
+
 	/* Initilize Queue */
 	printk(KERN_INFO "NIC-C Model Init!\n");
-//	head=kmalloc(sizeof(struct list_head *),GFP_KERNEL);
-	INIT_LIST_HEAD(&head);
 
-//	head_response=kmalloc(sizeof(struct list_head *),GFP_KERNEL);
+	INIT_LIST_HEAD(&head);
 	INIT_LIST_HEAD(&head_response);
 
 	// Create and bind and execute thread to core-2
 	thread_st_nic = kthread_create(thread_fn, NULL, "kthread");
-
 	kthread_bind(thread_st_nic, 3);
+
 	wake_up_process(thread_st_nic);
 
 	for (i=0; i<NUM_CPUS; i++)
@@ -476,28 +437,14 @@ static int __init nic_c_init(void) {
 	}
 
 	/* Wait for a second to let the thread being schedule */
-//	ssleep(10);
 	printk(KERN_INFO "NIC-C Model Init Ends | CPU = %d!\n", num_online_cpus());
-//	ssleep (1);
 	return 0;
 }
 
 static void __exit nic_c_exit(void) {
 	int i = 0;
-#if 0
-   struct queue_ll *temp1, *temp2;
-   int count = 0;
-#endif
-   kthread_stop(thread_st_nic);
 
-#if 0
-   list_for_each_entr y_safe(temp1, temp2, head, list) {
-	   printk(KERN_INFO "Node %d data = %d\n" , count++, temp1->skbuff_struct->len);
-
-			list_del(&temp1->list);list_first_entry(head,struct queue_ll ,list);
-			kfree(temp1);
-   }
-#endif
+	kthread_stop(thread_st_nic);
 
 	response_thread_exit = 1;
 
@@ -514,18 +461,9 @@ static void __exit nic_c_exit(void) {
 		down (&wait_sem[i]);
 	}
 
-	//TODO: Do something better than sleep
-	/* Wait until threads to exit */
-
-	/* Dealocate all memories */
-//	kfree(head);
-//	kfree(head_response);
-
-
 	printk(KERN_ALERT "CMD Send => %d\n", cmd_send);
 	printk(KERN_ALERT "CMD Receive C-Model => %d\n", cmd_rcv);
 	printk(KERN_ALERT "Response Receive Driver=> %d\n", repsonse_cnt);
-//   	printk(KERN_INFO "NIC-C Model Exit!\n");
 }
 
 module_init(nic_c_init);
