@@ -173,7 +173,7 @@ static int pop_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
 	/* Check if there is something in the queue */
 	if(list_empty(&head_response)) {
 		/* Return -1, no element is found */
-		mutex_unlock(&pop_resp_lock);
+//		mutex_unlock(&pop_resp_lock);
 		return -1;
 	}
 	else {
