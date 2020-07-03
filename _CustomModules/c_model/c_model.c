@@ -25,39 +25,41 @@ MODULE_VERSION		("0.1");
 #define PROCESS_RX 				  1
 #define PROCESS_TX 				  2
 
-/* Request/Response Macros */
-#define TYPE_REQUEST 	0
-#define TYPE_RESPONSE	1
-
 /* CPUs/Commands */
 #define NUM_CPUS 	4
 #define THOUSAND	1000
 #define MILLION		THOUSAND*THOUSAND
-#define NUM_CMDS	4*MILLION
+#define NUM_CMDS	8//4*MILLION
 
 /* Commands */
 #define POLL_IF_RESPONSE_READ   0
 #define POLL_END_RESPONSE_READ	1
 
+/* Response Queue Size */
+#define RESPONSE_QUEUE_SIZE	1024
+
 char flag[NUM_CMDS] = {'n'};
 u8 	 response_thread_exit = 0;
 u64  global_skbuff_pass = 0xDEADBEEFBEEFDEAD;
-int  cmd_send = 0;
-int  cmd_rcv = 0;
-int  response_total = 0;
+u32  cmd_send = 0;
+u32  cmd_rcv = 0;
+u32  response_total = 0;
+u32  mem_allocator_push_idx = 0;
+u32  mem_allocator_pop_idx = 0;
 
+/* Define Mutex locks */
 static DEFINE_MUTEX(push_request_lock);
 static DEFINE_MUTEX(pop_response_lock);
 static DEFINE_MUTEX(driver_request_lock);
 
-/* Global data types */
-static wait_queue_head_t  my_wait_queue[NUM_CPUS];
-static struct semaphore   wait_sem[NUM_CPUS];
+/* Global structures */
 static struct task_struct *thread_st_c_model_worker;
 static struct task_struct *thread_st_response[NUM_CPUS];
 static struct task_struct *thread_st_request[NUM_CPUS];
 static struct list_head   head_request;
 static struct list_head   head_response;
+static wait_queue_head_t  my_wait_queue[NUM_CPUS];
+static struct semaphore   wait_sem[NUM_CPUS];
 
 /* Meta data for NIC-C Model */
 struct meta_skbuff {
@@ -84,12 +86,8 @@ struct queue_ll{
 /* This structure later will be passed by the net stack */
 struct skbuff_nic_c skbuff_struct_driver[NUM_CPUS][NUM_CMDS];
 
-//TODO: Find some creative method of allocation
-//struct queue_ll pool_queue[NUM_CMDS];
-
-#define RESPONSE_QUEUE_SIZE	8
-int mem_allocator_push_idx = 0;
-int mem_allocator_pop_idx = 0;
+/* Since kmalloc is not correctly working for a C-Model thread,
+   This pointer is responsible for custom memory allocation */
 static  struct queue_ll *response_queue_ptr;
 
 /* 
@@ -109,23 +107,23 @@ static inline u64 read_rdtsc(void)
 *	Return-> 0  if found
 *	Return-> -1 if empty queue
 *	Element will be get by reference
-*   Type will tell if Request or Response
 */ 
-static int pop_request(struct skbuff_nic_c **skbuff_struct, int type) {
+static int pop_request(struct skbuff_nic_c **skbuff_struct) {
 
 	struct queue_ll *temp_node;
 
 	/* Check if there is something in the queue */
 	if(list_empty(&head_request)) {
+
 		/* Return -1, no element is found */
 		return -1;
 	}
 	else {
+		/* Get the node from link list queue */
 		temp_node = list_first_entry(&head_request,struct queue_ll ,list);
 	}
 
-
-	/* This structure needs to be passed to thread */
+	/* This structure needs to be passed back to caller */
 	*skbuff_struct = temp_node->skbuff_struct;
 
 	/* Clear the node */
@@ -137,10 +135,16 @@ static int pop_request(struct skbuff_nic_c **skbuff_struct, int type) {
 	return 0;
 }
 
-static int pop_response(struct skbuff_nic_c **skbuff_struct, int type) {
+/*
+*	Driver will get response from C-Model from this link list
+*	Pop last element from the queue
+*	Return-> 0  if found
+*	Return-> -1 if empty queue
+*	Element will be get by reference
+*/
+static int pop_response(struct skbuff_nic_c **skbuff_struct) {
 
 	struct queue_ll *temp_node;
-
 
 	/* Check if there is something in the queue */
 	if(list_empty(&head_response)) {
@@ -149,8 +153,13 @@ static int pop_response(struct skbuff_nic_c **skbuff_struct, int type) {
 		return -1;
 	}
 	else {
+		/* Since this is response list and will be shared by multiple thread, acquire the lock */
 		mutex_lock(&pop_response_lock);
+
+		/* Get the node from link list */
 		temp_node = list_first_entry(&head_response,struct queue_ll ,list);
+
+		/* Increment custom memory allocator for response queue */
 		mem_allocator_pop_idx = (mem_allocator_pop_idx + 1) % RESPONSE_QUEUE_SIZE;
 	}
 
@@ -160,6 +169,7 @@ static int pop_response(struct skbuff_nic_c **skbuff_struct, int type) {
 	/* Clear the node */
 	list_del(&temp_node->list);
 
+	/* Release the lock */
 	mutex_unlock(&pop_response_lock);
 
 	/* Return 0, element is found */
@@ -167,10 +177,11 @@ static int pop_response(struct skbuff_nic_c **skbuff_struct, int type) {
 }
 
 /* 
+*	Request in this link list will be pushed by the driver
 *	Push element in queue head
 *	Element will be passed by reference
 */ 
-void push_request(struct skbuff_nic_c **skbuff_struct, int type) {
+void push_request(struct skbuff_nic_c **skbuff_struct) {
 
 	struct queue_ll *temp_node;
 
@@ -188,24 +199,29 @@ void push_request(struct skbuff_nic_c **skbuff_struct, int type) {
 	mutex_unlock(&push_request_lock);
 }
 
-void push_response(struct skbuff_nic_c **skbuff_struct, int type) {
-//	struct queue_ll *temp_node = (struct queue_ll*)&pool_queue[alloc_index++];
-
+/*
+*	Responses in this link list will be pushed by the C-Model for the driver
+*	Push element in queue head
+*	Element will be passed by reference
+*/
+void push_response(struct skbuff_nic_c **skbuff_struct) {
 	struct queue_ll *temp_node;
 
+	/* Allocate memory from custom memory pool */
 	if (((mem_allocator_push_idx) % RESPONSE_QUEUE_SIZE) != ((mem_allocator_pop_idx + 1) % RESPONSE_QUEUE_SIZE))
 	{
+		/* Allocate the node and increment push_allocator idx */
 		temp_node = (struct queue_ll*) (response_queue_ptr + mem_allocator_push_idx);
 		mem_allocator_push_idx = (mem_allocator_push_idx + 1) % RESPONSE_QUEUE_SIZE;
 	}
+
+	/* Else wait until queue has some space */
 	else
 	{
-		printk("\n\n***Waiting for queue\n\n");
+		/* Wait until some element popped from the queue */
 		while(((mem_allocator_push_idx) % RESPONSE_QUEUE_SIZE) == ((mem_allocator_pop_idx + 1) % RESPONSE_QUEUE_SIZE));
 		mem_allocator_push_idx = (mem_allocator_push_idx + 1) % RESPONSE_QUEUE_SIZE;
 	}
-
-	/* Allocate Node */
 
 	/* skbuff needs to be add to link list */
 	temp_node->skbuff_struct = *skbuff_struct;
@@ -215,9 +231,9 @@ void push_response(struct skbuff_nic_c **skbuff_struct, int type) {
 }
 
 /*
-*	Main NIC-C Model Thread
-*	This thread will schedule process request 
-*	as soon some element push into the queue
+*	--Main NIC-C Model Thread--
+*	This thread is responsible for scheduling request
+*	as soon some element is push into the queue
 */
 static int c_model_worker_thread(void *unused)
 {
@@ -247,10 +263,12 @@ static int c_model_worker_thread(void *unused)
 			
 			/* Check if some command is in queue */
 			/* If found, element will be point to skbuff_ptr */
-        	if (pop_request(&skbuff_ptr, TYPE_REQUEST) != -1) {
+        	if (pop_request(&skbuff_ptr) != -1) {
 
+        		/* Increment total commands received */
 				cmd_rcv++;
 
+				/* Check what command requested */
 				switch (skbuff_ptr->meta.command)
 				{
 					/* Dummy RX Command */
@@ -259,21 +277,21 @@ static int c_model_worker_thread(void *unused)
 						/* Print Information */
 						printk(KERN_ALERT "RX Command | Len = %d | CPU = %d\n", skbuff_ptr->len, skbuff_ptr->meta.cpu);
 
-						/* Update response flag */
+						/* Update response flag to schedule task for response thread*/
 						skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_RX;
+
+						/* Syncrhonization Variable */
 						skbuff_ptr->meta.poll_flag = POLL_IF_RESPONSE_READ;
 
 						/* Pass skbuff to response queue */
-						push_response(&skbuff_ptr, TYPE_RESPONSE);
+						push_response(&skbuff_ptr);
 
-
+						/* Wake up wait queue for the Response thread */
 						flag[skbuff_ptr->meta.cpu] = 'y';
-
 						wake_up(&my_wait_queue[skbuff_ptr->meta.cpu]);
 
-						/* Release semaphore to wake per CPU thread to pass command to stack */
+						/* Wait until response is read by the Response thread to avoid race condition */
 	    				down (&wait_sem[skbuff_ptr->meta.cpu]);
-
 						while (skbuff_ptr->meta.poll_flag == POLL_IF_RESPONSE_READ){}
 
 						break;
@@ -283,21 +301,21 @@ static int c_model_worker_thread(void *unused)
 						/* Print Information */
 						printk(KERN_ALERT "TX Command | Len = %d | CPU = %d\n", skbuff_ptr->len, skbuff_ptr->meta.cpu);
 
-						/* Update response flag */
+						/* Update response flag to schedule task for response thread*/
 						skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_TX;
 
+						/* Syncrhonization Variable */
 						skbuff_ptr->meta.poll_flag = POLL_IF_RESPONSE_READ;
 
 						/* Pass skbuff to response queue */
-						push_response(&skbuff_ptr, TYPE_RESPONSE);
+						push_response(&skbuff_ptr);
 
+						/* Wake up wait queue for the Response thread */
 						flag[skbuff_ptr->meta.cpu] = 'y';
-
 						wake_up(&my_wait_queue[skbuff_ptr->meta.cpu]);
 
-						/* Release semaphore to wake per CPU thread to pass command to stack */
+						/* Wait until response is read by the Response thread to avoid race condition */
 	    				down (&wait_sem[skbuff_ptr->meta.cpu]);
-
 	    				while (skbuff_ptr->meta.poll_flag == POLL_IF_RESPONSE_READ){}
 
 						break;
@@ -308,7 +326,6 @@ static int c_model_worker_thread(void *unused)
         }
     	else
     	{
-			//TODO: Add counter to keep track of cycles spend here
 			/* This is necessary as we have to unschedule this
 			   thread after some rdtsc for a very short amount
 			   of time, for the sake of load balancing. Otherwise
@@ -318,15 +335,17 @@ static int c_model_worker_thread(void *unused)
     	}
     }
 
+    /* Module is exitted */
     printk(KERN_ALERT "c_model_worker_thread Exit!!!\n");
 
     return 0;
 }
 
 /*
-*	Main NIC-C Model Thread
-*	This thread will schedule process request
-*	as soon some element push into the queue
+*	Response thread scheduler
+*	This thread will schedule response request
+*	as soon some element push in response list
+*	and wait queue flag for CPU is signalled
 */
 static int response_per_cpu_thread(void *unused)
 {
@@ -336,66 +355,84 @@ static int response_per_cpu_thread(void *unused)
 	int cpu = get_cpu();
 	while (1)
 	{	
+		/* Suspend until some response is scheduled by C-Model */
 	    wait_event(my_wait_queue[cpu], flag[cpu] != 'n');
 
+	    /* Update flag to suspend next time */
 		flag[cpu] = 'n';
-
 		up (&wait_sem[cpu]);
 
-		if (pop_response(&skbuff_ptr, TYPE_RESPONSE) != -1)
+		if (pop_response(&skbuff_ptr) != -1)
 		{
+			/* Notify C-Model that response is read */
 			skbuff_ptr->meta.poll_flag = POLL_END_RESPONSE_READ;
+
+			/* Update statistics counter */
 			response_total++;
 			response_per_cpu++;
 
+			/* Check what response is scheduled by C-Model */
 			switch (skbuff_ptr->meta.response_flag)
 			{
 				case CASE_NOTIFY_STACK_RX:
 				{
-					/* Parse the thread data */
-//					printk(KERN_ALERT "\nResponse | Core-%d | Total->%d\n", cpu, response_per_cpu);
+					/* Simply Print the information */
+					printk(KERN_ALERT "Response | Core-%d | Total->%d\n", cpu, response_per_cpu);
 
 					break;
 				}
 				case CASE_NOTIFY_STACK_TX:
 				{
-					/* Parse the thread data */
-//					printk(KERN_ALERT "\nResponse | Core-%d | Total->%d\n", cpu, response_per_cpu);
+					/* Simply Print the information */
+					printk(KERN_ALERT "Response | Core-%d | Total->%d\n", cpu, response_per_cpu);
 
 					break;
 				}
 			}
 		}
 
+		/* Thread needs to exit */
 		if (response_thread_exit)
 			break;
 	}
 
+	/* Print per CPU response count */
 	printk(KERN_ALERT "Core-%d | Responses => %d\n", cpu, response_per_cpu);
 
     return 0;
 }
 
+/*
+*	Request thread scheduler
+*	This thread emulating the calls just like driver
+*	It will be run on all the CPUs and will generate
+*	concurrent requests
+*/
 static int request_per_cpu_thread(void *unused)
 {
 	int i = 0;
 	struct skbuff_nic_c *skbuff_struc_temp;
-	/* Push Dummy RX Command */
+
+	/* Divide Number of Commands to send among total number of CPUs */
 	for (i=0; i<NUM_CMDS/NUM_CPUS; i++)
 	{
+		/* Populate dummy structure */
 		skbuff_struct_driver[get_cpu()][i].skbuff = &global_skbuff_pass;//(u8*) kmalloc(4,GFP_KERNEL);
 		skbuff_struct_driver[get_cpu()][i].len = i + 1;
 		skbuff_struct_driver[get_cpu()][i].meta.cpu = get_cpu();
 		skbuff_struct_driver[get_cpu()][i].meta.response_flag = 0;
 
-		// Half should be TX commands and half should be RX
+		/* Divide half dummy requests as RX, remaining as TX */
 		if ((i % 2) == 0)
 			skbuff_struct_driver[get_cpu()][i].meta.command = PROCESS_RX;
 		else
 			skbuff_struct_driver[get_cpu()][i].meta.command = PROCESS_TX;
 
+		/* Push request in the list and return */
 		skbuff_struc_temp = &skbuff_struct_driver[get_cpu()][i];
-		push_request(&skbuff_struc_temp, TYPE_REQUEST);
+		push_request(&skbuff_struc_temp);
+
+		/* Update request counter */
 		mutex_lock(&driver_request_lock);
 		cmd_send++;
 		mutex_unlock(&driver_request_lock);
@@ -404,6 +441,11 @@ static int request_per_cpu_thread(void *unused)
     return 0;
 }
 
+/*
+*	This is init_module routine
+*	This routine is responsible for allocating
+*	and managing resources
+*/
 static int __init nic_c_init(void) {
 
 	int i = 0;
@@ -446,17 +488,24 @@ static int __init nic_c_init(void) {
 	return 0;
 }
 
+/*
+*	This is init_module routine
+*	This routine is responsible for deallocating
+*	resources and stopping services/threads
+*/
 static void __exit nic_c_exit(void) {
 
 	int i = 0;
 
+	/* Stop main C-Module thread */
 	kthread_stop(thread_st_c_model_worker);
 
+	/* Flag for per cpu response thread to exit */
 	response_thread_exit = 1;
 
+	/* Signal per cpu response threads to exit */
 	for (i=0; i<NUM_CPUS; i++)
 	{
-
 		flag[i] = 'y';
 
 		wake_up(&my_wait_queue[i]);
@@ -464,8 +513,11 @@ static void __exit nic_c_exit(void) {
 		/* Release semaphore to wake per CPU thread to pass command to stack */
 		down (&wait_sem[i]);
 	}
+
+	/* Deallocate custom memory pool */
 	kfree (response_queue_ptr);
 
+	/* Print statistics */
 	printk(KERN_ALERT "CMD Send => %d\n", cmd_send);
 	printk(KERN_ALERT "CMD Receive C-Model => %d\n", cmd_rcv);
 	printk(KERN_ALERT "Response Receive Driver=> %d\n", response_total);
