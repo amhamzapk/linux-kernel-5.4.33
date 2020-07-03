@@ -451,6 +451,7 @@ static void __exit nic_c_exit(void) {
 		/* Release semaphore to wake per CPU thread to pass command to stack */
 		down (&wait_sem[i]);
 	}
+	kfree (response_queue_ptr);
 
 	printk(KERN_ALERT "CMD Send => %d\n", cmd_send);
 	printk(KERN_ALERT "CMD Receive C-Model => %d\n", cmd_rcv);
