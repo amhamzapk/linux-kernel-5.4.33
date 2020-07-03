@@ -46,9 +46,9 @@ int  cmd_send = 0;
 int  cmd_rcv = 0;
 int  response_total = 0;
 
-static DEFINE_MUTEX(push_lock);
-static DEFINE_MUTEX(pop_resp_lock);
-static DEFINE_MUTEX(req_lock);
+static DEFINE_MUTEX(push_request_lock);
+static DEFINE_MUTEX(pop_response_lock);
+static DEFINE_MUTEX(driver_request_lock);
 
 /* Global data types */
 static wait_queue_head_t  my_wait_queue[NUM_CPUS];
@@ -144,7 +144,7 @@ static int pop_response(struct skbuff_nic_c **skbuff_struct, int type) {
 		return -1;
 	}
 	else {
-		mutex_lock(&pop_resp_lock);
+		mutex_lock(&pop_response_lock);
 		temp_node = list_first_entry(&head_response,struct queue_ll ,list);
 	}
 
@@ -154,7 +154,7 @@ static int pop_response(struct skbuff_nic_c **skbuff_struct, int type) {
 	/* Clear the node */
 	list_del(&temp_node->list);
 
-	mutex_unlock(&pop_resp_lock);
+	mutex_unlock(&pop_response_lock);
 
 	/* Return 0, element is found */
 	return 0;
@@ -174,12 +174,12 @@ void push_request(struct skbuff_nic_c **skbuff_struct, int type) {
 	/* skbuff needs to be add to link list */
 	temp_node->skbuff_struct = *skbuff_struct;
 
-	mutex_lock(&push_lock);
+	mutex_lock(&push_request_lock);
 
 	/* Add element to link list */
 	list_add_tail(&temp_node->list,&head_request);
 
-	mutex_unlock(&push_lock);
+	mutex_unlock(&push_request_lock);
 }
 
 void push_response(struct skbuff_nic_c **skbuff_struct, int type) {
@@ -376,9 +376,9 @@ static int request_per_cpu_thread(void *unused)
 
 		skbuff_struc_temp = &skbuff_struct_driver[get_cpu()][i];
 		push_request(&skbuff_struc_temp, TYPE_REQUEST);
-		mutex_lock(&req_lock);
+		mutex_lock(&driver_request_lock);
 		cmd_send++;
-		mutex_unlock(&req_lock);
+		mutex_unlock(&driver_request_lock);
 	}
 
     return 0;
