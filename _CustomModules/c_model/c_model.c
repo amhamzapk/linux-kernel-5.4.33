@@ -164,7 +164,7 @@ static int pop_response(struct skbuff_nic_c **skbuff_struct, int type) {
 *	Push element in queue head
 *	Element will be passed by reference
 */ 
-void push_response(struct skbuff_nic_c **skbuff_struct, int type) {
+void push_request(struct skbuff_nic_c **skbuff_struct, int type) {
 
 	struct queue_ll *temp_node;
 
@@ -182,7 +182,7 @@ void push_response(struct skbuff_nic_c **skbuff_struct, int type) {
 	mutex_unlock(&push_lock);
 }
 
-void push_request(struct skbuff_nic_c **skbuff_struct, int type) {
+void push_response(struct skbuff_nic_c **skbuff_struct, int type) {
 	struct queue_ll *temp_node = (struct queue_ll*)&pool_queue[alloc_index++];
 
 	/* Allocate Node */
