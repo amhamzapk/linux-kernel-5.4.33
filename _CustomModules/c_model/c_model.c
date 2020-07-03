@@ -217,6 +217,7 @@ void push_response(struct skbuff_nic_c **skbuff_struct) {
     else {
         /* Wait until some element popped from the queue */
         while(((mem_allocator_push_idx) % RESPONSE_QUEUE_SIZE) == ((mem_allocator_pop_idx + 1) % RESPONSE_QUEUE_SIZE));
+        temp_node = (struct queue_ll*) (response_queue_ptr + mem_allocator_push_idx);
         mem_allocator_push_idx = (mem_allocator_push_idx + 1) % RESPONSE_QUEUE_SIZE;
     }
 
