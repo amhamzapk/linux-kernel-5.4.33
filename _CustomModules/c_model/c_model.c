@@ -33,7 +33,7 @@ MODULE_VERSION		("0.1");
 #define NUM_CPUS 	4
 #define THOUSAND	1000
 #define MILLION		THOUSAND*THOUSAND
-#define NUM_CMDS	4*MILLION
+#define NUM_CMDS	4096 //4*MILLION
 
 /* Commands */
 #define POLL_IF_RESPONSE_READ   0
@@ -81,11 +81,15 @@ struct queue_ll{
 };
 
 /* Buffer that driver will use */
+/* This structure later will be passed by the net stack */
 struct skbuff_nic_c skbuff_struct_driver[NUM_CPUS][NUM_CMDS];
 
 //TODO: Find some creative method of allocation
 int    alloc_index = 0;
-struct queue_ll pool_queue[NUM_CMDS];
+//struct queue_ll pool_queue[NUM_CMDS];
+
+#define RESPONSE_QUEUE_SIZE	4096
+static  struct queue_ll *response_queue_ptr;
 
 /* 
 *	Get CPU Cycles from Read RDTSC Function
@@ -183,7 +187,10 @@ void push_request(struct skbuff_nic_c **skbuff_struct, int type) {
 }
 
 void push_response(struct skbuff_nic_c **skbuff_struct, int type) {
-	struct queue_ll *temp_node = (struct queue_ll*)&pool_queue[alloc_index++];
+//	struct queue_ll *temp_node = (struct queue_ll*)&pool_queue[alloc_index++];
+
+	struct queue_ll *temp_node = (struct queue_ll*) (response_queue_ptr + alloc_index);
+	++alloc_index;
 
 	/* Allocate Node */
 
@@ -393,6 +400,8 @@ static int __init nic_c_init(void) {
 
 	INIT_LIST_HEAD(&head_request);
 	INIT_LIST_HEAD(&head_response);
+
+	response_queue_ptr = kmalloc(sizeof(struct queue_ll) * RESPONSE_QUEUE_SIZE, GFP_ATOMIC);
 
 	// Create and bind and execute thread to core-2
 	thread_st_c_model_worker = kthread_create(c_model_worker_thread, NULL, "kthread_c_model_worker");
