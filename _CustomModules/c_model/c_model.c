@@ -33,7 +33,7 @@ MODULE_VERSION		("0.1");
 #define NUM_CPUS 	4
 #define THOUSAND	1000
 #define MILLION		THOUSAND*THOUSAND
-#define NUM_CMDS	4096 //4*MILLION
+#define NUM_CMDS	4*MILLION
 
 /* Commands */
 #define POLL_IF_RESPONSE_READ   0
@@ -87,7 +87,7 @@ struct skbuff_nic_c skbuff_struct_driver[NUM_CPUS][NUM_CMDS];
 //TODO: Find some creative method of allocation
 //struct queue_ll pool_queue[NUM_CMDS];
 
-#define RESPONSE_QUEUE_SIZE	2
+#define RESPONSE_QUEUE_SIZE	8
 int mem_allocator_push_idx = 0;
 int mem_allocator_pop_idx = 0;
 static  struct queue_ll *response_queue_ptr;
@@ -353,14 +353,14 @@ static int response_per_cpu_thread(void *unused)
 				case CASE_NOTIFY_STACK_RX:
 				{
 					/* Parse the thread data */
-					printk(KERN_ALERT "\nResponse | Core-%d | Total->%d\n", cpu, response_per_cpu);
+//					printk(KERN_ALERT "\nResponse | Core-%d | Total->%d\n", cpu, response_per_cpu);
 
 					break;
 				}
 				case CASE_NOTIFY_STACK_TX:
 				{
 					/* Parse the thread data */
-					printk(KERN_ALERT "\nResponse | Core-%d | Total->%d\n", cpu, response_per_cpu);
+//					printk(KERN_ALERT "\nResponse | Core-%d | Total->%d\n", cpu, response_per_cpu);
 
 					break;
 				}
