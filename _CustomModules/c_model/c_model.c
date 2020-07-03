@@ -428,6 +428,7 @@ static int request_thread_per_cpu(void *unused)
 	/* Push Dummy RX Command */
 	for (i=0; i<NUM_CMDS/NUM_CPUS; i++)
 	{
+		printk("Driver:: Core[%d] -> %d", get_cpu(), i);
 //		mutex_lock(&req_lock);
 		skbuff_driver[get_cpu()][i].skbuff = &global_skbuff_pass;//(u8*) kmalloc(4,GFP_KERNEL);
 		skbuff_driver[get_cpu()][i].len = i + 1;
