@@ -441,7 +441,7 @@ static int request_thread_per_cpu(void *unused)
 		push_queue(&skbuff_struc_temp, TYPE_REQUEST);
 //		printk(KERN_ALERT "Driver Cmd[%d]\n", i);
 		cmd_send++;
-		msleep(1);
+//		msleep(1);
 	}
 
     return 0;
@@ -483,7 +483,7 @@ static int __init nic_c_init(void) {
 	}
 
 	/* Wait for a second to let the thread being schedule */
-	ssleep(10);
+//	ssleep(10);
 	printk(KERN_INFO "NIC-C Model Init Ends | CPU = %d!\n", num_online_cpus());
 	ssleep (1);
 	return 0;
