@@ -432,8 +432,6 @@ static void __exit nic_c_exit(void) {
 
 	response_thread_exit = 1;
 
-	ssleep (1);
-
 	for (i=0; i<NUM_CPUS; i++)
 	{
 
