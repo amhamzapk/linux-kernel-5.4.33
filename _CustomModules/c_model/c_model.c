@@ -31,7 +31,7 @@ MODULE_VERSION("0.1");
 #define NUM_CPUS 	4
 #define THOUSAND	1000
 #define MILLION		THOUSAND*THOUSAND
-#define NUM_CMDS	8192 * 4 * 8//1*MILLION
+#define NUM_CMDS	128//1*MILLION
 
 int cnt_resp = 0;
 
@@ -429,7 +429,7 @@ static int request_thread_per_cpu(void *unused)
 	/* Push Dummy RX Command */
 	for (i=0; i<NUM_CMDS/NUM_CPUS; i++)
 	{
-		mutex_lock(&req_lock);
+//		mutex_lock(&req_lock);
 		skbuff_driver[get_cpu()][i].skbuff = &global_skbuff_pass;//(u8*) kmalloc(4,GFP_KERNEL);
 		skbuff_driver[get_cpu()][i].len = i + 1;
 		skbuff_driver[get_cpu()][i].meta.cpu = get_cpu();
@@ -443,7 +443,7 @@ static int request_thread_per_cpu(void *unused)
 		push_queue(&skbuff_struc_temp, TYPE_REQUEST);
 //		printk(KERN_ALERT "Driver Cmd[%d]\n", i);
 		cmd_send++;
-		mutex_unlock(&req_lock);
+//		mutex_unlock(&req_lock);
 //		msleep(1);
 	}
 
