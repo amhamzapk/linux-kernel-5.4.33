@@ -33,7 +33,7 @@ MODULE_VERSION		("0.1");
 #define NUM_CPUS 	4
 #define THOUSAND	1000
 #define MILLION		THOUSAND*THOUSAND
-#define NUM_CMDS	10*MILLION
+#define NUM_CMDS	5*MILLION
 
 /* Commands */
 #define POLL_IF_RESPONSE_READ   0
