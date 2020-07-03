@@ -166,8 +166,9 @@ static int pop_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 #ifdef RESPONSE_NEEDED
 static int pop_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
 
-	mutex_lock(&pop_resp_lock);
 	struct queue_ll_resp *temp_node;
+
+	mutex_lock(&pop_resp_lock);
 
 	/* Check if there is something in the queue */
 	if(list_empty(&head_response)) {
@@ -198,8 +199,9 @@ static int pop_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
 */ 
 void push_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 
-	mutex_lock(&push_lock);
 	struct queue_ll *temp_node;// = (struct queue_ll*)&pool_queue[alloc_index++];
+
+	mutex_lock(&push_lock);
 
 	/* Allocate Node */
 //	temp_node=kmalloc(sizeof(struct queue_ll));
@@ -424,7 +426,7 @@ static int request_thread_per_cpu(void *unused)
 	int i = 0;
 	struct skbuff_nic_c *skbuff_struc_temp;
 	/* Push Dummy RX Command */
-	for (i=0; i<NUM_CMDS/NUM_CPUS; i++)
+	for (i=0; i<NUM_CMDS/*/NUM_CPUS*/; i++)
 	{
 		skbuff_driver[get_cpu()][i].skbuff = &global_skbuff_pass;//(u8*) kmalloc(4,GFP_KERNEL);
 		skbuff_driver[get_cpu()][i].len = i + 1;
@@ -473,7 +475,7 @@ static int __init nic_c_init(void) {
 		flag[i] = 'n';
 	}
 
-	for (i=0; i<NUM_CPUS; i++)
+	for (i=0; i<1; i++)
 	{
 		req_thread_per_cpu[i] = kthread_create(request_thread_per_cpu, NULL, "kthread_cpu_req");
 		kthread_bind(req_thread_per_cpu[i], i);
