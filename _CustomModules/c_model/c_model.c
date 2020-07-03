@@ -31,7 +31,7 @@ MODULE_VERSION("0.1");
 #define NUM_CPUS 	4
 #define THOUSAND	1000
 #define MILLION		THOUSAND*THOUSAND
-#define NUM_CMDS	1*MILLION
+#define NUM_CMDS	10*THOUSAND
 
 int cnt_resp = 0;
 
@@ -428,7 +428,7 @@ static int request_thread_per_cpu(void *unused)
 	/* Push Dummy RX Command */
 	for (i=0; i<NUM_CMDS/NUM_CPUS; i++)
 	{
-		printk("Driver:: Core[%d] -> %d", get_cpu(), i);
+//		printk("Driver:: Core[%d] -> %d", get_cpu(), i);
 //		mutex_lock(&req_lock);
 		skbuff_driver[get_cpu()][i].skbuff = &global_skbuff_pass;//(u8*) kmalloc(4,GFP_KERNEL);
 		skbuff_driver[get_cpu()][i].len = i + 1;
@@ -488,7 +488,7 @@ static int __init nic_c_init(void) {
 	/* Wait for a second to let the thread being schedule */
 //	ssleep(10);
 	printk(KERN_INFO "NIC-C Model Init Ends | CPU = %d!\n", num_online_cpus());
-	ssleep (1);
+//	ssleep (1);
 	return 0;
 }
 
