@@ -31,7 +31,7 @@ MODULE_VERSION("0.1");
 #define NUM_CPUS 	4
 #define THOUSAND	1000
 #define MILLION		THOUSAND*THOUSAND
-#define NUM_CMDS	128//1*MILLION
+#define NUM_CMDS	1024//1*MILLION
 
 int cnt_resp = 0;
 
@@ -47,7 +47,7 @@ static DEFINE_MUTEX(pop_lock);
 static DEFINE_MUTEX(push_resp_lock);
 static DEFINE_MUTEX(pop_resp_lock);
 static DEFINE_MUTEX(response_lock);
-static DEFINE_MUTEX(req_lock);
+//static DEFINE_MUTEX(req_lock);
 
 /* Commands */
 #define STATE_IN_POLLING    1
