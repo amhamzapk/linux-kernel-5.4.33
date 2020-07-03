@@ -18,6 +18,7 @@ MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Ameer Hamza");
 MODULE_DESCRIPTION("NIC-C Model Description");
 MODULE_VERSION("0.1");
+
 #define CASE_WAIT_IDLE			'a'
 #define CASE_WAIT_EXIT   		'b'
 #define CASE_NOTIFY_STACK_TX   	123
@@ -31,7 +32,7 @@ MODULE_VERSION("0.1");
 #define NUM_CPUS 	4
 #define THOUSAND	1000
 #define MILLION		THOUSAND*THOUSAND
-#define NUM_CMDS	10*THOUSAND
+#define NUM_CMDS	1*MILLION
 
 int cnt_resp = 0;
 
@@ -47,7 +48,7 @@ static DEFINE_MUTEX(pop_lock);
 static DEFINE_MUTEX(push_resp_lock);
 static DEFINE_MUTEX(pop_resp_lock);
 static DEFINE_MUTEX(response_lock);
-//static DEFINE_MUTEX(req_lock);
+static DEFINE_MUTEX(req_lock);
 
 /* Commands */
 #define STATE_IN_POLLING    1
@@ -123,12 +124,6 @@ static inline void *kvmalloc_custom(size_t size)
 	return ret_alloc;
 }
 
-void kvfree_custom(void *addr)
-{
-	mutex_lock(&dealloc_lock);
-	kvfree(addr);
-	mutex_unlock(&dealloc_lock);
-}
 
 /* 
 *	Pop last element from the queue
@@ -200,38 +195,33 @@ static int pop_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
 */ 
 void push_queue(struct skbuff_nic_c **skbuff_struct, int type) {
 
-	struct queue_ll *temp_node;// = (struct queue_ll*)&pool_queue[alloc_index++];
+	struct queue_ll *temp_node;
 
 	/* Allocate Node */
-//	temp_node=kmalloc(sizeof(struct queue_ll));
 	temp_node=kmalloc(sizeof(struct queue_ll),GFP_ATOMIC);
-//	pool_queue[alloc_index] =
 
 	/* skbuff needs to be add to link list */
 	temp_node->skbuff_struct = *skbuff_struct;
 
 	mutex_lock(&push_lock);
+
 	/* Add element to link list */
 	list_add_tail(&temp_node->list,&head);
+
 	mutex_unlock(&push_lock);
 }
 #ifdef RESPONSE_NEEDED
 
 void push_queue_response(struct skbuff_nic_c **skbuff_struct, int type) {
-//	static struct queue_ll_resp *temp_node;
 	struct queue_ll_resp *temp_node = (struct queue_ll_resp*)&pool_queue_2[alloc_index_2++];
 
 	/* Allocate Node */
-//	temp_node=kvmalloc_custom(sizeof(struct queue_ll_resp));
-//	temp_node=kvmalloc(sizeof(struct queue_ll_resp), GFP_ATOMIC);
 
 	/* skbuff needs to be add to link list */
 	temp_node->skbuff_struct = *skbuff_struct;
 	
 	/* Add element to link list */
-//	mutex_lock(&push_resp_lock);
 	list_add_tail(&temp_node->list,&head_response);
-//	mutex_unlock(&push_resp_lock);
 }
 #endif
 /*
@@ -429,7 +419,6 @@ static int request_thread_per_cpu(void *unused)
 	for (i=0; i<NUM_CMDS/NUM_CPUS; i++)
 	{
 //		printk("Driver:: Core[%d] -> %d", get_cpu(), i);
-//		mutex_lock(&req_lock);
 		skbuff_driver[get_cpu()][i].skbuff = &global_skbuff_pass;//(u8*) kmalloc(4,GFP_KERNEL);
 		skbuff_driver[get_cpu()][i].len = i + 1;
 		skbuff_driver[get_cpu()][i].meta.cpu = get_cpu();
@@ -442,8 +431,9 @@ static int request_thread_per_cpu(void *unused)
 		skbuff_struc_temp = &skbuff_driver[get_cpu()][i];
 		push_queue(&skbuff_struc_temp, TYPE_REQUEST);
 //		printk(KERN_ALERT "Driver Cmd[%d]\n", i);
+		mutex_lock(&req_lock);
 		cmd_send++;
-//		mutex_unlock(&req_lock);
+		mutex_unlock(&req_lock);
 //		msleep(1);
 	}
 
