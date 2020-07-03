@@ -29,7 +29,7 @@ MODULE_VERSION		("0.1");
 #define NUM_CPUS 	4
 #define THOUSAND	1000
 #define MILLION		THOUSAND*THOUSAND
-#define NUM_CMDS	8//4*MILLION
+#define NUM_CMDS	4*MILLION
 
 /* Commands */
 #define POLL_IF_RESPONSE_READ   0
@@ -93,8 +93,7 @@ static  struct queue_ll *response_queue_ptr;
 /* 
 *	Get CPU Cycles from Read RDTSC Function
 */ 
-static inline u64 read_rdtsc(void)
-{
+static inline u64 read_rdtsc(void) {
     u64 lo, hi;
 
     __asm__ __volatile__("rdtscp" : "=a"(lo), "=d"(hi) :: "ecx" );
@@ -208,16 +207,14 @@ void push_response(struct skbuff_nic_c **skbuff_struct) {
 	struct queue_ll *temp_node;
 
 	/* Allocate memory from custom memory pool */
-	if (((mem_allocator_push_idx) % RESPONSE_QUEUE_SIZE) != ((mem_allocator_pop_idx + 1) % RESPONSE_QUEUE_SIZE))
-	{
+	if (((mem_allocator_push_idx) % RESPONSE_QUEUE_SIZE) != ((mem_allocator_pop_idx + 1) % RESPONSE_QUEUE_SIZE)) {
 		/* Allocate the node and increment push_allocator idx */
 		temp_node = (struct queue_ll*) (response_queue_ptr + mem_allocator_push_idx);
 		mem_allocator_push_idx = (mem_allocator_push_idx + 1) % RESPONSE_QUEUE_SIZE;
 	}
 
 	/* Else wait until queue has some space */
-	else
-	{
+	else {
 		/* Wait until some element popped from the queue */
 		while(((mem_allocator_push_idx) % RESPONSE_QUEUE_SIZE) == ((mem_allocator_pop_idx + 1) % RESPONSE_QUEUE_SIZE));
 		mem_allocator_push_idx = (mem_allocator_push_idx + 1) % RESPONSE_QUEUE_SIZE;
@@ -235,8 +232,7 @@ void push_response(struct skbuff_nic_c **skbuff_struct) {
 *	This thread is responsible for scheduling request
 *	as soon some element is push into the queue
 */
-static int c_model_worker_thread(void *unused)
-{
+static int c_model_worker_thread(void *unused) {
     struct skbuff_nic_c *skbuff_ptr;
 
 	/* Local variables to keep track of CPU Cycles */
@@ -269,11 +265,11 @@ static int c_model_worker_thread(void *unused)
 				cmd_rcv++;
 
 				/* Check what command requested */
-				switch (skbuff_ptr->meta.command)
-				{
+				switch (skbuff_ptr->meta.command) {
+
 					/* Dummy RX Command */
 					case PROCESS_RX:
-					{
+
 						/* Print Information */
 						printk(KERN_ALERT "RX Command | Len = %d | CPU = %d\n", skbuff_ptr->len, skbuff_ptr->meta.cpu);
 
@@ -295,9 +291,9 @@ static int c_model_worker_thread(void *unused)
 						while (skbuff_ptr->meta.poll_flag == POLL_IF_RESPONSE_READ){}
 
 						break;
-					}
+
 					case PROCESS_TX:
-					{
+
 						/* Print Information */
 						printk(KERN_ALERT "TX Command | Len = %d | CPU = %d\n", skbuff_ptr->len, skbuff_ptr->meta.cpu);
 
@@ -319,19 +315,18 @@ static int c_model_worker_thread(void *unused)
 	    				while (skbuff_ptr->meta.poll_flag == POLL_IF_RESPONSE_READ){}
 
 						break;
-					}
 				}
         	}
+
 			clk_cycles_start = 0;
         }
-    	else
-    	{
+    	else {
 			/* This is necessary as we have to unschedule this
 			   thread after some rdtsc for a very short amount
 			   of time, for the sake of load balancing. Otherwise
 			   we get system gets stuck if a core continously
 			   spend its cycle in a while loop */
-    		schedule_timeout (0); // Sleep for 500 clock cycles
+    		schedule_timeout (0);
     	}
     }
 
@@ -347,14 +342,12 @@ static int c_model_worker_thread(void *unused)
 *	as soon some element push in response list
 *	and wait queue flag for CPU is signalled
 */
-static int response_per_cpu_thread(void *unused)
-{
+static int response_per_cpu_thread(void *unused) {
 	struct skbuff_nic_c *skbuff_ptr;
 
 	int response_per_cpu = 0;
 	int cpu = get_cpu();
-	while (1)
-	{	
+	while (1) {
 		/* Suspend until some response is scheduled by C-Model */
 	    wait_event(my_wait_queue[cpu], flag[cpu] != 'n');
 
@@ -362,8 +355,8 @@ static int response_per_cpu_thread(void *unused)
 		flag[cpu] = 'n';
 		up (&wait_sem[cpu]);
 
-		if (pop_response(&skbuff_ptr) != -1)
-		{
+		if (pop_response(&skbuff_ptr) != -1) {
+
 			/* Notify C-Model that response is read */
 			skbuff_ptr->meta.poll_flag = POLL_END_RESPONSE_READ;
 
@@ -372,22 +365,21 @@ static int response_per_cpu_thread(void *unused)
 			response_per_cpu++;
 
 			/* Check what response is scheduled by C-Model */
-			switch (skbuff_ptr->meta.response_flag)
-			{
+			switch (skbuff_ptr->meta.response_flag) {
+
 				case CASE_NOTIFY_STACK_RX:
-				{
+
 					/* Simply Print the information */
 					printk(KERN_ALERT "Response | Core-%d | Total->%d\n", cpu, response_per_cpu);
 
 					break;
-				}
+
 				case CASE_NOTIFY_STACK_TX:
-				{
+
 					/* Simply Print the information */
 					printk(KERN_ALERT "Response | Core-%d | Total->%d\n", cpu, response_per_cpu);
 
 					break;
-				}
 			}
 		}
 
@@ -408,14 +400,13 @@ static int response_per_cpu_thread(void *unused)
 *	It will be run on all the CPUs and will generate
 *	concurrent requests
 */
-static int request_per_cpu_thread(void *unused)
-{
+static int request_per_cpu_thread(void *unused) {
 	int i = 0;
 	struct skbuff_nic_c *skbuff_struc_temp;
 
 	/* Divide Number of Commands to send among total number of CPUs */
-	for (i=0; i<NUM_CMDS/NUM_CPUS; i++)
-	{
+	for (i=0; i<NUM_CMDS/NUM_CPUS; i++) {
+
 		/* Populate dummy structure */
 		skbuff_struct_driver[get_cpu()][i].skbuff = &global_skbuff_pass;//(u8*) kmalloc(4,GFP_KERNEL);
 		skbuff_struct_driver[get_cpu()][i].len = i + 1;
@@ -458,14 +449,14 @@ static int __init nic_c_init(void) {
 
 	response_queue_ptr = kmalloc(sizeof(struct queue_ll) * RESPONSE_QUEUE_SIZE, GFP_ATOMIC);
 
-	// Create and bind and execute thread to core-2
+	/* Bind C-Model worker thread to the last core */
 	thread_st_c_model_worker = kthread_create(c_model_worker_thread, NULL, "kthread_c_model_worker");
 	kthread_bind(thread_st_c_model_worker, NUM_CPUS - 1);
-
 	wake_up_process(thread_st_c_model_worker);
 
-	for (i=0; i<NUM_CPUS; i++)
-	{
+	for (i=0; i<NUM_CPUS; i++) {
+
+		/* Initialization for response thread */
 		init_waitqueue_head(&my_wait_queue[i]);
 		thread_st_response[i] = kthread_create(response_per_cpu_thread, NULL, "kthread_response");
 		kthread_bind(thread_st_response[i], i);
@@ -476,8 +467,9 @@ static int __init nic_c_init(void) {
 		flag[i] = 'n';
 	}
 
-	for (i=0; i<NUM_CPUS; i++)
-	{
+	for (i=0; i<NUM_CPUS; i++) {
+
+		/* Initialization for request thread */
 		thread_st_request[i] = kthread_create(request_per_cpu_thread, NULL, "kthread_request");
 		kthread_bind(thread_st_request[i], i);
 		wake_up_process(thread_st_request[i]);
@@ -504,8 +496,8 @@ static void __exit nic_c_exit(void) {
 	response_thread_exit = 1;
 
 	/* Signal per cpu response threads to exit */
-	for (i=0; i<NUM_CPUS; i++)
-	{
+	for (i=0; i<NUM_CPUS; i++) {
+
 		flag[i] = 'y';
 
 		wake_up(&my_wait_queue[i]);
