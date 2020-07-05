@@ -488,7 +488,7 @@ static int __init nic_c_init(void) {
         INIT_LIST_HEAD(&head_response[i]);
     }
 
-    response_queue_ptr = kmalloc(sizeof(struct queue_ll) * RESPONSE_QUEUE_SIZE, GFP_ATOMIC);
+//    response_queue_ptr = kmalloc(sizeof(struct queue_ll) * RESPONSE_QUEUE_SIZE, GFP_ATOMIC);
 
     /* Bind C-Model worker thread to the last core */
     thread_st_c_model_worker = kthread_create(c_model_worker_thread, NULL, "kthread_c_model_worker");
@@ -548,7 +548,7 @@ static void __exit nic_c_exit(void) {
     }
 
     /* Deallocate custom memory pool */
-    kfree (response_queue_ptr);
+//    kfree (response_queue_ptr);
 
     /* Print statistics */
     printk(KERN_ALERT "CMD Send => %d\n", num_cmd_send);
