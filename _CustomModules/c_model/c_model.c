@@ -360,7 +360,8 @@ static int response_per_cpu_thread(void *unused) {
         /* Suspend until some response is scheduled by C-Model */
         wait_event(my_wait_queue[cpu], flag[cpu] != 'n');
 
-
+        if (num_responses_pop[cpu] == (num_responses_push[cpu] - 1))
+			flag[cpu] = 'n';
 //        up (&wait_sem[cpu]);
 
         if (pop_response(&skbuff_ptr, cpu) != -1) {
@@ -391,9 +392,6 @@ static int response_per_cpu_thread(void *unused) {
                     break;
             }
         }
-
-        if (num_responses_push[cpu] == num_responses_pop[cpu])
-			flag[cpu] = 'n';
 
         /* Thread needs to exit */
         if (response_thread_exit)
