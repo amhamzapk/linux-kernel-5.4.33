@@ -48,9 +48,9 @@ u32  num_cmd_rcv = 0;
 u32  num_total_response = 0;
 u32  mem_allocator_push_idx = 0;
 u32  mem_allocator_pop_idx = 0;
-#define NUM_RESPONSE_WRAP 8192
-u32  num_responses_push[NUM_CPUS] = {0};
-u32  num_responses_pop[NUM_CPUS]  = {0};
+#define NUM_RESPONSE_WRAP 300000
+u64  num_responses_push[NUM_CPUS] = {0};
+u64  num_responses_pop[NUM_CPUS]  = {0};
 
 /* Define Mutex locks */
 static DEFINE_MUTEX(push_request_lock);
