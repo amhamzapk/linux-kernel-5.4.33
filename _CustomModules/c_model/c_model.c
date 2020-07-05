@@ -399,7 +399,7 @@ static int response_per_cpu_thread(void *unused) {
             }
         }
 
-        printk(KERN_ALERT "Four\n", cpu);
+        printk(KERN_ALERT "Four - CPU %d\n", cpu);
         /* Thread needs to exit */
         if (response_thread_exit)
             break;
