@@ -48,6 +48,9 @@ u32  num_cmd_rcv = 0;
 u32  num_total_response = 0;
 u32  mem_allocator_push_idx = 0;
 u32  mem_allocator_pop_idx = 0;
+#define NUM_RESPONSE_WRAP 8192
+u32  num_responses_push[NUM_CPUS] = {0};
+u32  num_responses_pop[NUM_CPUS]  = {0};
 
 /* Define Mutex locks */
 static DEFINE_MUTEX(push_request_lock);
@@ -283,13 +286,15 @@ static int c_model_worker_thread(void *unused) {
                         /* Pass skbuff to response queue */
                         push_response(&skbuff_ptr, skbuff_ptr->meta.cpu);
 
+                        num_responses_push[skbuff_ptr->meta.cpu] = (num_responses_push[skbuff_ptr->meta.cpu] + 1) % NUM_RESPONSE_WRAP;
+
                         /* Wake up wait queue for the Response thread */
                         flag[skbuff_ptr->meta.cpu] = 'y';
                         wake_up(&my_wait_queue[skbuff_ptr->meta.cpu]);
 
-                        /* Wait until response is read by the Response thread to avoid race condition */
-                        down (&wait_sem[skbuff_ptr->meta.cpu]);
-                        while (skbuff_ptr->meta.poll_flag == POLL_IF_RESPONSE_READ){}
+//                        /* Wait until response is read by the Response thread to avoid race condition */
+//                        down (&wait_sem[skbuff_ptr->meta.cpu]);
+//                        while (skbuff_ptr->meta.poll_flag == POLL_IF_RESPONSE_READ){}
 
                         break;
 
@@ -307,16 +312,19 @@ static int c_model_worker_thread(void *unused) {
                         /* Pass skbuff to response queue */
                         push_response(&skbuff_ptr, skbuff_ptr->meta.cpu);
 
+                        num_responses_push[skbuff_ptr->meta.cpu] = (num_responses_push[skbuff_ptr->meta.cpu] + 1) % NUM_RESPONSE_WRAP;
+
                         /* Wake up wait queue for the Response thread */
                         flag[skbuff_ptr->meta.cpu] = 'y';
                         wake_up(&my_wait_queue[skbuff_ptr->meta.cpu]);
 
-                        /* Wait until response is read by the Response thread to avoid race condition */
-                        down (&wait_sem[skbuff_ptr->meta.cpu]);
-                        while (skbuff_ptr->meta.poll_flag == POLL_IF_RESPONSE_READ){}
+//                        /* Wait until response is read by the Response thread to avoid race condition */
+//                        down (&wait_sem[skbuff_ptr->meta.cpu]);
+//                        while (skbuff_ptr->meta.poll_flag == POLL_IF_RESPONSE_READ){}
 
                         break;
                 }
+
             }
 
             clk_cycles_start = 0;
@@ -352,18 +360,18 @@ static int response_per_cpu_thread(void *unused) {
         /* Suspend until some response is scheduled by C-Model */
         wait_event(my_wait_queue[cpu], flag[cpu] != 'n');
 
-        /* Update flag to suspend next time */
-        flag[cpu] = 'n';
-        up (&wait_sem[cpu]);
+
+//        up (&wait_sem[cpu]);
 
         if (pop_response(&skbuff_ptr, cpu) != -1) {
 
             /* Notify C-Model that response is read */
-            skbuff_ptr->meta.poll_flag = POLL_END_RESPONSE_READ;
+//            skbuff_ptr->meta.poll_flag = POLL_END_RESPONSE_READ;
 
             /* Update statistics counter */
             num_total_response++;
             response_per_cpu++;
+            num_responses_pop[cpu] = (num_responses_pop[cpu] + 1) % NUM_RESPONSE_WRAP;
 
             /* Check what response is scheduled by C-Model */
             switch (skbuff_ptr->meta.response_flag) {
@@ -383,6 +391,9 @@ static int response_per_cpu_thread(void *unused) {
                     break;
             }
         }
+
+        if (num_responses_push[cpu] == num_responses_pop[cpu])
+			flag[cpu] = 'n';
 
         /* Thread needs to exit */
         if (response_thread_exit)
