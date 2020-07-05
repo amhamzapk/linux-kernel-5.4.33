@@ -30,7 +30,7 @@ MODULE_VERSION		("0.1");
 #define NUM_CPUS 	4
 #define THOUSAND	1000
 #define MILLION		THOUSAND*THOUSAND
-#define NUM_CMDS	1*MILLION
+#define NUM_CMDS	4096//1*MILLION
 
 /* Syncrhonization Macros */
 #define POLL_IF_RESPONSE_READ   0
@@ -350,7 +350,6 @@ static int c_model_worker_thread(void *unused) {
             schedule_timeout (0);
         }
     }
-
     /* Module is exitted */
     printk(KERN_ALERT "C-Model worker thread Exits!!!\n");
 
