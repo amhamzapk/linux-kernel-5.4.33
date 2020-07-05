@@ -386,7 +386,7 @@ static int response_per_cpu_thread(void *unused) {
     		printk(KERN_ALERT "RESPONSE TREAD - %d", cpu);
     		first = 1;
     	}
-        wait_event(my_wait_queue[cpu], (num_responses_push[cpu] != num_responses_pop[cpu]) || (flag[cpu] != 'n')); //);
+//        wait_event(my_wait_queue[cpu], (num_responses_push[cpu] != num_responses_pop[cpu]) || (flag[cpu] != 'n')); //);
 
 //        if (no_cmd == 100)
 //        {
@@ -434,6 +434,11 @@ static int response_per_cpu_thread(void *unused) {
         else
         {
         	no_cmd ++;
+        }
+
+        if (no_cmd == 1000)
+        {
+        	msleep(1);
         }
 
 //        printk(KERN_ALERT "Four - CPU %d\n", cpu);
