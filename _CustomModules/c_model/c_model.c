@@ -294,7 +294,7 @@ static int c_model_worker_thread(void *unused) {
 
 //                        printk(KERN_ALERT "AAAAAAAAAA\n");
                         ++num_responses_push[skbuff_ptr->meta.cpu];// = ++(num_responses_push[skbuff_ptr->meta.cpu]) ;// % NUM_RESPONSE_WRAP;
-
+                        barrier();
                         /* Wake up wait queue for the Response thread */
 //                        flag[skbuff_ptr->meta.cpu] = 'y';
                         wake_up(&my_wait_queue[skbuff_ptr->meta.cpu]);
