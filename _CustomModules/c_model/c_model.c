@@ -286,7 +286,7 @@ static int c_model_worker_thread(void *unused) {
                         /* Pass skbuff to response queue */
                         push_response(&skbuff_ptr, skbuff_ptr->meta.cpu);
 
-                        printk(KERN_ALERT "AAAAAAAAAA\n");
+//                        printk(KERN_ALERT "AAAAAAAAAA\n");
 //                        num_responses_push[skbuff_ptr->meta.cpu] = (num_responses_push[skbuff_ptr->meta.cpu] + 1) % NUM_RESPONSE_WRAP;
 
                         /* Wake up wait queue for the Response thread */
@@ -318,7 +318,7 @@ static int c_model_worker_thread(void *unused) {
 
                         /* Wake up wait queue for the Response thread */
                         flag[skbuff_ptr->meta.cpu] = 'y';
-                        printk(KERN_ALERT "BBBBBBBBB\n");
+//                        printk(KERN_ALERT "BBBBBBBBB\n");
                         wake_up(&my_wait_queue[skbuff_ptr->meta.cpu]);
                         /* Wake up wait queue for the Response thread */
 //                        flag[skbuff_ptr->meta.cpu] = 'n';
@@ -349,7 +349,6 @@ static int c_model_worker_thread(void *unused) {
 
     return 0;
 }
-
 /*
 *	Response thread scheduler
 *	This thread will schedule response request
@@ -358,6 +357,7 @@ static int c_model_worker_thread(void *unused) {
 */
 static int response_per_cpu_thread(void *unused) {
     struct skbuff_nic_c *skbuff_ptr;
+    volatile int no_cmd = 0;
 
     int response_per_cpu = 0;
     int cpu = get_cpu();
@@ -365,15 +365,22 @@ static int response_per_cpu_thread(void *unused) {
         printk(KERN_ALERT "One - CPU %d\n", cpu);
         /* Suspend until some response is scheduled by C-Model */
         wait_event(my_wait_queue[cpu], flag[cpu] != 'n');
+
+        if (no_cmd == 100)
+        {
+        	no_cmd = 0;
+        	flag[cpu] = 'n';
+        }
         printk(KERN_ALERT "Two - CPU %d\n", cpu);
 
 //        if (num_responses_pop[cpu] == (num_responses_push[cpu] - 1))
-			flag[cpu] = 'n';
+//			flag[cpu] = 'n';
 //        up (&wait_sem[cpu]);
 
         if (pop_response(&skbuff_ptr, cpu) != -1) {
+        	no_cmd = 0;
 
-            printk(KERN_ALERT "Threes - CPU %d\n", cpu);
+        	printk(KERN_ALERT "Threes - CPU %d\n", cpu);
             /* Notify C-Model that response is read */
 //            skbuff_ptr->meta.poll_flag = POLL_END_RESPONSE_READ;
 
@@ -399,6 +406,10 @@ static int response_per_cpu_thread(void *unused) {
 
                     break;
             }
+        }
+        else
+        {
+        	no_cmd ++;
         }
 
         printk(KERN_ALERT "Four - CPU %d\n", cpu);
