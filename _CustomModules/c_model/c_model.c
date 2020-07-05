@@ -444,10 +444,10 @@ static int request_per_cpu_thread(void *unused) {
         skbuff_struct_driver[get_cpu()][i].meta.response_flag = 0;
 
         /* Divide half dummy requests as RX, remaining as TX */
-        if ((i % 2) == 0)
+//        if ((i % 2) == 0)
             skbuff_struct_driver[get_cpu()][i].meta.command = PROCESS_RX;
-        else
-            skbuff_struct_driver[get_cpu()][i].meta.command = PROCESS_TX;
+//        else
+//            skbuff_struct_driver[get_cpu()][i].meta.command = PROCESS_TX;
 
         /* Push request in the list and return */
         skbuff_struc_temp = &skbuff_struct_driver[get_cpu()][i];
