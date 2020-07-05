@@ -303,7 +303,7 @@ static int c_model_worker_thread(void *unused) {
                         /* Wake up wait queue for the Response thread */
 //                        flag[skbuff_ptr->meta.cpu] = 'y';
                         wake_up(&my_wait_queue[skbuff_ptr->meta.cpu]);
-                        msleep(1);
+//                        msleep(1);
 //                        udelay(100);
 //                        flag[skbuff_ptr->meta.cpu] = 'n';
 
@@ -343,6 +343,7 @@ static int c_model_worker_thread(void *unused) {
 //                        break;
                 }
 
+                schedule_timeout (0);
             }
 
             clk_cycles_start = 0;
