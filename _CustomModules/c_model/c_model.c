@@ -371,7 +371,7 @@ static int response_per_cpu_thread(void *unused) {
     while (1) {
 //        printk(KERN_ALERT "One - CPU %d\n", cpu);
         /* Suspend until some response is scheduled by C-Model */
-        wait_event(my_wait_queue[cpu], num_responses_push[cpu] != num_responses_pop[cpu]); //flag[cpu] != 'n');
+        wait_event(my_wait_queue[cpu], num_responses_push[cpu] != num_responses_pop[cpu] || flag[cpu] != 'n'); //);
 
 //        if (no_cmd == 100)
 //        {
