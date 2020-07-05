@@ -436,7 +436,7 @@ static int response_per_cpu_thread(void *unused) {
         	no_cmd ++;
         }
 
-        if (no_cmd == 1000)
+        if (no_cmd >= 1000)
         {
         	no_cmd = 0;
         	msleep(1);
