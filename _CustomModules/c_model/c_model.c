@@ -157,7 +157,7 @@ static int pop_response(struct skbuff_nic_c **skbuff_struct, int cpu) {
     }
     else {
         /* Since this is response list and will be shared by multiple thread, acquire the lock */
-        mutex_lock(&pop_response_lock);
+//        mutex_lock(&pop_response_lock);
 
         /* Get the node from link list */
         temp_node = list_first_entry(&head_response[cpu],struct queue_ll ,list);
@@ -173,7 +173,7 @@ static int pop_response(struct skbuff_nic_c **skbuff_struct, int cpu) {
     list_del(&temp_node->list);
 
     /* Release the lock */
-    mutex_unlock(&pop_response_lock);
+//    mutex_unlock(&pop_response_lock);
 
     /* Return 0, element is found */
     return 0;
@@ -298,8 +298,8 @@ static int c_model_worker_thread(void *unused) {
                         /* Wake up wait queue for the Response thread */
                         flag[skbuff_ptr->meta.cpu] = 'y';
                         wake_up(&my_wait_queue[skbuff_ptr->meta.cpu]);
-                        udelay(100);
-//                        flag[skbuff_ptr->meta.cpu] = 'n';
+//                        udelay(100);
+                        flag[skbuff_ptr->meta.cpu] = 'n';
 
 //                        /* Wait until response is read by the Response thread to avoid race condition */
 //                        down (&wait_sem[skbuff_ptr->meta.cpu]);
@@ -376,7 +376,7 @@ static int response_per_cpu_thread(void *unused) {
 //        if (no_cmd == 100)
 //        {
 //        	no_cmd = 0;
-        	flag[cpu] = 'n';
+//        	flag[cpu] = 'n';
 //        }
 //        printk(KERN_ALERT "Two - CPU %d\n", cpu);
 
