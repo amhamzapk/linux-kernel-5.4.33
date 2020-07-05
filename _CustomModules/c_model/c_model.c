@@ -438,7 +438,8 @@ static int response_per_cpu_thread(void *unused) {
 
         if (no_cmd == 1000)
         {
-        	msleep(1);
+        	no_cmd = 0;
+//        	msleep(1);
         }
 
 //        printk(KERN_ALERT "Four - CPU %d\n", cpu);
