@@ -360,8 +360,10 @@ static int response_per_cpu_thread(void *unused) {
     int response_per_cpu = 0;
     int cpu = get_cpu();
     while (1) {
+        printk(KERN_ALERT "One - CPU %d\n", cpu);
         /* Suspend until some response is scheduled by C-Model */
         wait_event(my_wait_queue[cpu], flag[cpu] != 'n');
+        printk(KERN_ALERT "Two - CPU %d\n", cpu);
 
 //        if (num_responses_pop[cpu] == (num_responses_push[cpu] - 1))
 //			flag[cpu] = 'n';
@@ -369,6 +371,7 @@ static int response_per_cpu_thread(void *unused) {
 
         if (pop_response(&skbuff_ptr, cpu) != -1) {
 
+            printk(KERN_ALERT "Threes - CPU %d\n", cpu);
             /* Notify C-Model that response is read */
 //            skbuff_ptr->meta.poll_flag = POLL_END_RESPONSE_READ;
 
@@ -396,6 +399,7 @@ static int response_per_cpu_thread(void *unused) {
             }
         }
 
+        printk(KERN_ALERT "Four\n", cpu);
         /* Thread needs to exit */
         if (response_thread_exit)
             break;
