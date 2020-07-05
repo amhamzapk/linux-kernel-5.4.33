@@ -292,7 +292,7 @@ static int c_model_worker_thread(void *unused) {
                         /* Wake up wait queue for the Response thread */
                         flag[skbuff_ptr->meta.cpu] = 'y';
                         wake_up(&my_wait_queue[skbuff_ptr->meta.cpu]);
-                        udelay(100);
+                        msleep(1);
 //                        flag[skbuff_ptr->meta.cpu] = 'n';
 
 //                        /* Wait until response is read by the Response thread to avoid race condition */
@@ -363,7 +363,7 @@ static int response_per_cpu_thread(void *unused) {
     int response_per_cpu = 0;
     int cpu = get_cpu();
     while (1) {
-        printk(KERN_ALERT "One - CPU %d\n", cpu);
+//        printk(KERN_ALERT "One - CPU %d\n", cpu);
         /* Suspend until some response is scheduled by C-Model */
         wait_event(my_wait_queue[cpu], flag[cpu] != 'n');
 
@@ -372,7 +372,7 @@ static int response_per_cpu_thread(void *unused) {
 //        	no_cmd = 0;
         	flag[cpu] = 'n';
 //        }
-        printk(KERN_ALERT "Two - CPU %d\n", cpu);
+//        printk(KERN_ALERT "Two - CPU %d\n", cpu);
 
 //        if (num_responses_pop[cpu] == (num_responses_push[cpu] - 1))
 //			flag[cpu] = 'n';
@@ -381,7 +381,7 @@ static int response_per_cpu_thread(void *unused) {
         if (pop_response(&skbuff_ptr, cpu) != -1) {
         	no_cmd = 0;
 
-        	printk(KERN_ALERT "Threes - CPU %d\n", cpu);
+//        	printk(KERN_ALERT "Threes - CPU %d\n", cpu);
             /* Notify C-Model that response is read */
 //            skbuff_ptr->meta.poll_flag = POLL_END_RESPONSE_READ;
 
@@ -413,7 +413,7 @@ static int response_per_cpu_thread(void *unused) {
         	no_cmd ++;
         }
 
-        printk(KERN_ALERT "Four - CPU %d\n", cpu);
+//        printk(KERN_ALERT "Four - CPU %d\n", cpu);
         /* Thread needs to exit */
         if (response_thread_exit)
             break;
