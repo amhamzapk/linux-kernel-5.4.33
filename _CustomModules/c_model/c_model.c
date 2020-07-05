@@ -298,7 +298,7 @@ static int c_model_worker_thread(void *unused) {
                         /* Wake up wait queue for the Response thread */
                         flag[skbuff_ptr->meta.cpu] = 'y';
                         wake_up(&my_wait_queue[skbuff_ptr->meta.cpu]);
-                        msleep(1);
+                        udelay(100);
 //                        flag[skbuff_ptr->meta.cpu] = 'n';
 
 //                        /* Wait until response is read by the Response thread to avoid race condition */
