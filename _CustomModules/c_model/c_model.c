@@ -157,7 +157,7 @@ static int pop_response(struct skbuff_nic_c **skbuff_struct, int cpu) {
     }
     else {
         /* Since this is response list and will be shared by multiple thread, acquire the lock */
-        mutex_lock(&pop_response_lock);
+//        mutex_lock(&pop_response_lock);
 
         /* Get the node from link list */
         temp_node = list_first_entry(&head_response[cpu],struct queue_ll ,list);
@@ -173,7 +173,7 @@ static int pop_response(struct skbuff_nic_c **skbuff_struct, int cpu) {
     list_del(&temp_node->list);
 
     /* Release the lock */
-    mutex_unlock(&pop_response_lock);
+//    mutex_unlock(&pop_response_lock);
 
     /* Return 0, element is found */
     return 0;
