@@ -299,6 +299,7 @@ static int c_model_worker_thread(void *unused) {
 //                        while (--temp_timeout);
                         clflush(&num_responses_push[skbuff_ptr->meta.cpu]);
 
+                        schedule_timeout (0);
                         barrier();
                         /* Wake up wait queue for the Response thread */
 //                        flag[skbuff_ptr->meta.cpu] = 'y';
@@ -343,7 +344,6 @@ static int c_model_worker_thread(void *unused) {
 //                        break;
                 }
 
-                schedule_timeout (0);
             }
 
             clk_cycles_start = 0;
