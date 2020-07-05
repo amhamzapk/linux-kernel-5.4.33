@@ -91,8 +91,9 @@ struct queue_ll{
 struct skbuff_nic_c skbuff_struct_driver[NUM_CPUS][NUM_CMDS];
 
 /* Since kmalloc is not correctly working for a C-Model thread, This pointer is responsible for custom memory allocation */
-static  struct queue_ll *response_queue_ptr;
-
+//static  struct queue_ll *response_queue_ptr;
+int allocator = 0;
+static  struct queue_ll response_queue[NUM_CMDS];
 /* 
 *	Get CPU Cycles from Read RDTSC Function
 */ 
@@ -209,20 +210,25 @@ void push_request(struct skbuff_nic_c **skbuff_struct) {
 void push_response(struct skbuff_nic_c **skbuff_struct, int cpu) {
     struct queue_ll *temp_node;
 
-    /* Allocate memory from custom memory pool */
-    if (((mem_allocator_push_idx) % RESPONSE_QUEUE_SIZE) != ((mem_allocator_pop_idx + 1) % RESPONSE_QUEUE_SIZE)) {
-        /* Allocate the node and increment push_allocator idx */
-        temp_node = (struct queue_ll*) (response_queue_ptr + mem_allocator_push_idx);
-        mem_allocator_push_idx = (mem_allocator_push_idx + 1) % RESPONSE_QUEUE_SIZE;
-    }
+//    /* Allocate memory from custom memory pool */
+//    if (((mem_allocator_push_idx) % RESPONSE_QUEUE_SIZE) != ((mem_allocator_pop_idx + 1) % RESPONSE_QUEUE_SIZE)) {
+//        /* Allocate the node and increment push_allocator idx */
+//        temp_node = (struct queue_ll*) (response_queue_ptr + mem_allocator_push_idx);
+//        mem_allocator_push_idx = (mem_allocator_push_idx + 1) % RESPONSE_QUEUE_SIZE;
+//    }
+//
+//    /* Else wait until queue has some space */
+//    else {
+//        /* Wait until some element popped from the queue */
+//        while(((mem_allocator_push_idx) % RESPONSE_QUEUE_SIZE) == ((mem_allocator_pop_idx + 1) % RESPONSE_QUEUE_SIZE));
+//        temp_node = (struct queue_ll*) (response_queue_ptr + mem_allocator_push_idx);
+//        mem_allocator_push_idx = (mem_allocator_push_idx + 1) % RESPONSE_QUEUE_SIZE;
+//    }
 
-    /* Else wait until queue has some space */
-    else {
-        /* Wait until some element popped from the queue */
-        while(((mem_allocator_push_idx) % RESPONSE_QUEUE_SIZE) == ((mem_allocator_pop_idx + 1) % RESPONSE_QUEUE_SIZE));
-        temp_node = (struct queue_ll*) (response_queue_ptr + mem_allocator_push_idx);
-        mem_allocator_push_idx = (mem_allocator_push_idx + 1) % RESPONSE_QUEUE_SIZE;
-    }
+//    int allocator = 0;
+//    static  struct queue_ll response_queue[NUM_CMDS];
+
+    temp_node = (struct queue_ll*) &response_queue[allocator++];
 
     /* skbuff needs to be add to link list */
     temp_node->skbuff_struct = *skbuff_struct;
@@ -538,7 +544,7 @@ static void __exit nic_c_exit(void) {
         wake_up(&my_wait_queue[i]);
 
         /* Release semaphore to wake per CPU thread to pass command to stack */
-        down (&wait_sem[i]);
+//        down (&wait_sem[i]);
     }
 
     /* Deallocate custom memory pool */
