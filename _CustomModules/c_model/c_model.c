@@ -51,7 +51,7 @@ u32  mem_allocator_pop_idx = 0;
 #define NUM_RESPONSE_WRAP 300000
 u64  num_responses_push[NUM_CPUS] = {0};
 u64  num_responses_pop[NUM_CPUS]  = {0};
-
+u64 wqueue_wake[NUM_CPUS] = {0};
 /* Define Mutex locks */
 static DEFINE_MUTEX(push_request_lock);
 static DEFINE_MUTEX(pop_response_lock);
@@ -293,7 +293,7 @@ static int c_model_worker_thread(void *unused) {
                         push_response(&skbuff_ptr, skbuff_ptr->meta.cpu);
 
 //                        printk(KERN_ALERT "AAAAAAAAAA\n");
-                        num_responses_push[skbuff_ptr->meta.cpu] = (num_responses_push[skbuff_ptr->meta.cpu] + 1);// % NUM_RESPONSE_WRAP;
+                        ++num_responses_push[skbuff_ptr->meta.cpu];// = ++(num_responses_push[skbuff_ptr->meta.cpu]) ;// % NUM_RESPONSE_WRAP;
 
                         /* Wake up wait queue for the Response thread */
 //                        flag[skbuff_ptr->meta.cpu] = 'y';
@@ -368,6 +368,7 @@ static int response_per_cpu_thread(void *unused) {
     int response_per_cpu = 0;
     int cpu = get_cpu();
     int first = 0;
+    int wqueue_wake_local = 0;
     while (1) {
 //        printk(KERN_ALERT "One - CPU %d\n", cpu);
         /* Suspend until some response is scheduled by C-Model */
@@ -389,7 +390,8 @@ static int response_per_cpu_thread(void *unused) {
 //          if (num_responses_pop[cpu] >= 240000)
 //        	flag[cpu] = 'n';
 //        up (&wait_sem[cpu]);
-
+        ++wqueue_wake[cpu];
+        ++wqueue_wake_local;
         if (pop_response(&skbuff_ptr, cpu) != -1) {
         	no_cmd = 0;
 
@@ -400,7 +402,7 @@ static int response_per_cpu_thread(void *unused) {
             /* Update statistics counter */
             num_total_response++;
             response_per_cpu++;
-            num_responses_pop[cpu] = (num_responses_pop[cpu] + 1);// % NUM_RESPONSE_WRAP;
+            ++num_responses_pop[cpu];// = (num_responses_pop[cpu] + 1);// % NUM_RESPONSE_WRAP;
 
             /* Check what response is scheduled by C-Model */
             switch (skbuff_ptr->meta.response_flag) {
@@ -433,6 +435,8 @@ static int response_per_cpu_thread(void *unused) {
 
     /* Print per CPU response count */
     printk(KERN_ALERT "Core-%d | Responses => %d\n", cpu, response_per_cpu);
+    printk(KERN_ALERT "Core-%d | Wakeup => %d\n", cpu, wqueue_wake_local);
+
 
     return 0;
 }
