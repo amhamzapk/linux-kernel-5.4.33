@@ -380,7 +380,7 @@ static int response_per_cpu_thread(void *unused) {
 //        }
 //        printk(KERN_ALERT "Two - CPU %d\n", cpu);
 
-        if (num_responses_pop[cpu] == (num_responses_push[cpu] - 1) && (no_cmd == 1000))
+        if (num_responses_pop[cpu] == (num_responses_push[cpu] - 1) && (no_cmd == 100))
 			flag[cpu] = 'n';
 //        up (&wait_sem[cpu]);
 
