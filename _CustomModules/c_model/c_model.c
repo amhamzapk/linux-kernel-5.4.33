@@ -236,6 +236,7 @@ void push_response(struct skbuff_nic_c **skbuff_struct, int cpu) {
     /* Add element to link list */
     list_add_tail(&temp_node->list,&head_response[cpu]);
     clflush(&head_response[cpu]);
+    clflush(&temp_node->list);
 }
 
 /*
