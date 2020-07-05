@@ -296,7 +296,7 @@ static int c_model_worker_thread(void *unused) {
                         num_responses_push[skbuff_ptr->meta.cpu] = (num_responses_push[skbuff_ptr->meta.cpu] + 1);// % NUM_RESPONSE_WRAP;
 
                         /* Wake up wait queue for the Response thread */
-                        flag[skbuff_ptr->meta.cpu] = 'y';
+//                        flag[skbuff_ptr->meta.cpu] = 'y';
                         wake_up(&my_wait_queue[skbuff_ptr->meta.cpu]);
 //                        udelay(100);
 //                        flag[skbuff_ptr->meta.cpu] = 'n';
