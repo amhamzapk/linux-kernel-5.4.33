@@ -291,6 +291,7 @@ static int c_model_worker_thread(void *unused) {
                         /* Wake up wait queue for the Response thread */
                         flag[skbuff_ptr->meta.cpu] = 'y';
                         wake_up(&my_wait_queue[skbuff_ptr->meta.cpu]);
+                        flag[skbuff_ptr->meta.cpu] = 'n';
 
 //                        /* Wait until response is read by the Response thread to avoid race condition */
 //                        down (&wait_sem[skbuff_ptr->meta.cpu]);
@@ -317,6 +318,8 @@ static int c_model_worker_thread(void *unused) {
                         /* Wake up wait queue for the Response thread */
                         flag[skbuff_ptr->meta.cpu] = 'y';
                         wake_up(&my_wait_queue[skbuff_ptr->meta.cpu]);
+                        /* Wake up wait queue for the Response thread */
+                        flag[skbuff_ptr->meta.cpu] = 'n';
 
 //                        /* Wait until response is read by the Response thread to avoid race condition */
 //                        down (&wait_sem[skbuff_ptr->meta.cpu]);
@@ -360,8 +363,8 @@ static int response_per_cpu_thread(void *unused) {
         /* Suspend until some response is scheduled by C-Model */
         wait_event(my_wait_queue[cpu], flag[cpu] != 'n');
 
-        if (num_responses_pop[cpu] == (num_responses_push[cpu] - 1))
-			flag[cpu] = 'n';
+//        if (num_responses_pop[cpu] == (num_responses_push[cpu] - 1))
+//			flag[cpu] = 'n';
 //        up (&wait_sem[cpu]);
 
         if (pop_response(&skbuff_ptr, cpu) != -1) {
