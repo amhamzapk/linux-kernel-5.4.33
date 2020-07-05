@@ -370,6 +370,7 @@ static int response_per_cpu_thread(void *unused) {
     while (1) {
 //        printk(KERN_ALERT "One - CPU %d\n", cpu);
         /* Suspend until some response is scheduled by C-Model */
+    	printk(KERN_ALERT "RESPONSE TREAD - %d", cpu);
         wait_event(my_wait_queue[cpu], num_responses_push[cpu] != num_responses_pop[cpu] || flag[cpu] != 'n'); //);
 
 //        if (no_cmd == 100)
@@ -507,6 +508,8 @@ static int __init nic_c_init(void) {
         down (&wait_sem[i]);
         flag[i] = 'n';
     }
+
+    ssleep(5);
 
     for (i=0; i<NUM_CPUS; i++) {
 
