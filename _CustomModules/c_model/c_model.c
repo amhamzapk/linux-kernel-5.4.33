@@ -281,7 +281,7 @@ static int c_model_worker_thread(void *unused) {
                         skbuff_ptr->meta.poll_flag = POLL_IF_RESPONSE_READ;
 
                         /* Pass skbuff to response queue */
-                        push_response(&skbuff_ptr, 0/*hamzaskbuff_ptr->meta.cpu*/);
+                        push_response(&skbuff_ptr, skbuff_ptr->meta.cpu);
 
                         /* Wake up wait queue for the Response thread */
                         flag[skbuff_ptr->meta.cpu] = 'y';
@@ -305,7 +305,7 @@ static int c_model_worker_thread(void *unused) {
                         skbuff_ptr->meta.poll_flag = POLL_IF_RESPONSE_READ;
 
                         /* Pass skbuff to response queue */
-                        push_response(&skbuff_ptr, 0/*skbuff_ptr->meta.cpu*/);
+                        push_response(&skbuff_ptr, skbuff_ptr->meta.cpu);
 
                         /* Wake up wait queue for the Response thread */
                         flag[skbuff_ptr->meta.cpu] = 'y';
@@ -356,7 +356,7 @@ static int response_per_cpu_thread(void *unused) {
         flag[cpu] = 'n';
         up (&wait_sem[cpu]);
 
-        if (pop_response(&skbuff_ptr, /* hamzacpu*/ 0) != -1) {
+        if (pop_response(&skbuff_ptr, cpu) != -1) {
 
             /* Notify C-Model that response is read */
             skbuff_ptr->meta.poll_flag = POLL_END_RESPONSE_READ;
