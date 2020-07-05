@@ -307,34 +307,34 @@ static int c_model_worker_thread(void *unused) {
 
                         break;
 
-                    case PROCESS_TX:
-
-                        /* Print Information */
-                        printk(KERN_ALERT "TX Command | Len = %d | CPU = %d\n", skbuff_ptr->len, skbuff_ptr->meta.cpu);
-
-                        /* Update response flag to schedule task for response thread*/
-                        skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_TX;
-
-                        /* Syncrhonization Variable */
-                        skbuff_ptr->meta.poll_flag = POLL_IF_RESPONSE_READ;
-
-                        /* Pass skbuff to response queue */
-                        push_response(&skbuff_ptr, skbuff_ptr->meta.cpu);
-
-                        num_responses_push[skbuff_ptr->meta.cpu] = (num_responses_push[skbuff_ptr->meta.cpu] + 1);// % NUM_RESPONSE_WRAP;
-
-                        /* Wake up wait queue for the Response thread */
-                        flag[skbuff_ptr->meta.cpu] = 'y';
-//                        printk(KERN_ALERT "BBBBBBBBB\n");
-                        wake_up(&my_wait_queue[skbuff_ptr->meta.cpu]);
-                        /* Wake up wait queue for the Response thread */
-//                        flag[skbuff_ptr->meta.cpu] = 'n';
-
-//                        /* Wait until response is read by the Response thread to avoid race condition */
-//                        down (&wait_sem[skbuff_ptr->meta.cpu]);
-//                        while (skbuff_ptr->meta.poll_flag == POLL_IF_RESPONSE_READ){}
-
-                        break;
+//                    case PROCESS_TX:
+//
+//                        /* Print Information */
+//                        printk(KERN_ALERT "TX Command | Len = %d | CPU = %d\n", skbuff_ptr->len, skbuff_ptr->meta.cpu);
+//
+//                        /* Update response flag to schedule task for response thread*/
+//                        skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_TX;
+//
+//                        /* Syncrhonization Variable */
+//                        skbuff_ptr->meta.poll_flag = POLL_IF_RESPONSE_READ;
+//
+//                        /* Pass skbuff to response queue */
+//                        push_response(&skbuff_ptr, skbuff_ptr->meta.cpu);
+//
+//                        num_responses_push[skbuff_ptr->meta.cpu] = (num_responses_push[skbuff_ptr->meta.cpu] + 1);// % NUM_RESPONSE_WRAP;
+//
+//                        /* Wake up wait queue for the Response thread */
+//                        flag[skbuff_ptr->meta.cpu] = 'y';
+////                        printk(KERN_ALERT "BBBBBBBBB\n");
+//                        wake_up(&my_wait_queue[skbuff_ptr->meta.cpu]);
+//                        /* Wake up wait queue for the Response thread */
+////                        flag[skbuff_ptr->meta.cpu] = 'n';
+//
+////                        /* Wait until response is read by the Response thread to avoid race condition */
+////                        down (&wait_sem[skbuff_ptr->meta.cpu]);
+////                        while (skbuff_ptr->meta.poll_flag == POLL_IF_RESPONSE_READ){}
+//
+//                        break;
                 }
 
             }
@@ -566,6 +566,8 @@ static void __exit nic_c_exit(void) {
     printk(KERN_ALERT "CMD Send => %d\n", num_cmd_send);
     printk(KERN_ALERT "CMD Receive C-Model => %d\n", num_cmd_rcv);
     printk(KERN_ALERT "Response Receive Driver=> %d\n", num_total_response);
+    for (i=0;i<NUM_CPUS;i++)
+    	printk(KERN_ALERT "CPU-%d | PUSH-> %lld && POP-> %lld\n", i, num_responses_push[i], num_responses_pop[i]);
 }
 
 module_init(nic_c_init);
