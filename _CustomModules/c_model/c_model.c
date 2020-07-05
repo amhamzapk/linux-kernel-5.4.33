@@ -30,7 +30,7 @@ MODULE_VERSION		("0.1");
 #define NUM_CPUS 	4
 #define THOUSAND	1000
 #define MILLION		THOUSAND*THOUSAND
-#define NUM_CMDS	1*MILLION
+#define NUM_CMDS	4096//1*MILLION
 
 /* Syncrhonization Macros */
 #define POLL_IF_RESPONSE_READ   0
@@ -303,6 +303,7 @@ static int c_model_worker_thread(void *unused) {
                         /* Wake up wait queue for the Response thread */
 //                        flag[skbuff_ptr->meta.cpu] = 'y';
                         wake_up(&my_wait_queue[skbuff_ptr->meta.cpu]);
+                        msleep(1);
 //                        udelay(100);
 //                        flag[skbuff_ptr->meta.cpu] = 'n';
 
