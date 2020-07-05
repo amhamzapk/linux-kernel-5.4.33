@@ -59,7 +59,7 @@ static struct task_struct *thread_st_c_model_worker;
 static struct task_struct *thread_st_response[NUM_CPUS];
 static struct task_struct *thread_st_request[NUM_CPUS];
 static struct list_head   head_request;
-static struct list_head   head_response;
+static struct list_head   head_response[NUM_CPUS];
 static wait_queue_head_t  my_wait_queue[NUM_CPUS];
 static struct semaphore   wait_sem[NUM_CPUS];
 
@@ -141,12 +141,12 @@ static int pop_request(struct skbuff_nic_c **skbuff_struct) {
 *	Return-> -1 if empty queue
 *	Element will be get by reference
 */
-static int pop_response(struct skbuff_nic_c **skbuff_struct) {
+static int pop_response(struct skbuff_nic_c **skbuff_struct, int cpu) {
 
     struct queue_ll *temp_node;
 
     /* Check if there is something in the queue */
-    if(list_empty(&head_response)) {
+    if(list_empty(&head_response[cpu])) {
 
         /* Return -1, no element is found */
         return -1;
@@ -156,7 +156,7 @@ static int pop_response(struct skbuff_nic_c **skbuff_struct) {
         mutex_lock(&pop_response_lock);
 
         /* Get the node from link list */
-        temp_node = list_first_entry(&head_response,struct queue_ll ,list);
+        temp_node = list_first_entry(&head_response[cpu],struct queue_ll ,list);
 
         /* Increment custom memory allocator for response queue */
         mem_allocator_pop_idx = (mem_allocator_pop_idx + 1) % RESPONSE_QUEUE_SIZE;
@@ -203,7 +203,7 @@ void push_request(struct skbuff_nic_c **skbuff_struct) {
 *	Push element in queue head
 *	Element will be passed by reference
 */
-void push_response(struct skbuff_nic_c **skbuff_struct) {
+void push_response(struct skbuff_nic_c **skbuff_struct, int cpu) {
     struct queue_ll *temp_node;
 
     /* Allocate memory from custom memory pool */
@@ -225,7 +225,7 @@ void push_response(struct skbuff_nic_c **skbuff_struct) {
     temp_node->skbuff_struct = *skbuff_struct;
     
     /* Add element to link list */
-    list_add_tail(&temp_node->list,&head_response);
+    list_add_tail(&temp_node->list,&head_response[cpu]);
 }
 
 /*
@@ -281,7 +281,7 @@ static int c_model_worker_thread(void *unused) {
                         skbuff_ptr->meta.poll_flag = POLL_IF_RESPONSE_READ;
 
                         /* Pass skbuff to response queue */
-                        push_response(&skbuff_ptr);
+                        push_response(&skbuff_ptr, 0/*hamzaskbuff_ptr->meta.cpu*/);
 
                         /* Wake up wait queue for the Response thread */
                         flag[skbuff_ptr->meta.cpu] = 'y';
@@ -305,7 +305,7 @@ static int c_model_worker_thread(void *unused) {
                         skbuff_ptr->meta.poll_flag = POLL_IF_RESPONSE_READ;
 
                         /* Pass skbuff to response queue */
-                        push_response(&skbuff_ptr);
+                        push_response(&skbuff_ptr, 0/*skbuff_ptr->meta.cpu*/);
 
                         /* Wake up wait queue for the Response thread */
                         flag[skbuff_ptr->meta.cpu] = 'y';
@@ -356,7 +356,7 @@ static int response_per_cpu_thread(void *unused) {
         flag[cpu] = 'n';
         up (&wait_sem[cpu]);
 
-        if (pop_response(&skbuff_ptr) != -1) {
+        if (pop_response(&skbuff_ptr, /* hamzacpu*/ 0) != -1) {
 
             /* Notify C-Model that response is read */
             skbuff_ptr->meta.poll_flag = POLL_END_RESPONSE_READ;
@@ -446,7 +446,11 @@ static int __init nic_c_init(void) {
     printk(KERN_INFO "NIC-C Model Init!\n");
 
     INIT_LIST_HEAD(&head_request);
-    INIT_LIST_HEAD(&head_response);
+
+    for (i=0; i<NUM_CPUS; i++)
+    {
+        INIT_LIST_HEAD(&head_response[i]);
+    }
 
     response_queue_ptr = kmalloc(sizeof(struct queue_ll) * RESPONSE_QUEUE_SIZE, GFP_ATOMIC);
 
