@@ -40,7 +40,7 @@ MODULE_VERSION		("0.1");
 #define RESPONSE_QUEUE_SIZE	1024
 
 /* Global Variables */
-char flag[NUM_CMDS] = {'n'};
+char flag[NUM_CPUS] = {'n'};
 u8 	 response_thread_exit = 0;
 u64  skbuff_dummy_var = 0xDEADBEEFBEEFDEAD;
 u32  num_cmd_send = 0;
@@ -293,7 +293,7 @@ static int c_model_worker_thread(void *unused) {
                         push_response(&skbuff_ptr, skbuff_ptr->meta.cpu);
 
 //                        printk(KERN_ALERT "AAAAAAAAAA\n");
-                        num_responses_push[skbuff_ptr->meta.cpu] = (num_responses_push[skbuff_ptr->meta.cpu] + 1) % NUM_RESPONSE_WRAP;
+                        num_responses_push[skbuff_ptr->meta.cpu] = (num_responses_push[skbuff_ptr->meta.cpu] + 1);// % NUM_RESPONSE_WRAP;
 
                         /* Wake up wait queue for the Response thread */
                         flag[skbuff_ptr->meta.cpu] = 'y';
@@ -321,7 +321,7 @@ static int c_model_worker_thread(void *unused) {
                         /* Pass skbuff to response queue */
                         push_response(&skbuff_ptr, skbuff_ptr->meta.cpu);
 
-                        num_responses_push[skbuff_ptr->meta.cpu] = (num_responses_push[skbuff_ptr->meta.cpu] + 1) % NUM_RESPONSE_WRAP;
+                        num_responses_push[skbuff_ptr->meta.cpu] = (num_responses_push[skbuff_ptr->meta.cpu] + 1);// % NUM_RESPONSE_WRAP;
 
                         /* Wake up wait queue for the Response thread */
                         flag[skbuff_ptr->meta.cpu] = 'y';
@@ -371,7 +371,7 @@ static int response_per_cpu_thread(void *unused) {
     while (1) {
 //        printk(KERN_ALERT "One - CPU %d\n", cpu);
         /* Suspend until some response is scheduled by C-Model */
-        wait_event(my_wait_queue[cpu], flag[cpu] != 'n');
+        wait_event(my_wait_queue[cpu], num_responses_push[cpu] != num_responses_pop[cpu]); //flag[cpu] != 'n');
 
 //        if (no_cmd == 100)
 //        {
@@ -381,8 +381,8 @@ static int response_per_cpu_thread(void *unused) {
 //        printk(KERN_ALERT "Two - CPU %d\n", cpu);
 
 //        if ((num_responses_pop[cpu] == (num_responses_push[cpu] - 1)) && (no_cmd == 10000))
-          if (num_responses_pop[cpu] >= 240000)
-        	flag[cpu] = 'n';
+//          if (num_responses_pop[cpu] >= 240000)
+//        	flag[cpu] = 'n';
 //        up (&wait_sem[cpu]);
 
         if (pop_response(&skbuff_ptr, cpu) != -1) {
@@ -395,7 +395,7 @@ static int response_per_cpu_thread(void *unused) {
             /* Update statistics counter */
             num_total_response++;
             response_per_cpu++;
-            num_responses_pop[cpu] = (num_responses_pop[cpu] + 1) % NUM_RESPONSE_WRAP;
+            num_responses_pop[cpu] = (num_responses_pop[cpu] + 1);// % NUM_RESPONSE_WRAP;
 
             /* Check what response is scheduled by C-Model */
             switch (skbuff_ptr->meta.response_flag) {
