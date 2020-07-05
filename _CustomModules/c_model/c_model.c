@@ -49,8 +49,8 @@ u32  num_total_response = 0;
 u32  mem_allocator_push_idx = 0;
 u32  mem_allocator_pop_idx = 0;
 #define NUM_RESPONSE_WRAP 8192
-//u32  num_responses_push[NUM_CPUS] = {0};
-//u32  num_responses_pop[NUM_CPUS]  = {0};
+u32  num_responses_push[NUM_CPUS] = {0};
+u32  num_responses_pop[NUM_CPUS]  = {0};
 
 /* Define Mutex locks */
 static DEFINE_MUTEX(push_request_lock);
@@ -293,13 +293,13 @@ static int c_model_worker_thread(void *unused) {
                         push_response(&skbuff_ptr, skbuff_ptr->meta.cpu);
 
 //                        printk(KERN_ALERT "AAAAAAAAAA\n");
-//                        num_responses_push[skbuff_ptr->meta.cpu] = (num_responses_push[skbuff_ptr->meta.cpu] + 1) % NUM_RESPONSE_WRAP;
+                        num_responses_push[skbuff_ptr->meta.cpu] = (num_responses_push[skbuff_ptr->meta.cpu] + 1) % NUM_RESPONSE_WRAP;
 
                         /* Wake up wait queue for the Response thread */
                         flag[skbuff_ptr->meta.cpu] = 'y';
                         wake_up(&my_wait_queue[skbuff_ptr->meta.cpu]);
 //                        udelay(100);
-                        flag[skbuff_ptr->meta.cpu] = 'n';
+//                        flag[skbuff_ptr->meta.cpu] = 'n';
 
 //                        /* Wait until response is read by the Response thread to avoid race condition */
 //                        down (&wait_sem[skbuff_ptr->meta.cpu]);
@@ -321,7 +321,7 @@ static int c_model_worker_thread(void *unused) {
                         /* Pass skbuff to response queue */
                         push_response(&skbuff_ptr, skbuff_ptr->meta.cpu);
 
-//                        num_responses_push[skbuff_ptr->meta.cpu] = (num_responses_push[skbuff_ptr->meta.cpu] + 1) % NUM_RESPONSE_WRAP;
+                        num_responses_push[skbuff_ptr->meta.cpu] = (num_responses_push[skbuff_ptr->meta.cpu] + 1) % NUM_RESPONSE_WRAP;
 
                         /* Wake up wait queue for the Response thread */
                         flag[skbuff_ptr->meta.cpu] = 'y';
@@ -380,8 +380,8 @@ static int response_per_cpu_thread(void *unused) {
 //        }
 //        printk(KERN_ALERT "Two - CPU %d\n", cpu);
 
-//        if (num_responses_pop[cpu] == (num_responses_push[cpu] - 1))
-//			flag[cpu] = 'n';
+        if (num_responses_pop[cpu] == (num_responses_push[cpu] - 1))
+			flag[cpu] = 'n';
 //        up (&wait_sem[cpu]);
 
         if (pop_response(&skbuff_ptr, cpu) != -1) {
@@ -394,7 +394,7 @@ static int response_per_cpu_thread(void *unused) {
             /* Update statistics counter */
             num_total_response++;
             response_per_cpu++;
-//            num_responses_pop[cpu] = (num_responses_pop[cpu] + 1) % NUM_RESPONSE_WRAP;
+            num_responses_pop[cpu] = (num_responses_pop[cpu] + 1) % NUM_RESPONSE_WRAP;
 
             /* Check what response is scheduled by C-Model */
             switch (skbuff_ptr->meta.response_flag) {
