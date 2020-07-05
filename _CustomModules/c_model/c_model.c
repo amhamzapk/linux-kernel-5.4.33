@@ -286,12 +286,13 @@ static int c_model_worker_thread(void *unused) {
                         /* Pass skbuff to response queue */
                         push_response(&skbuff_ptr, skbuff_ptr->meta.cpu);
 
+                        printk(KERN_ALERT "AAAAAAAAAA\n");
 //                        num_responses_push[skbuff_ptr->meta.cpu] = (num_responses_push[skbuff_ptr->meta.cpu] + 1) % NUM_RESPONSE_WRAP;
 
                         /* Wake up wait queue for the Response thread */
                         flag[skbuff_ptr->meta.cpu] = 'y';
                         wake_up(&my_wait_queue[skbuff_ptr->meta.cpu]);
-                        flag[skbuff_ptr->meta.cpu] = 'n';
+//                        flag[skbuff_ptr->meta.cpu] = 'n';
 
 //                        /* Wait until response is read by the Response thread to avoid race condition */
 //                        down (&wait_sem[skbuff_ptr->meta.cpu]);
@@ -317,9 +318,10 @@ static int c_model_worker_thread(void *unused) {
 
                         /* Wake up wait queue for the Response thread */
                         flag[skbuff_ptr->meta.cpu] = 'y';
+                        printk(KERN_ALERT "BBBBBBBBB\n");
                         wake_up(&my_wait_queue[skbuff_ptr->meta.cpu]);
                         /* Wake up wait queue for the Response thread */
-                        flag[skbuff_ptr->meta.cpu] = 'n';
+//                        flag[skbuff_ptr->meta.cpu] = 'n';
 
 //                        /* Wait until response is read by the Response thread to avoid race condition */
 //                        down (&wait_sem[skbuff_ptr->meta.cpu]);
