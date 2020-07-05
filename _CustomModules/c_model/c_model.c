@@ -49,8 +49,8 @@ u32  num_total_response = 0;
 u32  mem_allocator_push_idx = 0;
 u32  mem_allocator_pop_idx = 0;
 #define NUM_RESPONSE_WRAP 300000
-u64  num_responses_push[NUM_CPUS] = {0};
-u64  num_responses_pop[NUM_CPUS]  = {0};
+volatile u64  num_responses_push[NUM_CPUS] = {0};
+volatile u64  num_responses_pop[NUM_CPUS]  = {0};
 u64 wqueue_wake[NUM_CPUS] = {0};
 /* Define Mutex locks */
 static DEFINE_MUTEX(push_request_lock);
@@ -521,7 +521,7 @@ static int __init nic_c_init(void) {
         flag[i] = 'n';
     }
 
-    ssleep(5);
+//    ssleep(5);
 
     for (i=0; i<NUM_CPUS; i++) {
 
