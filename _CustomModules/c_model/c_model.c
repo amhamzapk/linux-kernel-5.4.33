@@ -231,6 +231,7 @@ void push_response(struct skbuff_nic_c **skbuff_struct, int cpu) {
 *	This thread is responsible for scheduling request
 *	as soon some element is push into the queue
 */
+int first = 0;
 static int c_model_worker_thread(void *unused) {
     struct skbuff_nic_c *skbuff_ptr;
 
@@ -255,6 +256,12 @@ static int c_model_worker_thread(void *unused) {
 
         /* Check if queue needs to be processed */
         if ((clk_cycles_exp/clk_cycles_div) >= 1) {
+
+        	if (first == 0)
+        	{
+        		first = 1;
+        		ssleep(10);
+        	}
             
             /* Check if some command is in queue */
             /* If found, element will be point to skbuff_ptr */
@@ -384,6 +391,8 @@ static int request_per_cpu_thread(void *unused) {
         skbuff_struc_temp = &skbuff_struct_driver[get_cpu()][i];
         push_request(&skbuff_struc_temp);
 
+        /* Simply Print the information */
+        printk(KERN_ALERT "Request | Core-%d | Len->%d\n", get_cpu(), i + 1);
         /* Update request counter */
         mutex_lock(&driver_request_lock);
         num_cmd_send++;
