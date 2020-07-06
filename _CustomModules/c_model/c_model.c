@@ -348,13 +348,13 @@ static int c_model_worker_thread(void *unused) {
                         skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_RX;
 
                         /* Pass skbuff to response queue */
-                        if (push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, 1) == -2)
+                        /*if (*/push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, 1);/* == -2)
                         {
                         	do
                         	{
                         		udelay (10);
                         	} while (push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, 1) == -2);
-                        }
+                        }*/
 //                        set_current_state(TASK_INTERRUPTIBLE);
 //                        schedule_timeout (1);
 //                        flush_cache_all();
