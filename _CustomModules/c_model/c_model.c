@@ -56,6 +56,8 @@ volatile u64  num_responses_push[NUM_CPUS] = {0};
 volatile u64  num_responses_pop[NUM_CPUS]  = {0};
 /* Define Mutex locks */
 static DEFINE_MUTEX(push_request_lock);
+static DEFINE_MUTEX(pop_request_lock);
+static DEFINE_MUTEX(push_response_lock);
 static DEFINE_MUTEX(pop_response_lock);
 static DEFINE_MUTEX(driver_request_lock);
 
@@ -216,6 +218,8 @@ void push_request(struct skbuff_nic_c **skbuff_struct) {
 void push_response(struct skbuff_nic_c **skbuff_struct, int cpu) {
     struct queue_ll *temp_node;
 
+    mutex_lock(&push_response_lock);
+
     temp_node = (struct queue_ll*) &response_queue[cpu][allocator[cpu]++];
 
     /* skbuff needs to be add to link list */
@@ -223,6 +227,7 @@ void push_response(struct skbuff_nic_c **skbuff_struct, int cpu) {
     
     /* Add element to link list */
     list_add_tail(&temp_node->list,&head_response[cpu]);
+    mutex_unlock(&push_response_lock);
 }
 
 /*
