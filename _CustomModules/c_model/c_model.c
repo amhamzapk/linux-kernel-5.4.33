@@ -273,6 +273,8 @@ static int c_model_worker_thread(void *unused) {
                         /* Pass skbuff to response queue */
                         push_response(&skbuff_ptr, skbuff_ptr->meta.cpu);
 
+                        schedule_timeout (0);
+
 //                        clflush(&num_responses_push[skbuff_ptr->meta.cpu]);
 
 //                        barrier();
