@@ -357,7 +357,7 @@ static int c_model_worker_thread(void *unused) {
                         	printk("____AFTER DELAY_____\n");
                         	do
                         	{
-                        		udelay (1000);
+                        		msleep (1);
                         	} while (push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, 1) == -2);
                         }
 //                        set_current_state(TASK_INTERRUPTIBLE);
