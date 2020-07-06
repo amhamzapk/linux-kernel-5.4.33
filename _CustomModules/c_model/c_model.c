@@ -184,7 +184,7 @@ static int push_pop_response(struct skbuff_nic_c **skbuff_struct, int cpu, int i
     	        /* Allocate the node and increment push_allocator idx */
 //    	        temp_node = (struct queue_ll*) (response_queue_ptr[cpu] + mem_allocator_push_idx[cpu]);
 //    	        mem_allocator_push_idx[cpu] = (mem_allocator_push_idx[cpu] + 1) % RESPONSE_QUEUE_SIZE;
-    	        return 0;
+//    	        return 0;
 //    	    }
 //
 //    	    /* Else wait until queue has some space */
