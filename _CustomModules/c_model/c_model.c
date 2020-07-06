@@ -140,7 +140,7 @@ static int pop_request(struct skbuff_nic_c **skbuff_struct) {
     /* Clear the node */
     list_del(&temp_node->list);
 
-    kfree(temp_node);
+//    kfree(temp_node);
 
     /* Return 0, element is found */
     return 0;
