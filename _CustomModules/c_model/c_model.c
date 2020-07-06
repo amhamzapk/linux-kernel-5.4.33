@@ -152,21 +152,21 @@ static int pop_response(struct skbuff_nic_c **skbuff_struct, int cpu) {
     struct queue_ll *temp_node;
 
 
-    while (list_empty(&head_response[cpu]));
+//    while (list_empty(&head_response[cpu]));
     /* Check if there is something in the queue */
-//    if(list_empty(&head_response[cpu])) {
-//
-//        /* Return -1, no element is found */
-//        return -1;
-//    }
-//    else {
+    if(list_empty(&head_response[cpu])) {
+
+        /* Return -1, no element is found */
+        return -1;
+    }
+    else {
         /* Since this is response list and will be shared by multiple thread, acquire the lock */
 //        mutex_lock(&pop_response_lock);
 
         /* Get the node from link list */
         temp_node = list_first_entry(&head_response[cpu],struct queue_ll ,list);
 
-//    }
+    }
 
     /* This structure needs to be passed to thread */
     *skbuff_struct = temp_node->skbuff_struct;
@@ -273,7 +273,7 @@ static int c_model_worker_thread(void *unused) {
                         /* Pass skbuff to response queue */
                         push_response(&skbuff_ptr, skbuff_ptr->meta.cpu);
 
-                        schedule_timeout (0);
+                        schedule_timeout (1);
 
 //                        clflush(&num_responses_push[skbuff_ptr->meta.cpu]);
 
