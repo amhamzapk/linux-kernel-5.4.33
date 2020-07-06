@@ -61,6 +61,7 @@ static DEFINE_MUTEX(push_response_lock);
 static DEFINE_MUTEX(pop_response_lock);
 static DEFINE_MUTEX(push_pop_response_lock);
 static DEFINE_MUTEX(driver_request_lock);
+static DEFINE_MUTEX(driver_response_lock);
 
 /* Global structures */
 static struct task_struct *thread_st_c_model_worker;
@@ -389,7 +390,9 @@ static int response_per_cpu_thread(void *unused) {
 
         	/* Update statistics counter */
             num_total_response++;
+            mutex_lock(&driver_response_lock);
             response_per_cpu++;
+            mutex_unlock(&driver_response_lock);
 
             /* Check what response is scheduled by C-Model */
             switch (skbuff_ptr->meta.response_flag) {
