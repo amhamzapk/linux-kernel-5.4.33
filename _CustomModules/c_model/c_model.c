@@ -274,8 +274,8 @@ static int c_model_worker_thread(void *unused) {
 
                         /* Pass skbuff to response queue */
                         push_response(&skbuff_ptr, skbuff_ptr->meta.cpu);
-//                        set_current_state(TASK_INTERRUPTIBLE);
-//                        schedule_timeout (1);
+                        set_current_state(TASK_INTERRUPTIBLE);
+                        schedule_timeout (1);
 
 //                        clflush(&num_responses_push[skbuff_ptr->meta.cpu]);
 
