@@ -332,7 +332,7 @@ static int response_per_cpu_thread(void *unused) {
         if (first == 0)
         {
         	first = 1;
-        	ssleep(10);
+//        	ssleep(10);
         }
 
         if (flag[cpu] == 'y')
