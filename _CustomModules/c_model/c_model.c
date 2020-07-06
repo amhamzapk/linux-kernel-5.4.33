@@ -93,7 +93,11 @@ struct skbuff_nic_c skbuff_struct_driver[NUM_CPUS][NUM_CMDS];
 /* Since kmalloc is not correctly working for a C-Model thread, This pointer is responsible for custom memory allocation */
 //static  struct queue_ll *response_queue_ptr;
 int allocator = 0;
-static  struct queue_ll response_queue[NUM_CMDS];
+static  struct queue_ll response_queue[NUM_CPUS][NUM_CMDS];
+//static  struct queue_ll response_queue1[NUM_CMDS];
+//static  struct queue_ll response_queue2[NUM_CMDS];
+//static  struct queue_ll response_queue3[NUM_CMDS];
+//static  struct queue_ll response_queue4[NUM_CMDS];
 /* 
 *	Get CPU Cycles from Read RDTSC Function
 */ 
@@ -228,7 +232,7 @@ void push_response(struct skbuff_nic_c **skbuff_struct, int cpu) {
 //    int allocator = 0;
 //    static  struct queue_ll response_queue[NUM_CMDS];
 
-    temp_node = (struct queue_ll*) &response_queue[allocator++];
+    temp_node = (struct queue_ll*) &response_queue[cpu][allocator++];
 
     /* skbuff needs to be add to link list */
     temp_node->skbuff_struct = *skbuff_struct;
@@ -386,7 +390,7 @@ static int response_per_cpu_thread(void *unused) {
     		printk(KERN_ALERT "RESPONSE TREAD - %d", cpu);
     		first = 1;
     	}
-//        wait_event(my_wait_queue[cpu], (num_responses_push[cpu] != num_responses_pop[cpu]) || (flag[cpu] != 'n')); //);
+        wait_event(my_wait_queue[cpu], (num_responses_push[cpu] != num_responses_pop[cpu]) || (flag[cpu] != 'n')); //);
 
 //        if (no_cmd == 100)
 //        {
@@ -436,11 +440,11 @@ static int response_per_cpu_thread(void *unused) {
         	no_cmd ++;
         }
 
-        if (no_cmd >= 1000)
-        {
-        	no_cmd = 0;
-        	msleep(1);
-        }
+//        if (no_cmd >= 1000)
+//        {
+//        	no_cmd = 0;
+//        	msleep(1);
+//        }
 
 //        printk(KERN_ALERT "Four - CPU %d\n", cpu);
         /* Thread needs to exit */
