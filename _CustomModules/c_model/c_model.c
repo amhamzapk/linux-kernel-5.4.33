@@ -327,7 +327,7 @@ static int response_per_cpu_thread(void *unused) {
         if (first == 0)
         {
         	first = 1;
-        	ssleep(20);
+        	ssleep(10);
         }
 
         if (flag[cpu] == 'y')
@@ -389,6 +389,9 @@ static int request_per_cpu_thread(void *unused) {
         /* Push request in the list and return */
         skbuff_struc_temp = &skbuff_struct_driver[get_cpu()][i];
         push_request(&skbuff_struc_temp);
+
+        /* Simply Print the information */
+        printk(KERN_ALERT "Request | Core-%d | Len->%d\n", get_cpu(), i+1);
 
         /* Update request counter */
         mutex_lock(&driver_request_lock);
