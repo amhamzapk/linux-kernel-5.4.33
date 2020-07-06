@@ -92,7 +92,7 @@ struct skbuff_nic_c skbuff_struct_driver[NUM_CPUS][NUM_CMDS];
 
 /* Since kmalloc is not correctly working for a C-Model thread, This pointer is responsible for custom memory allocation */
 //static  struct queue_ll *response_queue_ptr;
-int allocator[NUM_CPUS] = 0;
+int allocator[NUM_CPUS] = {0};
 static  struct queue_ll response_queue[NUM_CPUS][NUM_CMDS];
 //static  struct queue_ll response_queue1[NUM_CMDS];
 //static  struct queue_ll response_queue2[NUM_CMDS];
