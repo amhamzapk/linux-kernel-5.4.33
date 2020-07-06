@@ -44,7 +44,6 @@ MODULE_VERSION		("0.1");
 
 /* Global Variables */
 char flag[NUM_CPUS] = {'n'};
-u8 	 response_thread_exit = 0;
 u64  skbuff_dummy_var = 0xDEADBEEFBEEFDEAD;
 u32  num_cmd_send = 0;
 u32  num_cmd_rcv = 0;
@@ -96,12 +95,7 @@ struct skbuff_nic_c skbuff_struct_driver[NUM_CPUS][NUM_CMDS];
 
 /* Since kmalloc is not correctly working for a C-Model thread, This pointer is responsible for custom memory allocation */
 static  struct queue_ll *response_queue_ptr[NUM_CPUS];
-int allocator[NUM_CPUS] = {0};
-static  struct queue_ll response_queue[NUM_CPUS][NUM_CMDS];
-//static  struct queue_ll response_queue1[NUM_CMDS];
-//static  struct queue_ll response_queue2[NUM_CMDS];
-//static  struct queue_ll response_queue3[NUM_CMDS];
-//static  struct queue_ll response_queue4[NUM_CMDS];
+
 /* 
 *	Get CPU Cycles from Read RDTSC Function
 */ 
@@ -550,9 +544,6 @@ static void __exit nic_c_exit(void) {
 
     /* Stop main C-Module thread */
     kthread_stop(thread_st_c_model_worker);
-
-    /* Flag for per cpu response thread to exit */
-    response_thread_exit = 1;
 
     /* Signal per cpu response threads to exit */
     for (i=0; i<NUM_CPUS; i++) {
