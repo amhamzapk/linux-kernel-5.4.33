@@ -324,9 +324,8 @@ static int response_per_cpu_thread(void *unused) {
         }
 
         if (pop_response(&skbuff_ptr, cpu) != -1) {
-        	no_cmd = 0;
 
-            /* Update statistics counter */
+        	/* Update statistics counter */
             num_total_response++;
             response_per_cpu++;
 
