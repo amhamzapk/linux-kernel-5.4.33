@@ -204,7 +204,7 @@ static int pop_response(struct skbuff_nic_c **skbuff_struct, int cpu) {
 //    while (list_empty(&head_response[cpu]));
     /* Check if there is something in the queue */
     if(list_empty(&head_response[cpu])) {
-    	printk("POP list CPU-%d is empty", cpu);
+//    	printk("POP list CPU-%d is empty", cpu);
 
         /* Release the lock */
 //        mutex_unlock(&pop_response_lock);
@@ -334,15 +334,6 @@ static int response_per_cpu_thread(void *unused) {
         {
         	break;
         }
-
-        if (num_responses_pop[3] >= 2000 && (first = 0) && (cpu != 3))
-        {
-        	printk(KERN_ALERT "STARTED SLEEPING\n");
-        	first = 1;
-        	ssleep(15);
-        	printk(KERN_ALERT "STOPPED SLEEPING\n");
-        }
-
         if (pop_response(&skbuff_ptr, cpu) != -1) {
 
             ++num_responses_pop[cpu];
@@ -364,6 +355,10 @@ static int response_per_cpu_thread(void *unused) {
                     break;
 
             }
+        }
+        else
+        {
+        	ssleep(1);
         }
     }
 
