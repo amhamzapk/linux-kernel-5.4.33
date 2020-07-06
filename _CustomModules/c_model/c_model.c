@@ -40,7 +40,7 @@ MODULE_VERSION		("0.1");
 #define POLL_END_RESPONSE_READ	1
 
 /* Response Queue Size */
-#define RESPONSE_QUEUE_SIZE	300000
+#define RESPONSE_QUEUE_SIZE	1024
 
 /* Global Variables */
 char flag[NUM_CPUS] = {'n'};
@@ -216,7 +216,7 @@ static int push_pop_response(struct skbuff_nic_c **skbuff_struct, int cpu, int i
 	        /* Get the node from link list */
 	        temp_node = list_first_entry(&head_response[cpu],struct queue_ll ,list);
 
-	        mem_allocator_pop_idx[cpu] = (mem_allocator_pop_idx[cpu] + 1) % RESPONSE_QUEUE_SIZE;
+//	        mem_allocator_pop_idx[cpu] = (mem_allocator_pop_idx[cpu] + 1) % RESPONSE_QUEUE_SIZE;
 	    }
 
 	    /* This structure needs to be passed to thread */
@@ -348,7 +348,8 @@ static int c_model_worker_thread(void *unused) {
                         skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_RX;
 
                         /* Pass skbuff to response queue */
-                        /*if (*/push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, 1);/* == -2)
+                        push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, 1);
+                        /*if (push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, 1); == -2)
                         {
                         	do
                         	{
