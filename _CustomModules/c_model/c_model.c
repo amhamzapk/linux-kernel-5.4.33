@@ -203,21 +203,21 @@ static int pop_response(struct skbuff_nic_c **skbuff_struct, int cpu) {
 
 //    while (list_empty(&head_response[cpu]));
     /* Check if there is something in the queue */
-    if(list_empty(&head_response[cpu])) {
-    	printk("POP list CPU-%d is empty", cpu);
-
-        /* Release the lock */
-//        mutex_unlock(&pop_response_lock);
-        /* Return -1, no element is found */
-        return -1;
-    }
-    else {
+//    if(list_empty(&head_response[cpu])) {
+//    	printk("POP list CPU-%d is empty", cpu);
+//
+//        /* Release the lock */
+////        mutex_unlock(&pop_response_lock);
+//        /* Return -1, no element is found */
+//        return -1;
+//    }
+//    else {
         /* Since this is response list and will be shared by multiple thread, acquire the lock */
 
         /* Get the node from link list */
         temp_node = list_first_entry(&head_response[cpu],struct queue_ll ,list);
 
-    }
+//    }
 
     /* This structure needs to be passed to thread */
     *skbuff_struct = temp_node->skbuff_struct;
