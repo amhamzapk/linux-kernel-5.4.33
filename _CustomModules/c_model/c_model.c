@@ -50,6 +50,7 @@ u32  num_total_response = 0;
 u64  mem_allocator_push_idx[NUM_CPUS] = {0};
 u64  mem_allocator_pop_idx [NUM_CPUS] = {0};
 
+/* Push/Pop response indexers */
 volatile u64  num_responses_push[NUM_CPUS] = {0};
 volatile u64  num_responses_pop[NUM_CPUS]  = {0};
 
@@ -117,7 +118,7 @@ static int pop_request(struct skbuff_nic_c **skbuff_struct) {
     /* Check if there is something in the queue */
     if(list_empty(&head_request)) {
 
-        /* Return -1, no element is found */
+        /* Return QUEUE_EMPTY, no element is found */
         return QUEUE_EMPTY;
     }
     else {
@@ -160,60 +161,63 @@ void push_request(struct skbuff_nic_c **skbuff_struct) {
     mutex_unlock(&push_request_lock);
 }
 
-static int push_pop_response(struct skbuff_nic_c **skbuff_struct, int cpu, int response_type)
-{
+/*
+*	Response will be pushed/pop in separate queue according to the type
+*	Push element in queue tail / Pop element from queue head
+*	Elements will be passed by reference
+*/ 
+static int push_pop_response(struct skbuff_nic_c **skbuff_struct, int cpu, int response_type) {
     struct queue_ll *temp_node;
 
     mutex_lock(&push_pop_response_lock);
-
-    if (response_type == RESPONSE_TYPE_PUSH)
-	{
-        if (((mem_allocator_push_idx[cpu] + 1) % RESPONSE_QUEUE_SIZE) != ((mem_allocator_pop_idx[cpu]) % RESPONSE_QUEUE_SIZE))
-        {
+    
+    /* If type is push response */
+    if (response_type == RESPONSE_TYPE_PUSH) {
+        /* Check that queue is not full */
+        if (((mem_allocator_push_idx[cpu] + 1) % RESPONSE_QUEUE_SIZE) != ((mem_allocator_pop_idx[cpu]) % RESPONSE_QUEUE_SIZE)) {
             /* Allocate the node and increment push_allocator idx */
             temp_node = (struct queue_ll*) (response_queue_ptr[cpu] + mem_allocator_push_idx[cpu]);
             mem_allocator_push_idx[cpu] = (mem_allocator_push_idx[cpu] + 1) % RESPONSE_QUEUE_SIZE;
-    	}
+        }
 
-    	    /* Else wait until queue has some space */
-    	    else
-    	    {
-    	        mutex_unlock(&push_pop_response_lock);
-    	    	return RESPONSE_QUEUE_FULL;
-    	    }
+    /* Else wait until queue has some space */
+    else {
+        mutex_unlock(&push_pop_response_lock);
+        return RESPONSE_QUEUE_FULL;
+    }
 
-        /* skbuff needs to be add to link list */
-        temp_node->skbuff_struct = *skbuff_struct;
+    /* skbuff needs to be add to link list */
+    temp_node->skbuff_struct = *skbuff_struct;
 
-        /* Add element to link list */
-        list_add_tail(&temp_node->list,&head_response[cpu]);
-	}
-	else
-	{
-	    if(list_empty(&head_response[cpu])) {
+    /* Add element to link list */
+    list_add_tail(&temp_node->list,&head_response[cpu]);
+    }
+    /* Otherwise pop response type */
+    else {
+        if(list_empty(&head_response[cpu])) {
 
-	    	/* Release the lock */
-	        mutex_unlock(&push_pop_response_lock);
+            /* Release the lock */
+            mutex_unlock(&push_pop_response_lock);
 
-	        /* Return -1, no element is found */
-	        return QUEUE_EMPTY;
-	    }
-	    else {
-	        /* Since this is response list and will be shared by multiple thread, acquire the lock */
+            /* Return -1, no element is found */
+            return QUEUE_EMPTY;
+        }
+        else {
+            /* Since this is response list and will be shared by multiple thread, acquire the lock */
 
-	        /* Get the node from link list */
-	        temp_node = list_first_entry(&head_response[cpu],struct queue_ll ,list);
+            /* Get the node from link list */
+            temp_node = list_first_entry(&head_response[cpu],struct queue_ll ,list);
 
-	        mem_allocator_pop_idx[cpu] = (mem_allocator_pop_idx[cpu] + 1) % RESPONSE_QUEUE_SIZE;
-	    }
+            mem_allocator_pop_idx[cpu] = (mem_allocator_pop_idx[cpu] + 1) % RESPONSE_QUEUE_SIZE;
+        }
 
-	    /* This structure needs to be passed to thread */
-	    *skbuff_struct = temp_node->skbuff_struct;
+        /* This structure needs to be passed to thread */
+        *skbuff_struct = temp_node->skbuff_struct;
 
-	    /* Clear the node */
-	    list_del(&temp_node->list);
+        /* Clear the node */
+        list_del(&temp_node->list);
 
-	}
+    }
 
     mutex_unlock(&push_pop_response_lock);
 
@@ -270,13 +274,11 @@ static int c_model_worker_thread(void *unused) {
                         skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_RX;
 
                         /* Pass skbuff to response queue */
-                        if (push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, RESPONSE_TYPE_PUSH) == RESPONSE_QUEUE_FULL)
-                        {
-                        	do
-                        	{
-                        		/* Some delay so that response queue has some space */
-                        		udelay (1000);
-                        	} while  (push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, RESPONSE_TYPE_PUSH) == RESPONSE_QUEUE_FULL);
+                        if (push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, RESPONSE_TYPE_PUSH) == RESPONSE_QUEUE_FULL) {
+                            do {
+                                /* Some delay so that response queue has some space */
+                                udelay (1000);
+                            } while  (push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, RESPONSE_TYPE_PUSH) == RESPONSE_QUEUE_FULL);
                         }
 
                         ++num_responses_push[skbuff_ptr->meta.cpu];
@@ -294,13 +296,11 @@ static int c_model_worker_thread(void *unused) {
                         skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_TX;
 
                         /* Pass skbuff to response queue */
-                        if (push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, RESPONSE_TYPE_PUSH) == RESPONSE_QUEUE_FULL)
-                        {
-                        	do
-                        	{
-                        		/* Some delay so that response queue has some space */
-                        		udelay (1000);
-                        	} while  (push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, RESPONSE_TYPE_PUSH) == RESPONSE_QUEUE_FULL);
+                        if (push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, RESPONSE_TYPE_PUSH) == RESPONSE_QUEUE_FULL) {
+                            do {
+                                /* Some delay so that response queue has some space */
+                                udelay (1000);
+                            } while  (push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, RESPONSE_TYPE_PUSH) == RESPONSE_QUEUE_FULL);
                         }
 
                         ++num_responses_push[skbuff_ptr->meta.cpu];
@@ -343,17 +343,19 @@ static int response_per_cpu_thread(void *unused) {
     while (1) {
 
         wait_event(my_wait_queue[cpu], (num_responses_push[cpu] != num_responses_pop[cpu]) || (exit_flag[cpu] != 'n'));
-
-        if (exit_flag[cpu] == 'y')
-        {
-        	break;
+        
+        /* Exit flag is raised, break from the loop */
+        if (exit_flag[cpu] == 'y') {
+            break;
         }
 
+        /* If response queue is not empty */
         if (push_pop_response(&skbuff_ptr, cpu, RESPONSE_TYPE_POP) != -1) {
-
+            
+            /* Increment response counter */
             ++num_responses_pop[cpu];
 
-        	/* Update statistics counter */
+            /* Update statistics counter */
             mutex_lock(&driver_response_lock);
             num_total_response++;
             mutex_unlock(&driver_response_lock);
@@ -438,8 +440,7 @@ static int __init nic_c_init(void) {
 
     INIT_LIST_HEAD(&head_request);
 
-    for (i=0; i<NUM_CPUS; i++)
-    {
+    for (i=0; i<NUM_CPUS; i++) {
         INIT_LIST_HEAD(&head_response[i]);
         response_queue_ptr[i] = kmalloc(sizeof(struct queue_ll) * RESPONSE_QUEUE_SIZE, GFP_ATOMIC);
     }
@@ -487,14 +488,12 @@ static void __exit nic_c_exit(void) {
 
     /* Signal per cpu response threads to exit */
     for (i=0; i<NUM_CPUS; i++) {
-
-    	exit_flag[i] = 'y';
+        exit_flag[i] = 'y';
         wake_up(&my_wait_queue[i]);
     }
 
-    for (i=0; i<NUM_CPUS; i++)
-    {
-    	kfree (response_queue_ptr[i]);
+    for (i=0; i<NUM_CPUS; i++) {
+        kfree (response_queue_ptr[i]);
     }
 
     /* Print statistics */
