@@ -327,6 +327,7 @@ static int response_per_cpu_thread(void *unused) {
         {
         	break;
         }
+
         if (push_pop_response(&skbuff_ptr, cpu, RESPONSE_TYPE_POP) != -1) {
 
             ++num_responses_pop[cpu];
@@ -335,6 +336,7 @@ static int response_per_cpu_thread(void *unused) {
             mutex_lock(&driver_response_lock);
             num_total_response++;
             mutex_unlock(&driver_response_lock);
+
             response_per_cpu++;
 
             /* Check what response is scheduled by C-Model */
@@ -432,8 +434,6 @@ static int __init nic_c_init(void) {
         exit_flag[i] = 'n';
     }
 
-//    ssleep(5);
-
     for (i=0; i<NUM_CPUS; i++) {
 
         /* Initialization for request thread */
@@ -463,9 +463,7 @@ static void __exit nic_c_exit(void) {
     for (i=0; i<NUM_CPUS; i++) {
 
     	exit_flag[i] = 'y';
-
         wake_up(&my_wait_queue[i]);
-
     }
 
     for (i=0; i<NUM_CPUS; i++)
@@ -477,8 +475,6 @@ static void __exit nic_c_exit(void) {
     printk(KERN_ALERT "CMD Send => %d\n", num_cmd_send);
     printk(KERN_ALERT "CMD Receive C-Model => %d\n", num_cmd_rcv);
     printk(KERN_ALERT "Response Receive Driver=> %d\n", num_total_response);
-    for (i=0;i<NUM_CPUS;i++)
-    	printk(KERN_ALERT "CPU-%d | PUSH-> %lld && POP-> %lld\n", i, num_responses_push[i], num_responses_pop[i]);
 }
 
 module_init(nic_c_init);
