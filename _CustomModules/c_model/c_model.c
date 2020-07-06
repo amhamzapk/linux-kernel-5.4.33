@@ -14,9 +14,6 @@
 #include <linux/kthread.h>
 #include <linux/skbuff.h>
 
-#include <linux/mm.h>
-//#include <asm/compiler.h>
-#include <asm/pgalloc.h>
 /* Module Information */
 MODULE_LICENSE		("GPL");
 MODULE_AUTHOR		("Ameer Hamza");
@@ -26,17 +23,17 @@ MODULE_VERSION		("0.1");
 /* Commands */
 #define CASE_NOTIFY_STACK_TX   	123
 #define CASE_NOTIFY_STACK_RX   	456
-#define PROCESS_RX 				  1
-#define PROCESS_TX 				  2
+#define PROCESS_RX                1
+#define PROCESS_TX                2
 
 /* CPUs/Commands */
-#define NUM_CPUS 	4
-#define THOUSAND	1000
-#define MILLION		THOUSAND*THOUSAND
-#define NUM_CMDS	1 * MILLION
+#define NUM_CPUS    4
+#define THOUSAND    1000
+#define MILLION     THOUSAND*THOUSAND
+#define NUM_CMDS    4*MILLION
 
 /* Response Queue Size */
-#define RESPONSE_QUEUE_SIZE	8192
+#define RESPONSE_QUEUE_SIZE     8192
 
 /* Response Type */
 #define RESPONSE_TYPE_PUSH   0
@@ -51,7 +48,7 @@ u32  num_cmd_send = 0;
 u32  num_cmd_rcv = 0;
 u32  num_total_response = 0;
 u64  mem_allocator_push_idx[NUM_CPUS] = {0};
-u64  mem_allocator_pop_idx[NUM_CPUS] = {0};
+u64  mem_allocator_pop_idx [NUM_CPUS] = {0};
 
 volatile u64  num_responses_push[NUM_CPUS] = {0};
 volatile u64  num_responses_pop[NUM_CPUS]  = {0};
@@ -107,12 +104,12 @@ static inline u64 read_rdtsc(void) {
     return (u64) ((hi << 32) | lo);
 }
 
-/*
+/* 
 *	Pop last element from the queue
 *	Return-> 0  if found
 *	Return-> -1 if empty queue
 *	Element will be get by reference
-*/
+*/ 
 static int pop_request(struct skbuff_nic_c **skbuff_struct) {
 
     struct queue_ll *temp_node;
@@ -140,12 +137,11 @@ static int pop_request(struct skbuff_nic_c **skbuff_struct) {
     return 0;
 }
 
-
 /*
 *	Request in this link list will be pushed by the driver
 *	Push element in queue head
 *	Element will be passed by reference
-*/
+*/ 
 void push_request(struct skbuff_nic_c **skbuff_struct) {
 
     struct queue_ll *temp_node;
@@ -174,9 +170,9 @@ static int push_pop_response(struct skbuff_nic_c **skbuff_struct, int cpu, int r
 	{
         if (((mem_allocator_push_idx[cpu] + 1) % RESPONSE_QUEUE_SIZE) != ((mem_allocator_pop_idx[cpu]) % RESPONSE_QUEUE_SIZE))
         {
-			/* Allocate the node and increment push_allocator idx */
-			temp_node = (struct queue_ll*) (response_queue_ptr[cpu] + mem_allocator_push_idx[cpu]);
-			mem_allocator_push_idx[cpu] = (mem_allocator_push_idx[cpu] + 1) % RESPONSE_QUEUE_SIZE;
+            /* Allocate the node and increment push_allocator idx */
+            temp_node = (struct queue_ll*) (response_queue_ptr[cpu] + mem_allocator_push_idx[cpu]);
+            mem_allocator_push_idx[cpu] = (mem_allocator_push_idx[cpu] + 1) % RESPONSE_QUEUE_SIZE;
     	}
 
     	    /* Else wait until queue has some space */
@@ -259,7 +255,7 @@ static int c_model_worker_thread(void *unused) {
             if (pop_request(&skbuff_ptr) != -1) {
 
                 /* Increment total commands received */
-                num_cmd_rcv += 1;
+                num_cmd_rcv++;
 
                 /* Check what command requested */
                 switch (skbuff_ptr->meta.command) {
@@ -272,6 +268,30 @@ static int c_model_worker_thread(void *unused) {
 
                         /* Update response flag to schedule task for response thread*/
                         skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_RX;
+
+                        /* Pass skbuff to response queue */
+                        if (push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, RESPONSE_TYPE_PUSH) == RESPONSE_QUEUE_FULL)
+                        {
+                        	do
+                        	{
+                        		/* Some delay so that response queue has some space */
+                        		udelay (1000);
+                        	} while  (push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, RESPONSE_TYPE_PUSH) == RESPONSE_QUEUE_FULL);
+                        }
+
+                        ++num_responses_push[skbuff_ptr->meta.cpu];
+
+                        wake_up(&my_wait_queue[skbuff_ptr->meta.cpu]);
+
+                        break;
+
+                    case PROCESS_TX:
+
+                        /* Print Information */
+                        printk(KERN_ALERT "TX Command | Len = %d | CPU = %d\n", skbuff_ptr->len, skbuff_ptr->meta.cpu);
+
+                        /* Update response flag to schedule task for response thread*/
+                        skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_TX;
 
                         /* Pass skbuff to response queue */
                         if (push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, RESPONSE_TYPE_PUSH) == RESPONSE_QUEUE_FULL)
@@ -308,6 +328,7 @@ static int c_model_worker_thread(void *unused) {
 
     return 0;
 }
+
 /*
 *	Response thread scheduler
 *	This thread will schedule response request
@@ -347,10 +368,14 @@ static int response_per_cpu_thread(void *unused) {
                     /* Simply Print the information */
                     printk(KERN_ALERT "Response | Core-%d | Total->%d\n", cpu, response_per_cpu);
 
-                    printk(KERN_ALERT "Resp-0 -> %lld | Resp-1 -> %lld | Resp-2 -> %lld\n", num_responses_pop[0], num_responses_pop[1], num_responses_pop[2]);
-
                     break;
 
+                case CASE_NOTIFY_STACK_TX:
+
+                    /* Simply Print the information */
+                    printk(KERN_ALERT "Response | Core-%d | Total->%d\n", cpu, response_per_cpu);
+
+                    break;
             }
         }
     }
@@ -380,14 +405,15 @@ static int request_per_cpu_thread(void *unused) {
         skbuff_struct_driver[get_cpu()][i].meta.cpu = get_cpu();
         skbuff_struct_driver[get_cpu()][i].meta.response_flag = 0;
 
-		skbuff_struct_driver[get_cpu()][i].meta.command = PROCESS_RX;
+        /* Divide half dummy requests as RX, remaining as TX */
+        if ((i % 2) == 0)
+            skbuff_struct_driver[get_cpu()][i].meta.command = PROCESS_RX;
+        else
+            skbuff_struct_driver[get_cpu()][i].meta.command = PROCESS_TX;
 
         /* Push request in the list and return */
         skbuff_struc_temp = &skbuff_struct_driver[get_cpu()][i];
         push_request(&skbuff_struc_temp);
-
-        /* Simply Print the information */
-        printk(KERN_ALERT "Request | Core-%d | Len->%d\n", get_cpu(), i+1);
 
         /* Update request counter */
         mutex_lock(&driver_request_lock);
