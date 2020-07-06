@@ -359,7 +359,7 @@ static int response_per_cpu_thread(void *unused) {
         else
         {
 //			set_current_state(TASK_INTERRUPTIBLE);
-			msleep(1);
+			ssleep(1);
         }
     }
 
