@@ -40,7 +40,7 @@ MODULE_VERSION		("0.1");
 #define POLL_END_RESPONSE_READ	1
 
 /* Response Queue Size */
-#define RESPONSE_QUEUE_SIZE	1024
+#define RESPONSE_QUEUE_SIZE	8192
 
 /* Global Variables */
 char flag[NUM_CPUS] = {'n'};
@@ -49,9 +49,9 @@ u64  skbuff_dummy_var = 0xDEADBEEFBEEFDEAD;
 u32  num_cmd_send = 0;
 u32  num_cmd_rcv = 0;
 u32  num_total_response = 0;
-u32  mem_allocator_push_idx = 0;
-u32  mem_allocator_pop_idx = 0;
-#define NUM_RESPONSE_WRAP 300000
+u32  mem_allocator_push_idx[NUM_CPUS] = {0};
+u32  mem_allocator_pop_idx[NUM_CPUS] = {0};
+
 volatile u64  num_responses_push[NUM_CPUS] = {0};
 volatile u64  num_responses_pop[NUM_CPUS]  = {0};
 /* Define Mutex locks */
@@ -95,9 +95,9 @@ struct queue_ll{
 struct skbuff_nic_c skbuff_struct_driver[NUM_CPUS][NUM_CMDS];
 
 /* Since kmalloc is not correctly working for a C-Model thread, This pointer is responsible for custom memory allocation */
-//static  struct queue_ll *response_queue_ptr;
-int allocator[NUM_CPUS] = {0};
-static  struct queue_ll response_queue[NUM_CPUS][NUM_CMDS];
+static  struct queue_ll *response_queue_ptr[NUM_CPUS];
+//int allocator[NUM_CPUS] = {0};
+//static  struct queue_ll response_queue[NUM_CPUS][NUM_CMDS];
 //static  struct queue_ll response_queue1[NUM_CMDS];
 //static  struct queue_ll response_queue2[NUM_CMDS];
 //static  struct queue_ll response_queue3[NUM_CMDS];
@@ -180,7 +180,18 @@ static int push_pop_response(struct skbuff_nic_c **skbuff_struct, int cpu, int i
     if (is_push == 1)
 	{
 
-        temp_node = (struct queue_ll*) &response_queue[cpu][allocator[cpu]++];
+    	 if (((mem_allocator_push_idx[cpu]) % RESPONSE_QUEUE_SIZE) != ((mem_allocator_pop_idx[cpu] + 1) % RESPONSE_QUEUE_SIZE)) {
+    	        /* Allocate the node and increment push_allocator idx */
+    	        temp_node = (struct queue_ll*) (response_queue_ptr[cpu] + mem_allocator_push_idx[cpu]);
+    	        mem_allocator_push_idx[cpu] = (mem_allocator_push_idx[cpu] + 1) % RESPONSE_QUEUE_SIZE;
+    	    }
+
+    	    /* Else wait until queue has some space */
+    	    else {
+    	    	return -2;
+    	    }
+
+//        temp_node = (struct queue_ll*) &response_queue[cpu][allocator[cpu]++];
 
         /* skbuff needs to be add to link list */
         temp_node->skbuff_struct = *skbuff_struct;
@@ -204,6 +215,7 @@ static int push_pop_response(struct skbuff_nic_c **skbuff_struct, int cpu, int i
 	        /* Get the node from link list */
 	        temp_node = list_first_entry(&head_response[cpu],struct queue_ll ,list);
 
+	        mem_allocator_pop_idx[cpu] = (mem_allocator_pop_idx[cpu] + 1) % RESPONSE_QUEUE_SIZE;
 	    }
 
 	    /* This structure needs to be passed to thread */
@@ -219,6 +231,7 @@ static int push_pop_response(struct skbuff_nic_c **skbuff_struct, int cpu, int i
     return 0;
 }
 
+#if 0
 /*
 *	Responses in this link list will be pushed by the C-Model for the driver
 *	Push element in queue head
@@ -282,6 +295,8 @@ static int pop_response(struct skbuff_nic_c **skbuff_struct, int cpu) {
     /* Return 0, element is found */
     return 0;
 }
+#endif
+
 /*
 *	--Main NIC-C Model Thread--
 *	This thread is responsible for scheduling request
@@ -332,7 +347,13 @@ static int c_model_worker_thread(void *unused) {
                         skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_RX;
 
                         /* Pass skbuff to response queue */
-                        push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, 1);
+                        if (push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, 1) == -2)
+                        {
+                        	do
+                        	{
+                        		udelay (10);
+                        	} while (push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, 1) == -2);
+                        }
 //                        set_current_state(TASK_INTERRUPTIBLE);
 //                        schedule_timeout (1);
 //                        flush_cache_all();
@@ -475,9 +496,8 @@ static int __init nic_c_init(void) {
     for (i=0; i<NUM_CPUS; i++)
     {
         INIT_LIST_HEAD(&head_response[i]);
+        response_queue_ptr[i] = kmalloc(sizeof(struct queue_ll) * RESPONSE_QUEUE_SIZE, GFP_ATOMIC);
     }
-
-//    response_queue_ptr = kmalloc(sizeof(struct queue_ll) * RESPONSE_QUEUE_SIZE, GFP_ATOMIC);
 
     /* Bind C-Model worker thread to the last core */
     thread_st_c_model_worker = kthread_create(c_model_worker_thread, NULL, "kthread_c_model_worker");
@@ -532,6 +552,11 @@ static void __exit nic_c_exit(void) {
 
         wake_up(&my_wait_queue[i]);
 
+    }
+
+    for (i=0; i<NUM_CPUS; i++)
+    {
+    	kfree (response_queue_ptr[i]);
     }
 
     /* Print statistics */
