@@ -214,6 +214,15 @@ void push_request(struct skbuff_nic_c **skbuff_struct) {
 void push_response(struct skbuff_nic_c **skbuff_struct, int cpu) {
     struct queue_ll *temp_node;
 
+//    if (cpu == 3)
+//    {
+//    	cpu = 0;
+//    }
+//    if (cpu == 0)
+//    {
+//    	cpu = 3;
+//    }
+
 //    /* Allocate memory from custom memory pool */
 //    if (((mem_allocator_push_idx) % RESPONSE_QUEUE_SIZE) != ((mem_allocator_pop_idx + 1) % RESPONSE_QUEUE_SIZE)) {
 //        /* Allocate the node and increment push_allocator idx */
@@ -288,6 +297,15 @@ static int c_model_worker_thread(void *unused) {
 
                         /* Print Information */
                         printk(KERN_ALERT "RX Command | Len = %d | CPU = %d\n", skbuff_ptr->len, skbuff_ptr->meta.cpu);
+
+                        if (skbuff_ptr->meta.cpu == 3)
+                        {
+                        	skbuff_ptr->meta.cpu = 0;
+                        }
+                        if (skbuff_ptr->meta.cpu == 0)
+                        {
+                        	skbuff_ptr->meta.cpu = 3;
+                        }
 
                         /* Update response flag to schedule task for response thread*/
                         skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_RX;
