@@ -66,7 +66,6 @@ static struct task_struct *thread_st_request[NUM_CPUS];
 static struct list_head   head_request;
 static struct list_head   head_response[NUM_CPUS];
 static wait_queue_head_t  my_wait_queue[NUM_CPUS];
-static struct semaphore   wait_sem[NUM_CPUS];
 
 /* Meta data for NIC-C Model */
 struct meta_skbuff {
@@ -94,10 +93,7 @@ struct skbuff_nic_c skbuff_struct_driver[NUM_CPUS][NUM_CMDS];
 /* Since kmalloc is not correctly working for a C-Model thread, This pointer is responsible for custom memory allocation */
 //static  struct queue_ll *response_queue_ptr;
 int allocator[NUM_CPUS] = {0};
-int allocator2 = 0;
-
 static  struct queue_ll response_queue[NUM_CPUS][NUM_CMDS];
-static  struct queue_ll request_queue[NUM_CMDS];
 //static  struct queue_ll response_queue1[NUM_CMDS];
 //static  struct queue_ll response_queue2[NUM_CMDS];
 //static  struct queue_ll response_queue3[NUM_CMDS];
@@ -140,7 +136,7 @@ static int pop_request(struct skbuff_nic_c **skbuff_struct) {
     /* Clear the node */
     list_del(&temp_node->list);
 
-//    kfree(temp_node);
+    kfree(temp_node);
 
     /* Return 0, element is found */
     return 0;
@@ -199,15 +195,12 @@ void push_request(struct skbuff_nic_c **skbuff_struct) {
     struct queue_ll *temp_node;
 
     /* Allocate Node */
-//    temp_node=kmalloc(sizeof(struct queue_ll),GFP_ATOMIC);
-
-    mutex_lock(&push_request_lock);
-
-    temp_node = (struct queue_ll*) &request_queue[allocator2++];
+    temp_node=kmalloc(sizeof(struct queue_ll),GFP_ATOMIC);
 
     /* skbuff needs to be add to link list */
     temp_node->skbuff_struct = *skbuff_struct;
 
+    mutex_lock(&push_request_lock);
 
     /* Add element to link list */
     list_add_tail(&temp_node->list,&head_request);
@@ -237,7 +230,6 @@ void push_response(struct skbuff_nic_c **skbuff_struct, int cpu) {
 *	This thread is responsible for scheduling request
 *	as soon some element is push into the queue
 */
-int first = 0;
 static int c_model_worker_thread(void *unused) {
     struct skbuff_nic_c *skbuff_ptr;
 
@@ -262,12 +254,6 @@ static int c_model_worker_thread(void *unused) {
 
         /* Check if queue needs to be processed */
         if ((clk_cycles_exp/clk_cycles_div) >= 1) {
-
-        	if (first == 0)
-        	{
-        		first = 1;
-        		ssleep(10);
-        	}
             
             /* Check if some command is in queue */
             /* If found, element will be point to skbuff_ptr */
@@ -292,7 +278,7 @@ static int c_model_worker_thread(void *unused) {
                         push_response(&skbuff_ptr, 0/*skbuff_ptr->meta.cpu*/);
 //                        set_current_state(TASK_INTERRUPTIBLE);
 //                        schedule_timeout (1);
-//                        flush_cache_all();
+                        flush_cache_all();
 //                        flush_tlb_all(&num_responses_push[skbuff_ptr->meta.cpu]);
 
 //                        barrier();
@@ -333,9 +319,16 @@ static int response_per_cpu_thread(void *unused) {
 
     int response_per_cpu = 0;
     int cpu = get_cpu();
+    int first = 0;
     while (1) {
 
         wait_event(my_wait_queue[cpu], (num_responses_push[cpu] != num_responses_pop[cpu]) || (flag[cpu] != 'n'));
+
+        if (first == 0)
+        {
+        	first = 1;
+        	ssleep(20);
+        }
 
         if (flag[cpu] == 'y')
         {
@@ -397,8 +390,6 @@ static int request_per_cpu_thread(void *unused) {
         skbuff_struc_temp = &skbuff_struct_driver[get_cpu()][i];
         push_request(&skbuff_struc_temp);
 
-        /* Simply Print the information */
-        printk(KERN_ALERT "Request | Core-%d | Len->%d\n", get_cpu(), i + 1);
         /* Update request counter */
         mutex_lock(&driver_request_lock);
         num_cmd_send++;
@@ -441,9 +432,7 @@ static int __init nic_c_init(void) {
         thread_st_response[i] = kthread_create(response_per_cpu_thread, NULL, "kthread_response");
         kthread_bind(thread_st_response[i], i);
         wake_up_process(thread_st_response[i]);
-        sema_init(&wait_sem[i], 1);
         /* Release semaphore to wake per CPU thread to pass command to stack */
-        down (&wait_sem[i]);
         flag[i] = 'n';
     }
 
