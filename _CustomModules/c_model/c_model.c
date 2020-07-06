@@ -354,7 +354,7 @@ static int c_model_worker_thread(void *unused) {
 //                        push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, 1);
                         if (push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, 1) == 2)
                         {
-                        	printk("____BEFORE DELAY_____\n");                        {
+                        	printk("____BEFORE DELAY_____\n");
                             	printk("____BEFORE DELAY_____\n");
                         	push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, 1);
 
