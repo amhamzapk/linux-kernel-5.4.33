@@ -180,18 +180,18 @@ static int push_pop_response(struct skbuff_nic_c **skbuff_struct, int cpu, int i
     if (is_push == 1)
 	{
 
-    	 if (((mem_allocator_push_idx[cpu]) % RESPONSE_QUEUE_SIZE) != ((mem_allocator_pop_idx[cpu] + 1) % RESPONSE_QUEUE_SIZE)) {
+//    	 if (((mem_allocator_push_idx[cpu]) % RESPONSE_QUEUE_SIZE) != ((mem_allocator_pop_idx[cpu] + 1) % RESPONSE_QUEUE_SIZE)) {
     	        /* Allocate the node and increment push_allocator idx */
     	        temp_node = (struct queue_ll*) (response_queue_ptr[cpu] + mem_allocator_push_idx[cpu]);
     	        mem_allocator_push_idx[cpu] = (mem_allocator_push_idx[cpu] + 1) % RESPONSE_QUEUE_SIZE;
     	    }
 
     	    /* Else wait until queue has some space */
-    	    else {
-    	    	printk(KERN_ALERT "PUSH_IDX -> %lld | POP_IDX -> %lld | cpu -> %d\n", mem_allocator_push_idx[cpu], mem_allocator_pop_idx[cpu],cpu);
-    	    	ssleep (10);
-    	    	return -2;
-    	    }
+//    	    else {
+//    	    	printk(KERN_ALERT "PUSH_IDX -> %lld | POP_IDX -> %lld | cpu -> %d\n", mem_allocator_push_idx[cpu], mem_allocator_pop_idx[cpu],cpu);
+//    	    	ssleep (10);
+//    	    	return -2;
+//    	    }
 
 //        temp_node = (struct queue_ll*) &response_queue[cpu][allocator[cpu]++];
 
