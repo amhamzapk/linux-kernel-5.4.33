@@ -92,7 +92,7 @@ struct skbuff_nic_c skbuff_struct_driver[NUM_CPUS][NUM_CMDS];
 
 /* Since kmalloc is not correctly working for a C-Model thread, This pointer is responsible for custom memory allocation */
 //static  struct queue_ll *response_queue_ptr;
-int allocator = 0;
+int allocator[NUM_CPUS] = 0;
 static  struct queue_ll response_queue[NUM_CPUS][NUM_CMDS];
 //static  struct queue_ll response_queue1[NUM_CMDS];
 //static  struct queue_ll response_queue2[NUM_CMDS];
@@ -241,15 +241,15 @@ void push_response(struct skbuff_nic_c **skbuff_struct, int cpu) {
 //    int allocator = 0;
 //    static  struct queue_ll response_queue[NUM_CMDS];
 
-    temp_node = (struct queue_ll*) &response_queue[cpu][allocator++];
+    temp_node = (struct queue_ll*) &response_queue[cpu][allocator[cpu]++];
 
     /* skbuff needs to be add to link list */
     temp_node->skbuff_struct = *skbuff_struct;
     
     /* Add element to link list */
     list_add_tail(&temp_node->list,&head_response[cpu]);
-    clflush(&head_response[cpu]);
-    clflush(&temp_node->list);
+//    clflush(&head_response[cpu]);
+//    clflush(&temp_node->list);
 }
 
 /*
@@ -297,15 +297,6 @@ static int c_model_worker_thread(void *unused) {
 
                         /* Print Information */
                         printk(KERN_ALERT "RX Command | Len = %d | CPU = %d\n", skbuff_ptr->len, skbuff_ptr->meta.cpu);
-
-                        if (skbuff_ptr->meta.cpu == 3)
-                        {
-                        	skbuff_ptr->meta.cpu = 0;
-                        }
-                        if (skbuff_ptr->meta.cpu == 0)
-                        {
-                        	skbuff_ptr->meta.cpu = 3;
-                        }
 
                         /* Update response flag to schedule task for response thread*/
                         skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_RX;
