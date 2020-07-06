@@ -51,7 +51,6 @@ u32  mem_allocator_pop_idx = 0;
 #define NUM_RESPONSE_WRAP 300000
 volatile u64  num_responses_push[NUM_CPUS] = {0};
 volatile u64  num_responses_pop[NUM_CPUS]  = {0};
-u64 wqueue_wake[NUM_CPUS] = {0};
 /* Define Mutex locks */
 static DEFINE_MUTEX(push_request_lock);
 static DEFINE_MUTEX(pop_response_lock);
@@ -71,7 +70,6 @@ struct meta_skbuff {
     u32 command;
     u32 response_flag;
     volatile u8 cpu;
-    volatile u8 poll_flag;
 };
 
 /* Main Structure for NIC-C Model */
@@ -214,33 +212,6 @@ void push_request(struct skbuff_nic_c **skbuff_struct) {
 void push_response(struct skbuff_nic_c **skbuff_struct, int cpu) {
     struct queue_ll *temp_node;
 
-//    if (cpu == 3)
-//    {
-//    	cpu = 0;
-//    }
-//    if (cpu == 0)
-//    {
-//    	cpu = 3;
-//    }
-
-//    /* Allocate memory from custom memory pool */
-//    if (((mem_allocator_push_idx) % RESPONSE_QUEUE_SIZE) != ((mem_allocator_pop_idx + 1) % RESPONSE_QUEUE_SIZE)) {
-//        /* Allocate the node and increment push_allocator idx */
-//        temp_node = (struct queue_ll*) (response_queue_ptr + mem_allocator_push_idx);
-//        mem_allocator_push_idx = (mem_allocator_push_idx + 1) % RESPONSE_QUEUE_SIZE;
-//    }
-//
-//    /* Else wait until queue has some space */
-//    else {
-//        /* Wait until some element popped from the queue */
-//        while(((mem_allocator_push_idx) % RESPONSE_QUEUE_SIZE) == ((mem_allocator_pop_idx + 1) % RESPONSE_QUEUE_SIZE));
-//        temp_node = (struct queue_ll*) (response_queue_ptr + mem_allocator_push_idx);
-//        mem_allocator_push_idx = (mem_allocator_push_idx + 1) % RESPONSE_QUEUE_SIZE;
-//    }
-
-//    int allocator = 0;
-//    static  struct queue_ll response_queue[NUM_CMDS];
-
     temp_node = (struct queue_ll*) &response_queue[cpu][allocator[cpu]++];
 
     /* skbuff needs to be add to link list */
@@ -248,8 +219,6 @@ void push_response(struct skbuff_nic_c **skbuff_struct, int cpu) {
     
     /* Add element to link list */
     list_add_tail(&temp_node->list,&head_response[cpu]);
-//    clflush(&head_response[cpu]);
-//    clflush(&temp_node->list);
 }
 
 /*
@@ -301,62 +270,18 @@ static int c_model_worker_thread(void *unused) {
                         /* Update response flag to schedule task for response thread*/
                         skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_RX;
 
-                        /* Syncrhonization Variable */
-                        skbuff_ptr->meta.poll_flag = POLL_IF_RESPONSE_READ;
-
                         /* Pass skbuff to response queue */
-                        push_response(&skbuff_ptr, skbuff_ptr->meta.cpu);
+                        push_response(&skbuff_ptr, 3);//skbuff_ptr->meta.cpu);
 
-//                        printk(KERN_ALERT "AAAAAAAAAA\n");
-//                        int temp_timeout = 1000000;
-//                        while (--temp_timeout);
-                        clflush(&num_responses_push[skbuff_ptr->meta.cpu]);
+//                        clflush(&num_responses_push[skbuff_ptr->meta.cpu]);
 
-//                        schedule_timeout (0);
                         barrier();
                         /* Wake up wait queue for the Response thread */
-//                        flag[skbuff_ptr->meta.cpu] = 'y';
+
                         wake_up(&my_wait_queue[skbuff_ptr->meta.cpu]);
                         ++num_responses_push[skbuff_ptr->meta.cpu];// = ++(num_responses_push[skbuff_ptr->meta.cpu]) ;// % NUM_RESPONSE_WRAP;
 
-//                        msleep(1);
-//                        udelay(100);
-//                        flag[skbuff_ptr->meta.cpu] = 'n';
-
-//                        /* Wait until response is read by the Response thread to avoid race condition */
-//                        down (&wait_sem[skbuff_ptr->meta.cpu]);
-//                        while (skbuff_ptr->meta.poll_flag == POLL_IF_RESPONSE_READ){}
-
                         break;
-
-//                    case PROCESS_TX:
-//
-//                        /* Print Information */
-//                        printk(KERN_ALERT "TX Command | Len = %d | CPU = %d\n", skbuff_ptr->len, skbuff_ptr->meta.cpu);
-//
-//                        /* Update response flag to schedule task for response thread*/
-//                        skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_TX;
-//
-//                        /* Syncrhonization Variable */
-//                        skbuff_ptr->meta.poll_flag = POLL_IF_RESPONSE_READ;
-//
-//                        /* Pass skbuff to response queue */
-//                        push_response(&skbuff_ptr, skbuff_ptr->meta.cpu);
-//
-//                        num_responses_push[skbuff_ptr->meta.cpu] = (num_responses_push[skbuff_ptr->meta.cpu] + 1);// % NUM_RESPONSE_WRAP;
-//
-//                        /* Wake up wait queue for the Response thread */
-//                        flag[skbuff_ptr->meta.cpu] = 'y';
-////                        printk(KERN_ALERT "BBBBBBBBB\n");
-//                        wake_up(&my_wait_queue[skbuff_ptr->meta.cpu]);
-//                        /* Wake up wait queue for the Response thread */
-////                        flag[skbuff_ptr->meta.cpu] = 'n';
-//
-////                        /* Wait until response is read by the Response thread to avoid race condition */
-////                        down (&wait_sem[skbuff_ptr->meta.cpu]);
-////                        while (skbuff_ptr->meta.poll_flag == POLL_IF_RESPONSE_READ){}
-//
-//                        break;
                 }
 
             }
@@ -389,43 +314,17 @@ static int response_per_cpu_thread(void *unused) {
 
     int response_per_cpu = 0;
     int cpu = get_cpu();
-    int first = 0;
-    int wqueue_wake_local = 0;
     while (1) {
-//        printk(KERN_ALERT "One - CPU %d\n", cpu);
-        /* Suspend until some response is scheduled by C-Model */
-    	if (first == 0)
-    	{
-    		printk(KERN_ALERT "RESPONSE TREAD - %d", cpu);
-    		first = 1;
-    	}
-        wait_event(my_wait_queue[cpu], (num_responses_push[cpu] != num_responses_pop[cpu]) || (flag[cpu] != 'n')); //);
-        ++num_responses_pop[cpu];// = (num_responses_pop[cpu] + 1);// % NUM_RESPONSE_WRAP;
 
-//        if (no_cmd == 100)
-//        {
-//        	no_cmd = 0;
-//        	flag[cpu] = 'n';
-//        }
-//        printk(KERN_ALERT "Two - CPU %d\n", cpu);
+        wait_event(my_wait_queue[cpu], (num_responses_push[cpu] != num_responses_pop[cpu]) || (flag[cpu] != 'n'));
+        ++num_responses_pop[cpu];
 
-//        if ((num_responses_pop[cpu] == (num_responses_push[cpu] - 1)) && (no_cmd == 10000))
-//          if (num_responses_pop[cpu] >= 240000)
-//        	flag[cpu] = 'n';
-//        up (&wait_sem[cpu]);
-        ++wqueue_wake[cpu];
-        ++wqueue_wake_local;
-        if (pop_response(&skbuff_ptr, cpu) != -1) {
+        if (pop_response(&skbuff_ptr, 3) != -1) {
         	no_cmd = 0;
-
-//        	printk(KERN_ALERT "Threes - CPU %d\n", cpu);
-            /* Notify C-Model that response is read */
-//            skbuff_ptr->meta.poll_flag = POLL_END_RESPONSE_READ;
 
             /* Update statistics counter */
             num_total_response++;
             response_per_cpu++;
-//            ++num_responses_pop[cpu];// = (num_responses_pop[cpu] + 1);// % NUM_RESPONSE_WRAP;
 
             /* Check what response is scheduled by C-Model */
             switch (skbuff_ptr->meta.response_flag) {
@@ -450,13 +349,6 @@ static int response_per_cpu_thread(void *unused) {
         	no_cmd ++;
         }
 
-//        if (no_cmd >= 1000)
-//        {
-//        	no_cmd = 0;
-//        	msleep(1);
-//        }
-
-//        printk(KERN_ALERT "Four - CPU %d\n", cpu);
         /* Thread needs to exit */
         if (response_thread_exit)
             break;
@@ -464,8 +356,6 @@ static int response_per_cpu_thread(void *unused) {
 
     /* Print per CPU response count */
     printk(KERN_ALERT "Core-%d | Responses => %d\n", cpu, response_per_cpu);
-    printk(KERN_ALERT "Core-%d | Wakeup => %d\n", cpu, wqueue_wake_local);
-
 
     return 0;
 }
@@ -489,11 +379,7 @@ static int request_per_cpu_thread(void *unused) {
         skbuff_struct_driver[get_cpu()][i].meta.cpu = get_cpu();
         skbuff_struct_driver[get_cpu()][i].meta.response_flag = 0;
 
-        /* Divide half dummy requests as RX, remaining as TX */
-//        if ((i % 2) == 0)
-            skbuff_struct_driver[get_cpu()][i].meta.command = PROCESS_RX;
-//        else
-//            skbuff_struct_driver[get_cpu()][i].meta.command = PROCESS_TX;
+		skbuff_struct_driver[get_cpu()][i].meta.command = PROCESS_RX;
 
         /* Push request in the list and return */
         skbuff_struc_temp = &skbuff_struct_driver[get_cpu()][i];
@@ -531,7 +417,7 @@ static int __init nic_c_init(void) {
 
     /* Bind C-Model worker thread to the last core */
     thread_st_c_model_worker = kthread_create(c_model_worker_thread, NULL, "kthread_c_model_worker");
-//    kthread_bind(thread_st_c_model_worker, NUM_CPUS - 1);
+    kthread_bind(thread_st_c_model_worker, NUM_CPUS - 1);
     wake_up_process(thread_st_c_model_worker);
 
     for (i=0; i<NUM_CPUS; i++) {
