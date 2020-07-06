@@ -299,17 +299,17 @@ static int c_model_worker_thread(void *unused) {
                         push_response(&skbuff_ptr, skbuff_ptr->meta.cpu);
 
 //                        printk(KERN_ALERT "AAAAAAAAAA\n");
-                        ++num_responses_push[skbuff_ptr->meta.cpu];// = ++(num_responses_push[skbuff_ptr->meta.cpu]) ;// % NUM_RESPONSE_WRAP;
-
 //                        int temp_timeout = 1000000;
 //                        while (--temp_timeout);
                         clflush(&num_responses_push[skbuff_ptr->meta.cpu]);
 
-                        schedule_timeout (0);
+//                        schedule_timeout (0);
                         barrier();
                         /* Wake up wait queue for the Response thread */
 //                        flag[skbuff_ptr->meta.cpu] = 'y';
                         wake_up(&my_wait_queue[skbuff_ptr->meta.cpu]);
+                        ++num_responses_push[skbuff_ptr->meta.cpu];// = ++(num_responses_push[skbuff_ptr->meta.cpu]) ;// % NUM_RESPONSE_WRAP;
+
 //                        msleep(1);
 //                        udelay(100);
 //                        flag[skbuff_ptr->meta.cpu] = 'n';
