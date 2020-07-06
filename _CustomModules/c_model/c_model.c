@@ -180,16 +180,16 @@ static int push_pop_response(struct skbuff_nic_c **skbuff_struct, int cpu, int i
     if (is_push == 1)
 	{
 
-//    	 if (((mem_allocator_push_idx[cpu]) % RESPONSE_QUEUE_SIZE) != ((mem_allocator_pop_idx[cpu] + 1) % RESPONSE_QUEUE_SIZE)) {
+    	 if (((mem_allocator_push_idx[cpu]) % RESPONSE_QUEUE_SIZE) != ((mem_allocator_pop_idx[cpu] + 1) % RESPONSE_QUEUE_SIZE)) {
     	        /* Allocate the node and increment push_allocator idx */
     	        temp_node = (struct queue_ll*) (response_queue_ptr[cpu] + mem_allocator_push_idx[cpu]);
     	        mem_allocator_push_idx[cpu] = (mem_allocator_push_idx[cpu] + 1) % RESPONSE_QUEUE_SIZE;
-//    	    }
+    	    }
 
-//    	    /* Else wait until queue has some space */
-//    	    else {
-//    	    	return -2;
-//    	    }
+    	    /* Else wait until queue has some space */
+    	    else {
+    	    	return -2;
+    	    }
 
 //        temp_node = (struct queue_ll*) &response_queue[cpu][allocator[cpu]++];
 
@@ -347,14 +347,14 @@ static int c_model_worker_thread(void *unused) {
                         skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_RX;
 
                         /* Pass skbuff to response queue */
-                        push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, 1);
-//                        if (push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, 1) == -2)
-//                        {
-//                        	do
-//                        	{
-//                        		udelay (10);
-//                        	} while (push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, 1) == -2);
-//                        }
+//                        push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, 1);
+                        if (push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, 1) == -2)
+                        {
+                        	do
+                        	{
+                        		udelay (10);
+                        	} while (push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, 1) == -2);
+                        }
 //                        set_current_state(TASK_INTERRUPTIBLE);
 //                        schedule_timeout (1);
 //                        flush_cache_all();
