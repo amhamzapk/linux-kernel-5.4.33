@@ -59,6 +59,7 @@ static DEFINE_MUTEX(push_request_lock);
 static DEFINE_MUTEX(pop_request_lock);
 static DEFINE_MUTEX(push_response_lock);
 static DEFINE_MUTEX(pop_response_lock);
+static DEFINE_MUTEX(push_pop_response_lock);
 static DEFINE_MUTEX(driver_request_lock);
 
 /* Global structures */
@@ -166,6 +167,55 @@ void push_request(struct skbuff_nic_c **skbuff_struct) {
     list_add_tail(&temp_node->list,&head_request);
 
     mutex_unlock(&push_request_lock);
+}
+
+static int push_pop_response(struct skbuff_nic_c **skbuff_struct, int cpu, int is_push)
+{
+    struct queue_ll *temp_node;
+
+    mutex_lock(&push_pop_response_lock);
+
+
+    if (is_push == 1)
+	{
+
+        temp_node = (struct queue_ll*) &response_queue[cpu][allocator[cpu]++];
+
+        /* skbuff needs to be add to link list */
+        temp_node->skbuff_struct = *skbuff_struct;
+
+        /* Add element to link list */
+        list_add_tail(&temp_node->list,&head_response[cpu]);
+	}
+	else
+	{
+	    if(list_empty(&head_response[cpu])) {
+
+	    	/* Release the lock */
+	        mutex_unlock(&pop_response_lock);
+
+	        /* Return -1, no element is found */
+	        return -1;
+	    }
+	    else {
+	        /* Since this is response list and will be shared by multiple thread, acquire the lock */
+
+	        /* Get the node from link list */
+	        temp_node = list_first_entry(&head_response[cpu],struct queue_ll ,list);
+
+	    }
+
+	    /* This structure needs to be passed to thread */
+	    *skbuff_struct = temp_node->skbuff_struct;
+
+	    /* Clear the node */
+	    list_del(&temp_node->list);
+
+	}
+
+    mutex_unlock(&push_pop_response_lock);
+
+    return 0;
 }
 
 /*
@@ -281,7 +331,7 @@ static int c_model_worker_thread(void *unused) {
                         skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_RX;
 
                         /* Pass skbuff to response queue */
-                        push_response(&skbuff_ptr, skbuff_ptr->meta.cpu);
+                        push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, 1);
 //                        set_current_state(TASK_INTERRUPTIBLE);
 //                        schedule_timeout (1);
 //                        flush_cache_all();
@@ -325,7 +375,6 @@ static int response_per_cpu_thread(void *unused) {
 
     int response_per_cpu = 0;
     int cpu = get_cpu();
-    int first = 0;
     while (1) {
 
         wait_event(my_wait_queue[cpu], (num_responses_push[cpu] != num_responses_pop[cpu]) || (flag[cpu] != 'n'));
@@ -334,7 +383,7 @@ static int response_per_cpu_thread(void *unused) {
         {
         	break;
         }
-        if (pop_response(&skbuff_ptr, cpu) != -1) {
+        if (push_pop_response(&skbuff_ptr, cpu, 0) != -1) {
 
             ++num_responses_pop[cpu];
 
@@ -356,11 +405,11 @@ static int response_per_cpu_thread(void *unused) {
 
             }
         }
-        else
-        {
-//			set_current_state(TASK_INTERRUPTIBLE);
-			ssleep(1);
-        }
+//        else
+//        {
+////			set_current_state(TASK_INTERRUPTIBLE);
+//			ssleep(1);
+//        }
     }
 
     /* Print per CPU response count */
