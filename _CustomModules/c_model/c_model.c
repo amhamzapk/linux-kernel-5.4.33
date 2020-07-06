@@ -391,6 +391,7 @@ static int response_per_cpu_thread(void *unused) {
     		first = 1;
     	}
         wait_event(my_wait_queue[cpu], (num_responses_push[cpu] != num_responses_pop[cpu]) || (flag[cpu] != 'n')); //);
+        ++num_responses_pop[cpu];// = (num_responses_pop[cpu] + 1);// % NUM_RESPONSE_WRAP;
 
 //        if (no_cmd == 100)
 //        {
@@ -415,7 +416,7 @@ static int response_per_cpu_thread(void *unused) {
             /* Update statistics counter */
             num_total_response++;
             response_per_cpu++;
-            ++num_responses_pop[cpu];// = (num_responses_pop[cpu] + 1);// % NUM_RESPONSE_WRAP;
+//            ++num_responses_pop[cpu];// = (num_responses_pop[cpu] + 1);// % NUM_RESPONSE_WRAP;
 
             /* Check what response is scheduled by C-Model */
             switch (skbuff_ptr->meta.response_flag) {
