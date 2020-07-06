@@ -258,7 +258,7 @@ static int c_model_worker_thread(void *unused) {
             if (pop_request(&skbuff_ptr) != -1) {
 
                 /* Increment total commands received */
-                num_cmd_rcv++;
+                num_cmd_rcv += 1;
 
                 /* Check what command requested */
                 switch (skbuff_ptr->meta.command) {
