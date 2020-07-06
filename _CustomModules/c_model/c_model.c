@@ -192,7 +192,7 @@ static int push_pop_response(struct skbuff_nic_c **skbuff_struct, int cpu, int i
     	    else {
     	    	printk(KERN_ALERT "ELSE_____ PUSH_IDX -> %lld | POP_IDX -> %lld | cpu -> %d\n", mem_allocator_push_idx[cpu], mem_allocator_pop_idx[cpu],cpu);
 //    	    	ssleep (10);
-    	    	return -2;
+    	    	return 2;
     	    }
 
 //        temp_node = (struct queue_ll*) &response_queue[cpu][allocator[cpu]++];
@@ -352,11 +352,13 @@ static int c_model_worker_thread(void *unused) {
 
                         /* Pass skbuff to response queue */
 //                        push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, 1);
-                        if (push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, 1) == -2)
+                        if (push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, 1) == 2)
                         {
-                        	printk("____BEFORE DELAY_____\n");
+                        	printk("____BEFORE DELAY_____\n");                        {
+                            	printk("____BEFORE DELAY_____\n");
                         	push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, 1);
 
+                        	printk("____AFTER DELAY1_____\n");
                         	printk("____AFTER DELAY1_____\n");
 
                         	/*do
@@ -366,7 +368,7 @@ static int c_model_worker_thread(void *unused) {
                         	}*/
                         	while (1)
                         	{
-                        		if (push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, 1) == -2)
+                        		if (push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, 1) == 2)
                         		{
                                 	printk("____Within Loop_____\n");
                             		udelay (1000);
