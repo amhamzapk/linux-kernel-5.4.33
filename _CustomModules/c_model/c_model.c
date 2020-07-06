@@ -191,7 +191,7 @@ static int push_pop_response(struct skbuff_nic_c **skbuff_struct, int cpu, int i
     	    	return -2;
     	    }
 
-        temp_node = (struct queue_ll*) &response_queue[cpu][allocator[cpu]++];
+//        temp_node = (struct queue_ll*) &response_queue[cpu][allocator[cpu]++];
 
         /* skbuff needs to be add to link list */
         temp_node->skbuff_struct = *skbuff_struct;
