@@ -531,7 +531,7 @@ static int __init nic_c_init(void) {
 
     /* Bind C-Model worker thread to the last core */
     thread_st_c_model_worker = kthread_create(c_model_worker_thread, NULL, "kthread_c_model_worker");
-    kthread_bind(thread_st_c_model_worker, NUM_CPUS - 1);
+//    kthread_bind(thread_st_c_model_worker, NUM_CPUS - 1);
     wake_up_process(thread_st_c_model_worker);
 
     for (i=0; i<NUM_CPUS; i++) {
