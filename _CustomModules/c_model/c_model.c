@@ -191,7 +191,7 @@ static int push_pop_response(struct skbuff_nic_c **skbuff_struct, int cpu, int i
     	    /* Else wait until queue has some space */
     	    else {
     	    	printk(KERN_ALERT "ELSE_____ PUSH_IDX -> %lld | POP_IDX -> %lld | cpu -> %d\n", mem_allocator_push_idx[cpu], mem_allocator_pop_idx[cpu],cpu);
-    	    	ssleep (10);
+//    	    	ssleep (10);
     	    	return -2;
     	    }
 
@@ -357,7 +357,7 @@ static int c_model_worker_thread(void *unused) {
                         	printk("____AFTER DELAY_____\n");
                         	do
                         	{
-                        		udelay (10);
+                        		udelay (1000);
                         	} while (push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, 1) == -2);
                         }
 //                        set_current_state(TASK_INTERRUPTIBLE);
