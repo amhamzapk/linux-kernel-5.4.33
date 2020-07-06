@@ -96,8 +96,8 @@ struct skbuff_nic_c skbuff_struct_driver[NUM_CPUS][NUM_CMDS];
 
 /* Since kmalloc is not correctly working for a C-Model thread, This pointer is responsible for custom memory allocation */
 static  struct queue_ll *response_queue_ptr[NUM_CPUS];
-//int allocator[NUM_CPUS] = {0};
-//static  struct queue_ll response_queue[NUM_CPUS][NUM_CMDS];
+int allocator[NUM_CPUS] = {0};
+static  struct queue_ll response_queue[NUM_CPUS][NUM_CMDS];
 //static  struct queue_ll response_queue1[NUM_CMDS];
 //static  struct queue_ll response_queue2[NUM_CMDS];
 //static  struct queue_ll response_queue3[NUM_CMDS];
@@ -182,8 +182,8 @@ static int push_pop_response(struct skbuff_nic_c **skbuff_struct, int cpu, int i
 
 //    	 if (((mem_allocator_push_idx[cpu]) % RESPONSE_QUEUE_SIZE) != ((mem_allocator_pop_idx[cpu] + 1) % RESPONSE_QUEUE_SIZE)) {
     	        /* Allocate the node and increment push_allocator idx */
-    	        temp_node = (struct queue_ll*) (response_queue_ptr[cpu] + mem_allocator_push_idx[cpu]);
-    	        mem_allocator_push_idx[cpu] = (mem_allocator_push_idx[cpu] + 1) % RESPONSE_QUEUE_SIZE;
+//    	        temp_node = (struct queue_ll*) (response_queue_ptr[cpu] + mem_allocator_push_idx[cpu]);
+//    	        mem_allocator_push_idx[cpu] = (mem_allocator_push_idx[cpu] + 1) % RESPONSE_QUEUE_SIZE;
     	        return 0;
 //    	    }
 //
@@ -192,7 +192,7 @@ static int push_pop_response(struct skbuff_nic_c **skbuff_struct, int cpu, int i
 //    	    	return -2;
 //    	    }
 
-//        temp_node = (struct queue_ll*) &response_queue[cpu][allocator[cpu]++];
+        temp_node = (struct queue_ll*) &response_queue[cpu][allocator[cpu]++];
 
         /* skbuff needs to be add to link list */
         temp_node->skbuff_struct = *skbuff_struct;
