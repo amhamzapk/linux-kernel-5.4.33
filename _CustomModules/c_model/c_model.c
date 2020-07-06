@@ -497,7 +497,7 @@ static int __init nic_c_init(void) {
     for (i=0; i<NUM_CPUS; i++)
     {
         INIT_LIST_HEAD(&head_response[i]);
-        response_queue_ptr[i] = kmalloc(sizeof(struct queue_ll) * RESPONSE_QUEUE_SIZE, GFP_ATOMIC);
+//        response_queue_ptr[i] = kmalloc(sizeof(struct queue_ll) * RESPONSE_QUEUE_SIZE, GFP_ATOMIC);
     }
 
     /* Bind C-Model worker thread to the last core */
@@ -557,7 +557,7 @@ static void __exit nic_c_exit(void) {
 
     for (i=0; i<NUM_CPUS; i++)
     {
-    	kfree (response_queue_ptr[i]);
+//    	kfree (response_queue_ptr[i]);
     }
 
     /* Print statistics */
