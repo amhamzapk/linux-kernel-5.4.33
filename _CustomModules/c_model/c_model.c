@@ -111,12 +111,12 @@ static inline u64 read_rdtsc(void) {
     return (u64) ((hi << 32) | lo);
 }
 
-/* 
+/*
 *	Pop last element from the queue
 *	Return-> 0  if found
 *	Return-> -1 if empty queue
 *	Element will be get by reference
-*/ 
+*/
 static int pop_request(struct skbuff_nic_c **skbuff_struct) {
 
     struct queue_ll *temp_node;
@@ -144,54 +144,12 @@ static int pop_request(struct skbuff_nic_c **skbuff_struct) {
     return 0;
 }
 
+
 /*
-*	Driver will get response from C-Model from this link list
-*	Pop last element from the queue
-*	Return-> 0  if found
-*	Return-> -1 if empty queue
-*	Element will be get by reference
-*/
-static int pop_response(struct skbuff_nic_c **skbuff_struct, int cpu) {
-
-    struct queue_ll *temp_node;
-
-    mutex_lock(&pop_response_lock);
-
-//    while (list_empty(&head_response[cpu]));
-    /* Check if there is something in the queue */
-    if(list_empty(&head_response[cpu])) {
-
-        /* Release the lock */
-        mutex_unlock(&pop_response_lock);
-        /* Return -1, no element is found */
-        return -1;
-    }
-    else {
-        /* Since this is response list and will be shared by multiple thread, acquire the lock */
-
-        /* Get the node from link list */
-        temp_node = list_first_entry(&head_response[cpu],struct queue_ll ,list);
-
-    }
-
-    /* This structure needs to be passed to thread */
-    *skbuff_struct = temp_node->skbuff_struct;
-
-    /* Clear the node */
-    list_del(&temp_node->list);
-
-    /* Release the lock */
-    mutex_unlock(&pop_response_lock);
-
-    /* Return 0, element is found */
-    return 0;
-}
-
-/* 
 *	Request in this link list will be pushed by the driver
 *	Push element in queue head
 *	Element will be passed by reference
-*/ 
+*/
 void push_request(struct skbuff_nic_c **skbuff_struct) {
 
     struct queue_ll *temp_node;
@@ -230,6 +188,48 @@ void push_response(struct skbuff_nic_c **skbuff_struct, int cpu) {
     mutex_unlock(&push_response_lock);
 }
 
+/*
+*	Driver will get response from C-Model from this link list
+*	Pop last element from the queue
+*	Return-> 0  if found
+*	Return-> -1 if empty queue
+*	Element will be get by reference
+*/
+static int pop_response(struct skbuff_nic_c **skbuff_struct, int cpu) {
+
+    struct queue_ll *temp_node;
+
+//    mutex_lock(&pop_response_lock);
+
+//    while (list_empty(&head_response[cpu]));
+    /* Check if there is something in the queue */
+    if(list_empty(&head_response[cpu])) {
+
+        /* Release the lock */
+//        mutex_unlock(&pop_response_lock);
+        /* Return -1, no element is found */
+        return -1;
+    }
+    else {
+        /* Since this is response list and will be shared by multiple thread, acquire the lock */
+
+        /* Get the node from link list */
+        temp_node = list_first_entry(&head_response[cpu],struct queue_ll ,list);
+
+    }
+
+    /* This structure needs to be passed to thread */
+    *skbuff_struct = temp_node->skbuff_struct;
+
+    /* Clear the node */
+    list_del(&temp_node->list);
+
+    /* Release the lock */
+//    mutex_unlock(&pop_response_lock);
+
+    /* Return 0, element is found */
+    return 0;
+}
 /*
 *	--Main NIC-C Model Thread--
 *	This thread is responsible for scheduling request
@@ -332,7 +332,7 @@ static int response_per_cpu_thread(void *unused) {
         if (first == 0)
         {
         	first = 1;
-        	ssleep(10);
+//        	ssleep(10);
         }
 
         if (flag[cpu] == 'y')
