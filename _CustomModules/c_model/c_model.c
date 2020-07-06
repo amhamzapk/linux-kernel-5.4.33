@@ -33,14 +33,14 @@ MODULE_VERSION		("0.1");
 #define NUM_CPUS 	4
 #define THOUSAND	1000
 #define MILLION		THOUSAND*THOUSAND
-#define NUM_CMDS	16//1*MILLION
+#define NUM_CMDS	128//1*MILLION
 
 /* Syncrhonization Macros */
 #define POLL_IF_RESPONSE_READ   0
 #define POLL_END_RESPONSE_READ	1
 
 /* Response Queue Size */
-#define RESPONSE_QUEUE_SIZE	8192//NUM_CMDS
+#define RESPONSE_QUEUE_SIZE	4//8192//NUM_CMDS
 
 /* Global Variables */
 char flag[NUM_CPUS] = {'n'};
