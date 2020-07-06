@@ -275,7 +275,7 @@ static int c_model_worker_thread(void *unused) {
                         skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_RX;
 
                         /* Pass skbuff to response queue */
-                        push_response(&skbuff_ptr, 0/*skbuff_ptr->meta.cpu*/);
+                        push_response(&skbuff_ptr, skbuff_ptr->meta.cpu);
 //                        set_current_state(TASK_INTERRUPTIBLE);
 //                        schedule_timeout (1);
                         flush_cache_all();
@@ -335,7 +335,7 @@ static int response_per_cpu_thread(void *unused) {
         	break;
         }
 
-        if (pop_response(&skbuff_ptr, 0/*cpuhamza*/) != -1) {
+        if (pop_response(&skbuff_ptr, cpu) != -1) {
 
             ++num_responses_pop[cpu];
 
