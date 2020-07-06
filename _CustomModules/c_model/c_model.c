@@ -338,14 +338,10 @@ static int response_per_cpu_thread(void *unused) {
                     /* Simply Print the information */
                     printk(KERN_ALERT "Response | Core-%d | Total->%d\n", cpu, response_per_cpu);
 
-                    break;
-
-                case CASE_NOTIFY_STACK_TX:
-
-                    /* Simply Print the information */
-                    printk(KERN_ALERT "Response | Core-%d | Total->%d\n", cpu, response_per_cpu);
+                    printk(KERN_ALERT "Resp-0 -> %d | Resp-1 -> %d | Resp-2 -> %d\n", num_responses_pop[0], num_responses_pop[1], num_responses_pop[2]);
 
                     break;
+
             }
         }
     }
