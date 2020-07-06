@@ -356,10 +356,10 @@ static int response_per_cpu_thread(void *unused) {
 
             }
         }
-        else
-        {
-        	ssleep(1);
-        }
+//        else
+//        {
+//        	ssleep(1);
+//        }
     }
 
     /* Print per CPU response count */
