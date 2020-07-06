@@ -354,11 +354,12 @@ static int c_model_worker_thread(void *unused) {
 //                        push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, 1);
                         if (push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, 1) == -2)
                         {
-                        	printk("____AFTER DELAY_____\n");
+                        	printk("____BEFORE DELAY_____\n");
                         	do
                         	{
                         		msleep (1);
                         	} while (push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, 1) == -2);
+                        	printk("____AFTER DELAY_____\n");
                         }
 //                        set_current_state(TASK_INTERRUPTIBLE);
 //                        schedule_timeout (1);
