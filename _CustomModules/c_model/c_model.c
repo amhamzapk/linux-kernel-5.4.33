@@ -14,6 +14,9 @@
 #include <linux/kthread.h>
 #include <linux/skbuff.h>
 
+#include <linux/mm.h>
+//#include <asm/compiler.h>
+#include <asm/pgalloc.h>
 /* Module Information */
 MODULE_LICENSE		("GPL");
 MODULE_AUTHOR		("Ameer Hamza");
@@ -274,10 +277,10 @@ static int c_model_worker_thread(void *unused) {
 
                         /* Pass skbuff to response queue */
                         push_response(&skbuff_ptr, skbuff_ptr->meta.cpu);
-                        set_current_state(TASK_INTERRUPTIBLE);
-                        schedule_timeout (1);
-
-//                        clflush(&num_responses_push[skbuff_ptr->meta.cpu]);
+//                        set_current_state(TASK_INTERRUPTIBLE);
+//                        schedule_timeout (1);
+                        flush_cache_all();
+//                        flush_tlb_all(&num_responses_push[skbuff_ptr->meta.cpu]);
 
 //                        barrier();
                         /* Wake up wait queue for the Response thread */
