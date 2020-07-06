@@ -35,15 +35,17 @@ MODULE_VERSION		("0.1");
 #define MILLION		THOUSAND*THOUSAND
 #define NUM_CMDS	1 * MILLION
 
-/* Syncrhonization Macros */
-#define POLL_IF_RESPONSE_READ   0
-#define POLL_END_RESPONSE_READ	1
-
 /* Response Queue Size */
 #define RESPONSE_QUEUE_SIZE	8192
 
+/* Response Type */
+#define RESPONSE_TYPE_PUSH   0
+#define RESPONSE_TYPE_POP    1
+#define QUEUE_EMPTY         -1
+#define RESPONSE_QUEUE_FULL -2
+
 /* Global Variables */
-char flag[NUM_CPUS] = {'n'};
+char exit_flag[NUM_CPUS] = {'n'};
 u64  skbuff_dummy_var = 0xDEADBEEFBEEFDEAD;
 u32  num_cmd_send = 0;
 u32  num_cmd_rcv = 0;
@@ -53,11 +55,9 @@ u64  mem_allocator_pop_idx[NUM_CPUS] = {0};
 
 volatile u64  num_responses_push[NUM_CPUS] = {0};
 volatile u64  num_responses_pop[NUM_CPUS]  = {0};
+
 /* Define Mutex locks */
 static DEFINE_MUTEX(push_request_lock);
-static DEFINE_MUTEX(pop_request_lock);
-static DEFINE_MUTEX(push_response_lock);
-static DEFINE_MUTEX(pop_response_lock);
 static DEFINE_MUTEX(push_pop_response_lock);
 static DEFINE_MUTEX(driver_request_lock);
 static DEFINE_MUTEX(driver_response_lock);
@@ -121,7 +121,7 @@ static int pop_request(struct skbuff_nic_c **skbuff_struct) {
     if(list_empty(&head_request)) {
 
         /* Return -1, no element is found */
-        return -1;
+        return QUEUE_EMPTY;
     }
     else {
         /* Get the node from link list queue */
@@ -164,33 +164,27 @@ void push_request(struct skbuff_nic_c **skbuff_struct) {
     mutex_unlock(&push_request_lock);
 }
 
-static int push_pop_response(struct skbuff_nic_c **skbuff_struct, int cpu, int is_push)
+static int push_pop_response(struct skbuff_nic_c **skbuff_struct, int cpu, int response_type)
 {
     struct queue_ll *temp_node;
 
     mutex_lock(&push_pop_response_lock);
 
-
-    if (is_push == 1)
+    if (response_type == RESPONSE_TYPE_PUSH)
 	{
-
-    	 if (((mem_allocator_push_idx[cpu] + 1) % RESPONSE_QUEUE_SIZE) != ((mem_allocator_pop_idx[cpu]) % RESPONSE_QUEUE_SIZE)) {
-
-    		 	 printk(KERN_ALERT "IF_____ PUSH_IDX -> %lld | POP_IDX -> %lld | cpu -> %d\n", mem_allocator_push_idx[cpu], mem_allocator_pop_idx[cpu],cpu);
-    	        /* Allocate the node and increment push_allocator idx */
-    	        temp_node = (struct queue_ll*) (response_queue_ptr[cpu] + mem_allocator_push_idx[cpu]);
-    	        mem_allocator_push_idx[cpu] = (mem_allocator_push_idx[cpu] + 1) % RESPONSE_QUEUE_SIZE;
-    	    }
+        if (((mem_allocator_push_idx[cpu] + 1) % RESPONSE_QUEUE_SIZE) != ((mem_allocator_pop_idx[cpu]) % RESPONSE_QUEUE_SIZE))
+        {
+			/* Allocate the node and increment push_allocator idx */
+			temp_node = (struct queue_ll*) (response_queue_ptr[cpu] + mem_allocator_push_idx[cpu]);
+			mem_allocator_push_idx[cpu] = (mem_allocator_push_idx[cpu] + 1) % RESPONSE_QUEUE_SIZE;
+    	}
 
     	    /* Else wait until queue has some space */
-    	    else {
+    	    else
+    	    {
     	        mutex_unlock(&push_pop_response_lock);
-    	    	printk(KERN_ALERT "ELSE_____ PUSH_IDX -> %lld | POP_IDX -> %lld | cpu -> %d\n", mem_allocator_push_idx[cpu], mem_allocator_pop_idx[cpu],cpu);
-//    	    	ssleep (10);
-    	    	return 2;
+    	    	return RESPONSE_QUEUE_FULL;
     	    }
-
-//        temp_node = (struct queue_ll*) &response_queue[cpu][allocator[cpu]++];
 
         /* skbuff needs to be add to link list */
         temp_node->skbuff_struct = *skbuff_struct;
@@ -203,10 +197,10 @@ static int push_pop_response(struct skbuff_nic_c **skbuff_struct, int cpu, int i
 	    if(list_empty(&head_response[cpu])) {
 
 	    	/* Release the lock */
-	        mutex_unlock(&pop_response_lock);
+	        mutex_unlock(&push_pop_response_lock);
 
 	        /* Return -1, no element is found */
-	        return -1;
+	        return QUEUE_EMPTY;
 	    }
 	    else {
 	        /* Since this is response list and will be shared by multiple thread, acquire the lock */
@@ -229,72 +223,6 @@ static int push_pop_response(struct skbuff_nic_c **skbuff_struct, int cpu, int i
 
     return 0;
 }
-
-#if 0
-/*
-*	Responses in this link list will be pushed by the C-Model for the driver
-*	Push element in queue head
-*	Element will be passed by reference
-*/
-void push_response(struct skbuff_nic_c **skbuff_struct, int cpu) {
-    struct queue_ll *temp_node;
-
-    mutex_lock(&push_response_lock);
-
-    temp_node = (struct queue_ll*) &response_queue[cpu][allocator[cpu]++];
-
-    /* skbuff needs to be add to link list */
-    temp_node->skbuff_struct = *skbuff_struct;
-    
-    /* Add element to link list */
-    list_add_tail(&temp_node->list,&head_response[cpu]);
-    mutex_unlock(&push_response_lock);
-}
-
-/*
-*	Driver will get response from C-Model from this link list
-*	Pop last element from the queue
-*	Return-> 0  if found
-*	Return-> -1 if empty queue
-*	Element will be get by reference
-*/
-static int pop_response(struct skbuff_nic_c **skbuff_struct, int cpu) {
-
-    struct queue_ll *temp_node;
-
-//    mutex_lock(&pop_response_lock);
-
-//    while (list_empty(&head_response[cpu]));
-    /* Check if there is something in the queue */
-    if(list_empty(&head_response[cpu])) {
-//    	printk("POP list CPU-%d is empty", cpu);
-
-        /* Release the lock */
-//        mutex_unlock(&pop_response_lock);
-        /* Return -1, no element is found */
-        return -1;
-    }
-    else {
-        /* Since this is response list and will be shared by multiple thread, acquire the lock */
-
-        /* Get the node from link list */
-        temp_node = list_first_entry(&head_response[cpu],struct queue_ll ,list);
-
-    }
-
-    /* This structure needs to be passed to thread */
-    *skbuff_struct = temp_node->skbuff_struct;
-
-    /* Clear the node */
-    list_del(&temp_node->list);
-
-    /* Release the lock */
-//    mutex_unlock(&pop_response_lock);
-
-    /* Return 0, element is found */
-    return 0;
-}
-#endif
 
 /*
 *	--Main NIC-C Model Thread--
@@ -346,31 +274,21 @@ static int c_model_worker_thread(void *unused) {
                         skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_RX;
 
                         /* Pass skbuff to response queue */
-//                        push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, 1);
-                        if (push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, 1) == 2)
+                        if (push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, RESPONSE_TYPE_PUSH) == RESPONSE_QUEUE_FULL)
                         {
                         	do
                         	{
-                            	printk("____Withion Loop_____\n");
+                        		/* Some delay so that response queue has some space */
                         		udelay (1000);
-                        	} while  (push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, 1) == 2);
-
-                        	printk("____AFTER DELAY_____\n");
+                        	} while  (push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, RESPONSE_TYPE_PUSH) == RESPONSE_QUEUE_FULL);
                         }
-//                        set_current_state(TASK_INTERRUPTIBLE);
-//                        schedule_timeout (1);
-//                        flush_cache_all();
-//                        flush_tlb_all(&num_responses_push[skbuff_ptr->meta.cpu]);
 
-//                        barrier();
-                        /* Wake up wait queue for the Response thread */
-
-                        ++num_responses_push[skbuff_ptr->meta.cpu];// = ++(num_responses_push[skbuff_ptr->meta.cpu]) ;// % NUM_RESPONSE_WRAP;
+                        ++num_responses_push[skbuff_ptr->meta.cpu];
 
                         wake_up(&my_wait_queue[skbuff_ptr->meta.cpu]);
+
                         break;
                 }
-
             }
 
             clk_cycles_start = 0;
@@ -384,6 +302,7 @@ static int c_model_worker_thread(void *unused) {
             schedule_timeout (0);
         }
     }
+
     /* Module is exitted */
     printk(KERN_ALERT "C-Model worker thread Exits!!!\n");
 
@@ -402,13 +321,13 @@ static int response_per_cpu_thread(void *unused) {
     int cpu = get_cpu();
     while (1) {
 
-        wait_event(my_wait_queue[cpu], (num_responses_push[cpu] != num_responses_pop[cpu]) || (flag[cpu] != 'n'));
+        wait_event(my_wait_queue[cpu], (num_responses_push[cpu] != num_responses_pop[cpu]) || (exit_flag[cpu] != 'n'));
 
-        if (flag[cpu] == 'y')
+        if (exit_flag[cpu] == 'y')
         {
         	break;
         }
-        if (push_pop_response(&skbuff_ptr, cpu, 0) != -1) {
+        if (push_pop_response(&skbuff_ptr, cpu, RESPONSE_TYPE_POP) != -1) {
 
             ++num_responses_pop[cpu];
 
@@ -432,11 +351,6 @@ static int response_per_cpu_thread(void *unused) {
 
             }
         }
-//        else
-//        {
-////			set_current_state(TASK_INTERRUPTIBLE);
-//			ssleep(1);
-//        }
     }
 
     /* Print per CPU response count */
@@ -515,7 +429,7 @@ static int __init nic_c_init(void) {
         kthread_bind(thread_st_response[i], i);
         wake_up_process(thread_st_response[i]);
         /* Release semaphore to wake per CPU thread to pass command to stack */
-        flag[i] = 'n';
+        exit_flag[i] = 'n';
     }
 
 //    ssleep(5);
@@ -548,7 +462,7 @@ static void __exit nic_c_exit(void) {
     /* Signal per cpu response threads to exit */
     for (i=0; i<NUM_CPUS; i++) {
 
-        flag[i] = 'y';
+    	exit_flag[i] = 'y';
 
         wake_up(&my_wait_queue[i]);
 
