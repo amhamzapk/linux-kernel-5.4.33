@@ -358,8 +358,8 @@ static int response_per_cpu_thread(void *unused) {
         }
         else
         {
-			set_current_state(TASK_INTERRUPTIBLE);
-			schedule_timeout (1);
+//			set_current_state(TASK_INTERRUPTIBLE);
+			msleep(1);
         }
     }
 
