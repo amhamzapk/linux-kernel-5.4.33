@@ -310,7 +310,6 @@ static int c_model_worker_thread(void *unused) {
 */
 static int response_per_cpu_thread(void *unused) {
     struct skbuff_nic_c *skbuff_ptr;
-    volatile int no_cmd = 0;
 
     int response_per_cpu = 0;
     int cpu = get_cpu();
@@ -318,6 +317,11 @@ static int response_per_cpu_thread(void *unused) {
 
         wait_event(my_wait_queue[cpu], (num_responses_push[cpu] != num_responses_pop[cpu]) || (flag[cpu] != 'n'));
         ++num_responses_pop[cpu];
+
+        if (flag[cpu] == 'y')
+        {
+        	break;
+        }
 
         if (pop_response(&skbuff_ptr, cpu) != -1) {
         	no_cmd = 0;
@@ -344,14 +348,6 @@ static int response_per_cpu_thread(void *unused) {
                     break;
             }
         }
-        else
-        {
-        	no_cmd ++;
-        }
-
-        /* Thread needs to exit */
-        if (response_thread_exit)
-            break;
     }
 
     /* Print per CPU response count */
@@ -470,12 +466,7 @@ static void __exit nic_c_exit(void) {
 
         wake_up(&my_wait_queue[i]);
 
-        /* Release semaphore to wake per CPU thread to pass command to stack */
-//        down (&wait_sem[i]);
     }
-
-    /* Deallocate custom memory pool */
-//    kfree (response_queue_ptr);
 
     /* Print statistics */
     printk(KERN_ALERT "CMD Send => %d\n", num_cmd_send);
