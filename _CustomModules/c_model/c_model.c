@@ -204,6 +204,7 @@ static int pop_response(struct skbuff_nic_c **skbuff_struct, int cpu) {
 //    while (list_empty(&head_response[cpu]));
     /* Check if there is something in the queue */
     if(list_empty(&head_response[cpu])) {
+    	printk("POP list CPU-%d is empty", cpu);
 
         /* Release the lock */
 //        mutex_unlock(&pop_response_lock);
