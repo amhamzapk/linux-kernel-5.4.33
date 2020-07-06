@@ -49,8 +49,8 @@ u64  skbuff_dummy_var = 0xDEADBEEFBEEFDEAD;
 u32  num_cmd_send = 0;
 u32  num_cmd_rcv = 0;
 u32  num_total_response = 0;
-u32  mem_allocator_push_idx[NUM_CPUS] = {0};
-u32  mem_allocator_pop_idx[NUM_CPUS] = {0};
+u64  mem_allocator_push_idx[NUM_CPUS] = {0};
+u64  mem_allocator_pop_idx[NUM_CPUS] = {0};
 
 volatile u64  num_responses_push[NUM_CPUS] = {0};
 volatile u64  num_responses_pop[NUM_CPUS]  = {0};
