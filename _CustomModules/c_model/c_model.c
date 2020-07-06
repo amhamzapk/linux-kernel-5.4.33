@@ -358,7 +358,7 @@ static int c_model_worker_thread(void *unused) {
                         	do
                         	{
                             	printk("____Withion Loop_____\n");
-                        		msleep (1);
+                        		udelay (1000);
                         	} while (push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, 1) == -2);
                         	printk("____AFTER DELAY_____\n");
                         }
