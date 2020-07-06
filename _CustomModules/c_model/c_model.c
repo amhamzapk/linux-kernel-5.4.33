@@ -94,7 +94,10 @@ struct skbuff_nic_c skbuff_struct_driver[NUM_CPUS][NUM_CMDS];
 /* Since kmalloc is not correctly working for a C-Model thread, This pointer is responsible for custom memory allocation */
 //static  struct queue_ll *response_queue_ptr;
 int allocator[NUM_CPUS] = {0};
+int allocator2 = 0;
+
 static  struct queue_ll response_queue[NUM_CPUS][NUM_CMDS];
+static  struct queue_ll request_queue[NUM_CMDS];
 //static  struct queue_ll response_queue1[NUM_CMDS];
 //static  struct queue_ll response_queue2[NUM_CMDS];
 //static  struct queue_ll response_queue3[NUM_CMDS];
@@ -196,12 +199,15 @@ void push_request(struct skbuff_nic_c **skbuff_struct) {
     struct queue_ll *temp_node;
 
     /* Allocate Node */
-    temp_node=kmalloc(sizeof(struct queue_ll),GFP_ATOMIC);
+//    temp_node=kmalloc(sizeof(struct queue_ll),GFP_ATOMIC);
+
+    mutex_lock(&push_request_lock);
+
+    temp_node = (struct queue_ll*) &request_queue[allocator2++];
 
     /* skbuff needs to be add to link list */
     temp_node->skbuff_struct = *skbuff_struct;
 
-    mutex_lock(&push_request_lock);
 
     /* Add element to link list */
     list_add_tail(&temp_node->list,&head_request);
