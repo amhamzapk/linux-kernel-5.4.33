@@ -335,16 +335,17 @@ static int response_per_cpu_thread(void *unused) {
         	break;
         }
 
+        if (num_responses_pop[3] >= 249999 && (first = 0) && (cpu != 3))
+        {
+        	printk(KERN_ALERT "STARTED SLEEPING\n");
+        	first = 1;
+        	ssleep(15);
+        	printk(KERN_ALERT "STOPPED SLEEPING\n");
+        }
+
         if (pop_response(&skbuff_ptr, cpu) != -1) {
 
             ++num_responses_pop[cpu];
-            if (num_responses_pop[3] >= 249999 && (first = 0))
-            {
-            	printk(KERN_ALERT "STARTED SLEEPING\n");
-            	first = 1;
-            	ssleep(10);
-            	printk(KERN_ALERT "STARTED SLEEPING\n");
-            }
 
         	/* Update statistics counter */
             num_total_response++;
