@@ -40,7 +40,7 @@ MODULE_VERSION		("0.1");
 #define POLL_END_RESPONSE_READ	1
 
 /* Response Queue Size */
-#define RESPONSE_QUEUE_SIZE	8192
+#define RESPONSE_QUEUE_SIZE	300000
 
 /* Global Variables */
 char flag[NUM_CPUS] = {'n'};
