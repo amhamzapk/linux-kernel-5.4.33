@@ -355,11 +355,17 @@ static int c_model_worker_thread(void *unused) {
                         if (push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, 1) == -2)
                         {
                         	printk("____BEFORE DELAY_____\n");
-                        	do
+
+
+                        	/*do
                         	{
                             	printk("____Withion Loop_____\n");
                         		udelay (1000);
-                        	} while (push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, 1) == -2);
+                        	}*/ while (push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, 1) == -2)
+                        	{
+                            	printk("____Withion Loop_____\n");
+                        		udelay (1000);
+                        	}
                         	printk("____AFTER DELAY_____\n");
                         }
 //                        set_current_state(TASK_INTERRUPTIBLE);
