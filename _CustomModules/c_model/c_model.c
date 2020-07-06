@@ -188,7 +188,7 @@ static int push_pop_response(struct skbuff_nic_c **skbuff_struct, int cpu, int i
 
     	    /* Else wait until queue has some space */
     	    else {
-    	    	printk(KERN_ALERT "PUSH_IDX -> %lld | POP_IDX -> %lld | cpu -> %d\n", mem_allocator_push_idx[cpu]), mem_allocator_pop_idx[cpu],cpu);
+    	    	printk(KERN_ALERT "PUSH_IDX -> %lld | POP_IDX -> %lld | cpu -> %d\n", mem_allocator_push_idx[cpu], mem_allocator_pop_idx[cpu],cpu);
     	    	ssleep (10);
     	    	return -2;
     	    }
