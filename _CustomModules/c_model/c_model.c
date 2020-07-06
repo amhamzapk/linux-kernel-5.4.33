@@ -389,10 +389,10 @@ static int response_per_cpu_thread(void *unused) {
             ++num_responses_pop[cpu];
 
         	/* Update statistics counter */
-            num_total_response++;
             mutex_lock(&driver_response_lock);
-            response_per_cpu++;
+            num_total_response++;
             mutex_unlock(&driver_response_lock);
+            response_per_cpu++;
 
             /* Check what response is scheduled by C-Model */
             switch (skbuff_ptr->meta.response_flag) {
