@@ -203,21 +203,21 @@ static int pop_response(struct skbuff_nic_c **skbuff_struct, int cpu) {
 
 //    while (list_empty(&head_response[cpu]));
     /* Check if there is something in the queue */
-//    if(list_empty(&head_response[cpu])) {
-//    	printk("POP list CPU-%d is empty", cpu);
-//
-//        /* Release the lock */
-////        mutex_unlock(&pop_response_lock);
-//        /* Return -1, no element is found */
-//        return -1;
-//    }
-//    else {
+    if(list_empty(&head_response[cpu])) {
+    	printk("POP list CPU-%d is empty", cpu);
+
+        /* Release the lock */
+//        mutex_unlock(&pop_response_lock);
+        /* Return -1, no element is found */
+        return -1;
+    }
+    else {
         /* Since this is response list and will be shared by multiple thread, acquire the lock */
 
         /* Get the node from link list */
         temp_node = list_first_entry(&head_response[cpu],struct queue_ll ,list);
 
-//    }
+    }
 
     /* This structure needs to be passed to thread */
     *skbuff_struct = temp_node->skbuff_struct;
@@ -330,12 +330,6 @@ static int response_per_cpu_thread(void *unused) {
 
         wait_event(my_wait_queue[cpu], (num_responses_push[cpu] != num_responses_pop[cpu]) || (flag[cpu] != 'n'));
 
-        if (first == 0)
-        {
-        	first = 1;
-//        	ssleep(10);
-        }
-
         if (flag[cpu] == 'y')
         {
         	break;
@@ -344,6 +338,13 @@ static int response_per_cpu_thread(void *unused) {
         if (pop_response(&skbuff_ptr, cpu) != -1) {
 
             ++num_responses_pop[cpu];
+            if (num_responses_pop[3] >= 249999 && (first = 0))
+            {
+            	printk(KERN_ALERT "STARTED SLEEPING\n");
+            	first = 1;
+            	ssleep(10);
+            	printk(KERN_ALERT "STARTED SLEEPING\n");
+            }
 
         	/* Update statistics counter */
             num_total_response++;
