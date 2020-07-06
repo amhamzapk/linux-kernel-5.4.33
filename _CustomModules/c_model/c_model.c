@@ -361,10 +361,18 @@ static int c_model_worker_thread(void *unused) {
                         	{
                             	printk("____Withion Loop_____\n");
                         		udelay (1000);
-                        	}*/ while (push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, 1) == -2)
+                        	}*/ while (1)
                         	{
-                            	printk("____Withion Loop_____\n");
-                        		udelay (1000);
+                        		if (push_pop_response(&skbuff_ptr, skbuff_ptr->meta.cpu, 1) == -2)
+                        		{
+                                	printk("____Within Loop_____\n");
+                            		udelay (1000);
+                        		}
+                        		else
+                        		{
+                        			break;
+                        		}
+
                         	}
                         	printk("____AFTER DELAY_____\n");
                         }
