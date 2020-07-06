@@ -40,7 +40,7 @@ MODULE_VERSION		("0.1");
 #define POLL_END_RESPONSE_READ	1
 
 /* Response Queue Size */
-#define RESPONSE_QUEUE_SIZE	1024
+#define RESPONSE_QUEUE_SIZE	260000
 
 /* Global Variables */
 char flag[NUM_CPUS] = {'n'};
@@ -182,8 +182,8 @@ static int push_pop_response(struct skbuff_nic_c **skbuff_struct, int cpu, int i
 
 //    	 if (((mem_allocator_push_idx[cpu]) % RESPONSE_QUEUE_SIZE) != ((mem_allocator_pop_idx[cpu] + 1) % RESPONSE_QUEUE_SIZE)) {
     	        /* Allocate the node and increment push_allocator idx */
-//    	        temp_node = (struct queue_ll*) (response_queue_ptr[cpu] + mem_allocator_push_idx[cpu]);
-//    	        mem_allocator_push_idx[cpu] = (mem_allocator_push_idx[cpu] + 1) % RESPONSE_QUEUE_SIZE;
+    	        temp_node = (struct queue_ll*) (response_queue_ptr[cpu] + mem_allocator_push_idx[cpu]);
+    	        mem_allocator_push_idx[cpu] = (mem_allocator_push_idx[cpu] + 1) % RESPONSE_QUEUE_SIZE;
 //    	        return 0;
 //    	    }
 //
@@ -216,7 +216,7 @@ static int push_pop_response(struct skbuff_nic_c **skbuff_struct, int cpu, int i
 	        /* Get the node from link list */
 	        temp_node = list_first_entry(&head_response[cpu],struct queue_ll ,list);
 
-//	        mem_allocator_pop_idx[cpu] = (mem_allocator_pop_idx[cpu] + 1) % RESPONSE_QUEUE_SIZE;
+	        mem_allocator_pop_idx[cpu] = (mem_allocator_pop_idx[cpu] + 1) % RESPONSE_QUEUE_SIZE;
 	    }
 
 	    /* This structure needs to be passed to thread */
@@ -498,7 +498,7 @@ static int __init nic_c_init(void) {
     for (i=0; i<NUM_CPUS; i++)
     {
         INIT_LIST_HEAD(&head_response[i]);
-//        response_queue_ptr[i] = kmalloc(sizeof(struct queue_ll) * RESPONSE_QUEUE_SIZE, GFP_ATOMIC);
+        response_queue_ptr[i] = kmalloc(sizeof(struct queue_ll) * RESPONSE_QUEUE_SIZE, GFP_ATOMIC);
     }
 
     /* Bind C-Model worker thread to the last core */
@@ -558,7 +558,7 @@ static void __exit nic_c_exit(void) {
 
     for (i=0; i<NUM_CPUS; i++)
     {
-//    	kfree (response_queue_ptr[i]);
+    	kfree (response_queue_ptr[i]);
     }
 
     /* Print statistics */
