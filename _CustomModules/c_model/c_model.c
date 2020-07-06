@@ -335,7 +335,7 @@ static int response_per_cpu_thread(void *unused) {
         	break;
         }
 
-        if (num_responses_pop[3] >= 249999 && (first = 0) && (cpu != 3))
+        if (num_responses_pop[3] >= 2000 && (first = 0) && (cpu != 3))
         {
         	printk(KERN_ALERT "STARTED SLEEPING\n");
         	first = 1;
