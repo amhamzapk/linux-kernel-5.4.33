@@ -271,16 +271,16 @@ static int c_model_worker_thread(void *unused) {
                         skbuff_ptr->meta.response_flag = CASE_NOTIFY_STACK_RX;
 
                         /* Pass skbuff to response queue */
-                        push_response(&skbuff_ptr, 3);//skbuff_ptr->meta.cpu);
+                        push_response(&skbuff_ptr, skbuff_ptr->meta.cpu);
 
 //                        clflush(&num_responses_push[skbuff_ptr->meta.cpu]);
 
-                        barrier();
+//                        barrier();
                         /* Wake up wait queue for the Response thread */
 
-                        wake_up(&my_wait_queue[skbuff_ptr->meta.cpu]);
                         ++num_responses_push[skbuff_ptr->meta.cpu];// = ++(num_responses_push[skbuff_ptr->meta.cpu]) ;// % NUM_RESPONSE_WRAP;
 
+                        wake_up(&my_wait_queue[skbuff_ptr->meta.cpu]);
                         break;
                 }
 
@@ -319,7 +319,7 @@ static int response_per_cpu_thread(void *unused) {
         wait_event(my_wait_queue[cpu], (num_responses_push[cpu] != num_responses_pop[cpu]) || (flag[cpu] != 'n'));
         ++num_responses_pop[cpu];
 
-        if (pop_response(&skbuff_ptr, 3) != -1) {
+        if (pop_response(&skbuff_ptr, cpu) != -1) {
         	no_cmd = 0;
 
             /* Update statistics counter */
