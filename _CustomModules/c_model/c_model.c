@@ -283,7 +283,7 @@ static int c_model_worker_thread(void *unused) {
                         push_response(&skbuff_ptr, skbuff_ptr->meta.cpu);
 //                        set_current_state(TASK_INTERRUPTIBLE);
 //                        schedule_timeout (1);
-                        flush_cache_all();
+//                        flush_cache_all();
 //                        flush_tlb_all(&num_responses_push[skbuff_ptr->meta.cpu]);
 
 //                        barrier();
@@ -332,7 +332,7 @@ static int response_per_cpu_thread(void *unused) {
         if (first == 0)
         {
         	first = 1;
-//        	ssleep(10);
+        	ssleep(10);
         }
 
         if (flag[cpu] == 'y')
