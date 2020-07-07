@@ -305,7 +305,7 @@ static int c_model_worker_thread(void *unused) {
 
                         ++num_responses_push[skbuff_ptr->meta.cpu];
 
-                        wake_up(&my_wait_queue[skbuff_ptr->meta.cpu]);
+                        wake_up_interruptible(&my_wait_queue[skbuff_ptr->meta.cpu]);
 
                         break;
                 }
@@ -342,7 +342,7 @@ static int response_per_cpu_thread(void *unused) {
     int cpu = get_cpu();
     while (1) {
 
-        wait_event(my_wait_queue[cpu], (num_responses_push[cpu] != num_responses_pop[cpu]) || (exit_flag[cpu] != 'n'));
+    	wait_event_interruptible(my_wait_queue[cpu], (num_responses_push[cpu] != num_responses_pop[cpu]) || (exit_flag[cpu] != 'n'));
         
         /* Exit flag is raised, break from the loop */
         if (exit_flag[cpu] == 'y') {
