@@ -1,0 +1,416 @@
+en_accel/ipsec.c:236:		dev_info(&netdev->dev, "Only transport and tunnel xfrm states may be offloaded\n");
+en_accel/ipsec.c:420:					    priv->netdev->name);
+en_accel/ipsec.c:528:	netdev->xfrmdev_ops = &mlx5e_ipsec_xfrmdev_ops;
+en_accel/ipsec.c:529:	netdev->features |= NETIF_F_HW_ESP;
+en_accel/ipsec.c:530:	netdev->hw_enc_features |= NETIF_F_HW_ESP;
+en_accel/ipsec.c:537:	netdev->features |= NETIF_F_HW_ESP_TX_CSUM;
+en_accel/ipsec.c:538:	netdev->hw_enc_features |= NETIF_F_HW_ESP_TX_CSUM;
+en_accel/ipsec.c:547:	netdev->features |= NETIF_F_GSO_ESP;
+en_accel/ipsec.c:548:	netdev->hw_features |= NETIF_F_GSO_ESP;
+en_accel/ipsec.c:549:	netdev->hw_enc_features |= NETIF_F_GSO_ESP;
+en_accel/tls.c:194:		netdev->features          |= NETIF_F_HW_TLS_TX;
+en_accel/tls.c:195:		netdev->hw_features       |= NETIF_F_HW_TLS_TX;
+en_accel/tls.c:199:		netdev->features          |= NETIF_F_HW_TLS_RX;
+en_accel/tls.c:200:		netdev->hw_features       |= NETIF_F_HW_TLS_RX;
+en_accel/tls.c:204:		netdev->features          &= ~NETIF_F_LRO;
+en_accel/tls.c:205:		netdev->hw_features       &= ~NETIF_F_LRO;
+en_accel/tls.c:208:	netdev->tlsdev_ops = &mlx5e_tls_ops;
+en_accel/tls_rxtx.c:324:					     th->dest, netdev->ifindex);
+en_accel/tls_rxtx.c:332:						netdev->ifindex, 0);
+en_arfs.c:160:	if (!(priv->netdev->hw_features & NETIF_F_NTUPLE))
+en_arfs.c:349:	if (!(priv->netdev->hw_features & NETIF_F_NTUPLE))
+en_ethtool.c:442:	arfs_enabled = priv->netdev->features & NETIF_F_NTUPLE;
+en_fs.c:312:	if (priv->netdev->flags & IFF_PROMISC)
+en_fs.c:323:	if (priv->netdev->flags & IFF_PROMISC)
+en_fs.c:401:	    !(priv->netdev->flags & IFF_PROMISC))
+en_fs.c:419:	    !(priv->netdev->flags & IFF_PROMISC))
+en_fs.c:467:			     priv->netdev->dev_addr);
+en_fs.c:659:	ether_addr_copy(priv->fs.l2.broadcast.addr, priv->netdev->broadcast);
+en_fs.c:1503:		priv->netdev->hw_features &= ~NETIF_F_NTUPLE;
+en.h:185:	return min_t(unsigned int, netdev->num_rx_queues,
+en.h:186:		     netdev->num_tx_queues);
+en_main.c:2979:	if (new_num_txqs < netdev->real_num_tx_queues)
+en_main.c:3561:	ether_addr_copy(netdev->dev_addr, saddr->sa_data);
+en_main.c:3718:	netdev_features_t changes = wanted_features ^ netdev->features;
+en_main.c:3738:	netdev_features_t oper_features = netdev->features;
+en_main.c:3758:		netdev->features = oper_features;
+en_main.c:3831:		netdev->mtu = params->sw_mtu;
+en_main.c:3840:	netdev->mtu = new_channels.params.sw_mtu;
+en_main.c:4644:	mlx5_query_nic_vport_mac_address(priv->mdev, 0, netdev->dev_addr);
+en_main.c:4645:	if (is_zero_ether_addr(netdev->dev_addr) &&
+en_main.c:4648:		mlx5_core_info(priv->mdev, "Assigned random MAC address %pM\n", netdev->dev_addr);
+en_main.c:4661:	netdev->netdev_ops = &mlx5e_netdev_ops;
+en_main.c:4665:		netdev->dcbnl_ops = &mlx5e_dcbnl_ops;
+en_main.c:4668:	netdev->watchdog_timeo    = 15 * HZ;
+en_main.c:4670:	netdev->ethtool_ops	  = &mlx5e_ethtool_ops;
+en_main.c:4672:	netdev->vlan_features    |= NETIF_F_SG;
+en_main.c:4673:	netdev->vlan_features    |= NETIF_F_IP_CSUM;
+en_main.c:4674:	netdev->vlan_features    |= NETIF_F_IPV6_CSUM;
+en_main.c:4675:	netdev->vlan_features    |= NETIF_F_GRO;
+en_main.c:4676:	netdev->vlan_features    |= NETIF_F_TSO;
+en_main.c:4677:	netdev->vlan_features    |= NETIF_F_TSO6;
+en_main.c:4678:	netdev->vlan_features    |= NETIF_F_RXCSUM;
+en_main.c:4679:	netdev->vlan_features    |= NETIF_F_RXHASH;
+en_main.c:4681:	netdev->hw_enc_features  |= NETIF_F_HW_VLAN_CTAG_TX;
+en_main.c:4682:	netdev->hw_enc_features  |= NETIF_F_HW_VLAN_CTAG_RX;
+en_main.c:4686:		netdev->vlan_features    |= NETIF_F_LRO;
+en_main.c:4688:	netdev->hw_features       = netdev->vlan_features;
+en_main.c:4689:	netdev->hw_features      |= NETIF_F_HW_VLAN_CTAG_TX;
+en_main.c:4690:	netdev->hw_features      |= NETIF_F_HW_VLAN_CTAG_RX;
+en_main.c:4691:	netdev->hw_features      |= NETIF_F_HW_VLAN_CTAG_FILTER;
+en_main.c:4692:	netdev->hw_features      |= NETIF_F_HW_VLAN_STAG_TX;
+en_main.c:4695:		netdev->hw_enc_features |= NETIF_F_IP_CSUM;
+en_main.c:4696:		netdev->hw_enc_features |= NETIF_F_IPV6_CSUM;
+en_main.c:4697:		netdev->hw_enc_features |= NETIF_F_TSO;
+en_main.c:4698:		netdev->hw_enc_features |= NETIF_F_TSO6;
+en_main.c:4699:		netdev->hw_enc_features |= NETIF_F_GSO_PARTIAL;
+en_main.c:4703:		netdev->hw_features     |= NETIF_F_GSO_UDP_TUNNEL |
+en_main.c:4705:		netdev->hw_enc_features |= NETIF_F_GSO_UDP_TUNNEL |
+en_main.c:4707:		netdev->gso_partial_features = NETIF_F_GSO_UDP_TUNNEL_CSUM;
+en_main.c:4711:		netdev->hw_features     |= NETIF_F_GSO_GRE |
+en_main.c:4713:		netdev->hw_enc_features |= NETIF_F_GSO_GRE |
+en_main.c:4715:		netdev->gso_partial_features |= NETIF_F_GSO_GRE |
+en_main.c:4719:	netdev->hw_features	                 |= NETIF_F_GSO_PARTIAL;
+en_main.c:4720:	netdev->gso_partial_features             |= NETIF_F_GSO_UDP_L4;
+en_main.c:4721:	netdev->hw_features                      |= NETIF_F_GSO_UDP_L4;
+en_main.c:4722:	netdev->features                         |= NETIF_F_GSO_UDP_L4;
+en_main.c:4727:		netdev->hw_features |= NETIF_F_RXALL;
+en_main.c:4730:		netdev->hw_features |= NETIF_F_RXFCS;
+en_main.c:4732:	netdev->features          = netdev->hw_features;
+en_main.c:4734:		netdev->features  &= ~NETIF_F_LRO;
+en_main.c:4737:		netdev->features  &= ~NETIF_F_RXALL;
+en_main.c:4740:		netdev->features  &= ~NETIF_F_RXFCS;
+en_main.c:4748:		netdev->hw_features      |= NETIF_F_HW_TC;
+en_main.c:4751:		netdev->hw_features	 |= NETIF_F_NTUPLE;
+en_main.c:4755:	netdev->features         |= NETIF_F_HIGHDMA;
+en_main.c:4756:	netdev->features         |= NETIF_F_HW_VLAN_STAG_FILTER;
+en_main.c:4758:	netdev->priv_flags       |= IFF_UNICAST_FLT;
+en_main.c:4807:			       netdev->mtu);
+en_main.c:4929:	netdev->min_mtu = ETH_MIN_MTU;
+en_main.c:4931:	netdev->max_mtu = MLX5E_HW2SW_MTU(&priv->channels.params, max_mtu);
+en_main.c:4940:	if (netdev->reg_state != NETREG_REGISTERED)
+en_main.c:4960:	if (priv->netdev->reg_state == NETREG_REGISTERED)
+en_main.c:5026:	netdev->rx_cpu_rmap =  mlx5_eq_table_get_rmap(mdev);
+en_rep.c:1311:	ether_addr_copy(netdev->dev_addr, saddr->sa_data);
+en_rep.c:1367:	if (netdev->netdev_ops == &mlx5e_netdev_ops_vf_rep ||
+en_rep.c:1368:	    netdev->netdev_ops == &mlx5e_netdev_ops_uplink_rep)
+en_rep.c:1388:	params->sw_mtu      = netdev->mtu;
+en_rep.c:1420:		netdev->netdev_ops = &mlx5e_netdev_ops_uplink_rep;
+en_rep.c:1422:		mlx5_query_nic_vport_mac_address(mdev, 0, netdev->dev_addr);
+en_rep.c:1423:		netdev->ethtool_ops = &mlx5e_uplink_rep_ethtool_ops;
+en_rep.c:1426:			netdev->dcbnl_ops = &mlx5e_dcbnl_ops;
+en_rep.c:1429:		netdev->netdev_ops = &mlx5e_netdev_ops_vf_rep;
+en_rep.c:1431:		netdev->ethtool_ops = &mlx5e_vf_rep_ethtool_ops;
+en_rep.c:1434:	netdev->watchdog_timeo    = 15 * HZ;
+en_rep.c:1436:	netdev->features       |= NETIF_F_NETNS_LOCAL;
+en_rep.c:1438:	netdev->switchdev_ops = &mlx5e_rep_switchdev_ops;
+en_rep.c:1440:	netdev->hw_features    |= NETIF_F_HW_TC;
+en_rep.c:1441:	netdev->hw_features    |= NETIF_F_SG;
+en_rep.c:1442:	netdev->hw_features    |= NETIF_F_IP_CSUM;
+en_rep.c:1443:	netdev->hw_features    |= NETIF_F_IPV6_CSUM;
+en_rep.c:1444:	netdev->hw_features    |= NETIF_F_GRO;
+en_rep.c:1445:	netdev->hw_features    |= NETIF_F_TSO;
+en_rep.c:1446:	netdev->hw_features    |= NETIF_F_TSO6;
+en_rep.c:1447:	netdev->hw_features    |= NETIF_F_RXCSUM;
+en_rep.c:1450:		netdev->hw_features |= NETIF_F_HW_VLAN_CTAG_RX;
+en_rep.c:1452:		netdev->features |= NETIF_F_VLAN_CHALLENGED;
+en_rep.c:1454:	netdev->features |= netdev->hw_features;
+en_rep.c:1660:	netdev->min_mtu = ETH_MIN_MTU;
+en_rep.c:1662:	netdev->max_mtu = MLX5E_HW2SW_MTU(&priv->channels.params, max_mtu);
+en_rep.c:1702:	netdev->min_mtu = ETH_MIN_MTU;
+en_rep.c:1704:	netdev->max_mtu = MLX5E_HW2SW_MTU(&priv->channels.params, max_mtu);
+en_rx.c:755:	if (unlikely(!(netdev->features & NETIF_F_RXCSUM)))
+en_rx.c:792:		if (unlikely(netdev->features & NETIF_F_RXFCS))
+en_rx.c:852:	if (likely(netdev->features & NETIF_F_RXHASH))
+en_rx.c:1294:	else if (memcmp(dgid, netdev->broadcast + 4, MLX5_GID_SIZE) == 0)
+en_rx.c:1316:	if (likely(netdev->features & NETIF_F_RXHASH))
+en_selftest.c:141:	ether_addr_copy(ethh->h_dest, priv->netdev->dev_addr);
+en_tc.c:1432:				     dmac_47_16), priv->netdev->dev_addr);
+en_tc.c:2340:			if (priv->netdev->netdev_ops == peer_dev->netdev_ops &&
+en_tc.c:2668:				       priv->netdev->name, out_dev->name);
+en_tc.c:3227:	    !(priv->netdev->features & NETIF_F_HW_TC))
+ipoib/ipoib.c:88:	netdev->mtu = max_mtu;
+ipoib/ipoib.c:92:			       netdev->mtu);
+ipoib/ipoib.c:98:	netdev->hw_features    |= NETIF_F_SG;
+ipoib/ipoib.c:99:	netdev->hw_features    |= NETIF_F_IP_CSUM;
+ipoib/ipoib.c:100:	netdev->hw_features    |= NETIF_F_IPV6_CSUM;
+ipoib/ipoib.c:101:	netdev->hw_features    |= NETIF_F_GRO;
+ipoib/ipoib.c:102:	netdev->hw_features    |= NETIF_F_TSO;
+ipoib/ipoib.c:103:	netdev->hw_features    |= NETIF_F_TSO6;
+ipoib/ipoib.c:104:	netdev->hw_features    |= NETIF_F_RXCSUM;
+ipoib/ipoib.c:105:	netdev->hw_features    |= NETIF_F_RXHASH;
+ipoib/ipoib.c:107:	netdev->netdev_ops = &mlx5i_netdev_ops;
+ipoib/ipoib.c:108:	netdev->ethtool_ops = &mlx5i_ethtool_ops;
+ipoib/ipoib.c:308:		priv->netdev->hw_features &= ~NETIF_F_NTUPLE;
+ipoib/ipoib.c:443:		netdev->mtu = params->sw_mtu;
+ipoib/ipoib.c:454:	netdev->mtu = new_channels.params.sw_mtu;
+ipoib/ipoib.c:589:			      netdev->name, qkey);
+ipoib/ipoib.c:712:	netdev->priv_destructor = mlx5_rdma_netdev_free;
+ipoib/ipoib.c:713:	netdev->needs_free_netdev = 1;
+ipoib/ipoib_vlan.c:271:	netdev->mtu = new_mtu;
+ipoib/ipoib_vlan.c:291:	netdev->netdev_ops = &mlx5i_pkey_netdev_ops;
+ipoib/ipoib_vlan.c:294:	netdev->ethtool_ops = &mlx5i_pkey_ethtool_ops;
+min_mtu:1:en_arfs.c:160:	if (!(priv->netdev->hw_features & NETIF_F_NTUPLE))
+min_mtu:2:en_arfs.c:349:	if (!(priv->netdev->hw_features & NETIF_F_NTUPLE))
+min_mtu:3:en_ethtool.c:442:	arfs_enabled = priv->netdev->features & NETIF_F_NTUPLE;
+min_mtu:4:en_fs.c:312:	if (priv->netdev->flags & IFF_PROMISC)
+min_mtu:5:en_fs.c:323:	if (priv->netdev->flags & IFF_PROMISC)
+min_mtu:6:en_fs.c:401:	    !(priv->netdev->flags & IFF_PROMISC))
+min_mtu:7:en_fs.c:419:	    !(priv->netdev->flags & IFF_PROMISC))
+min_mtu:8:en_fs.c:467:			     priv->netdev->dev_addr);
+min_mtu:9:en_fs.c:659:	ether_addr_copy(priv->fs.l2.broadcast.addr, priv->netdev->broadcast);
+min_mtu:10:en_fs.c:1503:		priv->netdev->hw_features &= ~NETIF_F_NTUPLE;
+min_mtu:11:en.h:185:	return min_t(unsigned int, netdev->num_rx_queues,
+min_mtu:12:en.h:186:		     netdev->num_tx_queues);
+min_mtu:13:en_main.c:2979:	if (new_num_txqs < netdev->real_num_tx_queues)
+min_mtu:14:en_main.c:3561:	ether_addr_copy(netdev->dev_addr, saddr->sa_data);
+min_mtu:15:en_main.c:3718:	netdev_features_t changes = wanted_features ^ netdev->features;
+min_mtu:16:en_main.c:3738:	netdev_features_t oper_features = netdev->features;
+min_mtu:17:en_main.c:3758:		netdev->features = oper_features;
+min_mtu:18:en_main.c:3831:		netdev->mtu = params->sw_mtu;
+min_mtu:19:en_main.c:3840:	netdev->mtu = new_channels.params.sw_mtu;
+min_mtu:20:en_main.c:4644:	mlx5_query_nic_vport_mac_address(priv->mdev, 0, netdev->dev_addr);
+min_mtu:21:en_main.c:4645:	if (is_zero_ether_addr(netdev->dev_addr) &&
+min_mtu:22:en_main.c:4648:		mlx5_core_info(priv->mdev, "Assigned random MAC address %pM\n", netdev->dev_addr);
+min_mtu:23:en_main.c:4661:	netdev->netdev_ops = &mlx5e_netdev_ops;
+min_mtu:24:en_main.c:4665:		netdev->dcbnl_ops = &mlx5e_dcbnl_ops;
+min_mtu:25:en_main.c:4668:	netdev->watchdog_timeo    = 15 * HZ;
+min_mtu:26:en_main.c:4670:	netdev->ethtool_ops	  = &mlx5e_ethtool_ops;
+min_mtu:27:en_main.c:4672:	netdev->vlan_features    |= NETIF_F_SG;
+min_mtu:28:en_main.c:4673:	netdev->vlan_features    |= NETIF_F_IP_CSUM;
+min_mtu:29:en_main.c:4674:	netdev->vlan_features    |= NETIF_F_IPV6_CSUM;
+min_mtu:30:en_main.c:4675:	netdev->vlan_features    |= NETIF_F_GRO;
+min_mtu:31:en_main.c:4676:	netdev->vlan_features    |= NETIF_F_TSO;
+min_mtu:32:en_main.c:4677:	netdev->vlan_features    |= NETIF_F_TSO6;
+min_mtu:33:en_main.c:4678:	netdev->vlan_features    |= NETIF_F_RXCSUM;
+min_mtu:34:en_main.c:4679:	netdev->vlan_features    |= NETIF_F_RXHASH;
+min_mtu:35:en_main.c:4681:	netdev->hw_enc_features  |= NETIF_F_HW_VLAN_CTAG_TX;
+min_mtu:36:en_main.c:4682:	netdev->hw_enc_features  |= NETIF_F_HW_VLAN_CTAG_RX;
+min_mtu:37:en_main.c:4686:		netdev->vlan_features    |= NETIF_F_LRO;
+min_mtu:38:en_main.c:4688:	netdev->hw_features       = netdev->vlan_features;
+min_mtu:39:en_main.c:4689:	netdev->hw_features      |= NETIF_F_HW_VLAN_CTAG_TX;
+min_mtu:40:en_main.c:4690:	netdev->hw_features      |= NETIF_F_HW_VLAN_CTAG_RX;
+min_mtu:41:en_main.c:4691:	netdev->hw_features      |= NETIF_F_HW_VLAN_CTAG_FILTER;
+min_mtu:42:en_main.c:4692:	netdev->hw_features      |= NETIF_F_HW_VLAN_STAG_TX;
+min_mtu:43:en_main.c:4695:		netdev->hw_enc_features |= NETIF_F_IP_CSUM;
+min_mtu:44:en_main.c:4696:		netdev->hw_enc_features |= NETIF_F_IPV6_CSUM;
+min_mtu:45:en_main.c:4697:		netdev->hw_enc_features |= NETIF_F_TSO;
+min_mtu:46:en_main.c:4698:		netdev->hw_enc_features |= NETIF_F_TSO6;
+min_mtu:47:en_main.c:4699:		netdev->hw_enc_features |= NETIF_F_GSO_PARTIAL;
+min_mtu:48:en_main.c:4703:		netdev->hw_features     |= NETIF_F_GSO_UDP_TUNNEL |
+min_mtu:49:en_main.c:4705:		netdev->hw_enc_features |= NETIF_F_GSO_UDP_TUNNEL |
+min_mtu:50:en_main.c:4707:		netdev->gso_partial_features = NETIF_F_GSO_UDP_TUNNEL_CSUM;
+min_mtu:51:en_main.c:4711:		netdev->hw_features     |= NETIF_F_GSO_GRE |
+min_mtu:52:en_main.c:4713:		netdev->hw_enc_features |= NETIF_F_GSO_GRE |
+min_mtu:53:en_main.c:4715:		netdev->gso_partial_features |= NETIF_F_GSO_GRE |
+min_mtu:54:en_main.c:4719:	netdev->hw_features	                 |= NETIF_F_GSO_PARTIAL;
+min_mtu:55:en_main.c:4720:	netdev->gso_partial_features             |= NETIF_F_GSO_UDP_L4;
+min_mtu:56:en_main.c:4721:	netdev->hw_features                      |= NETIF_F_GSO_UDP_L4;
+min_mtu:57:en_main.c:4722:	netdev->features                         |= NETIF_F_GSO_UDP_L4;
+min_mtu:58:en_main.c:4727:		netdev->hw_features |= NETIF_F_RXALL;
+min_mtu:59:en_main.c:4730:		netdev->hw_features |= NETIF_F_RXFCS;
+min_mtu:60:en_main.c:4732:	netdev->features          = netdev->hw_features;
+min_mtu:61:en_main.c:4734:		netdev->features  &= ~NETIF_F_LRO;
+min_mtu:62:en_main.c:4737:		netdev->features  &= ~NETIF_F_RXALL;
+min_mtu:63:en_main.c:4740:		netdev->features  &= ~NETIF_F_RXFCS;
+min_mtu:64:en_main.c:4748:		netdev->hw_features      |= NETIF_F_HW_TC;
+min_mtu:65:en_main.c:4751:		netdev->hw_features	 |= NETIF_F_NTUPLE;
+min_mtu:66:en_main.c:4755:	netdev->features         |= NETIF_F_HIGHDMA;
+min_mtu:67:en_main.c:4756:	netdev->features         |= NETIF_F_HW_VLAN_STAG_FILTER;
+min_mtu:68:en_main.c:4758:	netdev->priv_flags       |= IFF_UNICAST_FLT;
+min_mtu:69:en_main.c:4807:			       netdev->mtu);
+min_mtu:70:en_main.c:4929:	netdev->min_mtu = ETH_MIN_MTU;
+min_mtu:71:en_main.c:4931:	netdev->max_mtu = MLX5E_HW2SW_MTU(&priv->channels.params, max_mtu);
+min_mtu:72:en_main.c:4940:	if (netdev->reg_state != NETREG_REGISTERED)
+min_mtu:73:en_main.c:4960:	if (priv->netdev->reg_state == NETREG_REGISTERED)
+min_mtu:74:en_main.c:5026:	netdev->rx_cpu_rmap =  mlx5_eq_table_get_rmap(mdev);
+min_mtu:75:en_rep.c:1311:	ether_addr_copy(netdev->dev_addr, saddr->sa_data);
+min_mtu:76:en_rep.c:1367:	if (netdev->netdev_ops == &mlx5e_netdev_ops_vf_rep ||
+min_mtu:77:en_rep.c:1368:	    netdev->netdev_ops == &mlx5e_netdev_ops_uplink_rep)
+min_mtu:78:en_rep.c:1388:	params->sw_mtu      = netdev->mtu;
+min_mtu:79:en_rep.c:1420:		netdev->netdev_ops = &mlx5e_netdev_ops_uplink_rep;
+min_mtu:80:en_rep.c:1422:		mlx5_query_nic_vport_mac_address(mdev, 0, netdev->dev_addr);
+min_mtu:81:en_rep.c:1423:		netdev->ethtool_ops = &mlx5e_uplink_rep_ethtool_ops;
+min_mtu:82:en_rep.c:1426:			netdev->dcbnl_ops = &mlx5e_dcbnl_ops;
+min_mtu:83:en_rep.c:1429:		netdev->netdev_ops = &mlx5e_netdev_ops_vf_rep;
+min_mtu:84:en_rep.c:1431:		netdev->ethtool_ops = &mlx5e_vf_rep_ethtool_ops;
+min_mtu:85:en_rep.c:1434:	netdev->watchdog_timeo    = 15 * HZ;
+min_mtu:86:en_rep.c:1436:	netdev->features       |= NETIF_F_NETNS_LOCAL;
+min_mtu:87:en_rep.c:1438:	netdev->switchdev_ops = &mlx5e_rep_switchdev_ops;
+min_mtu:88:en_rep.c:1440:	netdev->hw_features    |= NETIF_F_HW_TC;
+min_mtu:89:en_rep.c:1441:	netdev->hw_features    |= NETIF_F_SG;
+min_mtu:90:en_rep.c:1442:	netdev->hw_features    |= NETIF_F_IP_CSUM;
+min_mtu:91:en_rep.c:1443:	netdev->hw_features    |= NETIF_F_IPV6_CSUM;
+min_mtu:92:en_rep.c:1444:	netdev->hw_features    |= NETIF_F_GRO;
+min_mtu:93:en_rep.c:1445:	netdev->hw_features    |= NETIF_F_TSO;
+min_mtu:94:en_rep.c:1446:	netdev->hw_features    |= NETIF_F_TSO6;
+min_mtu:95:en_rep.c:1447:	netdev->hw_features    |= NETIF_F_RXCSUM;
+min_mtu:96:en_rep.c:1450:		netdev->hw_features |= NETIF_F_HW_VLAN_CTAG_RX;
+min_mtu:97:en_rep.c:1452:		netdev->features |= NETIF_F_VLAN_CHALLENGED;
+min_mtu:98:en_rep.c:1454:	netdev->features |= netdev->hw_features;
+min_mtu:99:en_rep.c:1660:	netdev->min_mtu = ETH_MIN_MTU;
+min_mtu:100:en_rep.c:1662:	netdev->max_mtu = MLX5E_HW2SW_MTU(&priv->channels.params, max_mtu);
+min_mtu:101:en_rep.c:1702:	netdev->min_mtu = ETH_MIN_MTU;
+min_mtu:102:en_rep.c:1704:	netdev->max_mtu = MLX5E_HW2SW_MTU(&priv->channels.params, max_mtu);
+min_mtu:103:en_rx.c:755:	if (unlikely(!(netdev->features & NETIF_F_RXCSUM)))
+min_mtu:104:en_rx.c:792:		if (unlikely(netdev->features & NETIF_F_RXFCS))
+min_mtu:105:en_rx.c:852:	if (likely(netdev->features & NETIF_F_RXHASH))
+min_mtu:106:en_rx.c:1294:	else if (memcmp(dgid, netdev->broadcast + 4, MLX5_GID_SIZE) == 0)
+min_mtu:107:en_rx.c:1316:	if (likely(netdev->features & NETIF_F_RXHASH))
+min_mtu:108:en_selftest.c:141:	ether_addr_copy(ethh->h_dest, priv->netdev->dev_addr);
+min_mtu:109:en_tc.c:1432:				     dmac_47_16), priv->netdev->dev_addr);
+min_mtu:110:en_tc.c:2340:			if (priv->netdev->netdev_ops == peer_dev->netdev_ops &&
+min_mtu:111:en_tc.c:2668:				       priv->netdev->name, out_dev->name);
+min_mtu:112:en_tc.c:3227:	    !(priv->netdev->features & NETIF_F_HW_TC))
+name:1:en_accel/ipsec.c:236:		dev_info(&netdev->dev, "Only transport and tunnel xfrm states may be offloaded\n");
+name:2:en_accel/ipsec.c:420:					    priv->netdev->name);
+name:3:en_accel/ipsec.c:528:	netdev->xfrmdev_ops = &mlx5e_ipsec_xfrmdev_ops;
+name:4:en_accel/ipsec.c:529:	netdev->features |= NETIF_F_HW_ESP;
+name:5:en_accel/ipsec.c:530:	netdev->hw_enc_features |= NETIF_F_HW_ESP;
+name:6:en_accel/ipsec.c:537:	netdev->features |= NETIF_F_HW_ESP_TX_CSUM;
+name:7:en_accel/ipsec.c:538:	netdev->hw_enc_features |= NETIF_F_HW_ESP_TX_CSUM;
+name:8:en_accel/ipsec.c:547:	netdev->features |= NETIF_F_GSO_ESP;
+name:9:en_accel/ipsec.c:548:	netdev->hw_features |= NETIF_F_GSO_ESP;
+name:10:en_accel/ipsec.c:549:	netdev->hw_enc_features |= NETIF_F_GSO_ESP;
+name:11:en_accel/tls.c:194:		netdev->features          |= NETIF_F_HW_TLS_TX;
+name:12:en_accel/tls.c:195:		netdev->hw_features       |= NETIF_F_HW_TLS_TX;
+name:13:en_accel/tls.c:199:		netdev->features          |= NETIF_F_HW_TLS_RX;
+name:14:en_accel/tls.c:200:		netdev->hw_features       |= NETIF_F_HW_TLS_RX;
+name:15:en_accel/tls.c:204:		netdev->features          &= ~NETIF_F_LRO;
+name:16:en_accel/tls.c:205:		netdev->hw_features       &= ~NETIF_F_LRO;
+name:17:en_accel/tls.c:208:	netdev->tlsdev_ops = &mlx5e_tls_ops;
+name:18:en_accel/tls_rxtx.c:324:					     th->dest, netdev->ifindex);
+name:19:en_accel/tls_rxtx.c:332:						netdev->ifindex, 0);
+name:20:en_arfs.c:160:	if (!(priv->netdev->hw_features & NETIF_F_NTUPLE))
+name:21:en_arfs.c:349:	if (!(priv->netdev->hw_features & NETIF_F_NTUPLE))
+name:22:en_ethtool.c:442:	arfs_enabled = priv->netdev->features & NETIF_F_NTUPLE;
+name:23:en_fs.c:312:	if (priv->netdev->flags & IFF_PROMISC)
+name:24:en_fs.c:323:	if (priv->netdev->flags & IFF_PROMISC)
+name:25:en_fs.c:401:	    !(priv->netdev->flags & IFF_PROMISC))
+name:26:en_fs.c:419:	    !(priv->netdev->flags & IFF_PROMISC))
+name:27:en_fs.c:467:			     priv->netdev->dev_addr);
+name:28:en_fs.c:659:	ether_addr_copy(priv->fs.l2.broadcast.addr, priv->netdev->broadcast);
+name:29:en_fs.c:1503:		priv->netdev->hw_features &= ~NETIF_F_NTUPLE;
+name:30:en.h:185:	return min_t(unsigned int, netdev->num_rx_queues,
+name:31:en.h:186:		     netdev->num_tx_queues);
+name:32:en_main.c:2979:	if (new_num_txqs < netdev->real_num_tx_queues)
+name:33:en_main.c:3561:	ether_addr_copy(netdev->dev_addr, saddr->sa_data);
+name:34:en_main.c:3718:	netdev_features_t changes = wanted_features ^ netdev->features;
+name:35:en_main.c:3738:	netdev_features_t oper_features = netdev->features;
+name:36:en_main.c:3758:		netdev->features = oper_features;
+name:37:en_main.c:3831:		netdev->mtu = params->sw_mtu;
+name:38:en_main.c:3840:	netdev->mtu = new_channels.params.sw_mtu;
+name:39:en_main.c:4644:	mlx5_query_nic_vport_mac_address(priv->mdev, 0, netdev->dev_addr);
+name:40:en_main.c:4645:	if (is_zero_ether_addr(netdev->dev_addr) &&
+name:41:en_main.c:4648:		mlx5_core_info(priv->mdev, "Assigned random MAC address %pM\n", netdev->dev_addr);
+name:42:en_main.c:4661:	netdev->netdev_ops = &mlx5e_netdev_ops;
+name:43:en_main.c:4665:		netdev->dcbnl_ops = &mlx5e_dcbnl_ops;
+name:44:en_main.c:4668:	netdev->watchdog_timeo    = 15 * HZ;
+name:45:en_main.c:4670:	netdev->ethtool_ops	  = &mlx5e_ethtool_ops;
+name:46:en_main.c:4672:	netdev->vlan_features    |= NETIF_F_SG;
+name:47:en_main.c:4673:	netdev->vlan_features    |= NETIF_F_IP_CSUM;
+name:48:en_main.c:4674:	netdev->vlan_features    |= NETIF_F_IPV6_CSUM;
+name:49:en_main.c:4675:	netdev->vlan_features    |= NETIF_F_GRO;
+name:50:en_main.c:4676:	netdev->vlan_features    |= NETIF_F_TSO;
+name:51:en_main.c:4677:	netdev->vlan_features    |= NETIF_F_TSO6;
+name:52:en_main.c:4678:	netdev->vlan_features    |= NETIF_F_RXCSUM;
+name:53:en_main.c:4679:	netdev->vlan_features    |= NETIF_F_RXHASH;
+name:54:en_main.c:4681:	netdev->hw_enc_features  |= NETIF_F_HW_VLAN_CTAG_TX;
+name:55:en_main.c:4682:	netdev->hw_enc_features  |= NETIF_F_HW_VLAN_CTAG_RX;
+name:56:en_main.c:4686:		netdev->vlan_features    |= NETIF_F_LRO;
+name:57:en_main.c:4688:	netdev->hw_features       = netdev->vlan_features;
+name:58:en_main.c:4689:	netdev->hw_features      |= NETIF_F_HW_VLAN_CTAG_TX;
+name:59:en_main.c:4690:	netdev->hw_features      |= NETIF_F_HW_VLAN_CTAG_RX;
+name:60:en_main.c:4691:	netdev->hw_features      |= NETIF_F_HW_VLAN_CTAG_FILTER;
+name:61:en_main.c:4692:	netdev->hw_features      |= NETIF_F_HW_VLAN_STAG_TX;
+name:62:en_main.c:4695:		netdev->hw_enc_features |= NETIF_F_IP_CSUM;
+name:63:en_main.c:4696:		netdev->hw_enc_features |= NETIF_F_IPV6_CSUM;
+name:64:en_main.c:4697:		netdev->hw_enc_features |= NETIF_F_TSO;
+name:65:en_main.c:4698:		netdev->hw_enc_features |= NETIF_F_TSO6;
+name:66:en_main.c:4699:		netdev->hw_enc_features |= NETIF_F_GSO_PARTIAL;
+name:67:en_main.c:4703:		netdev->hw_features     |= NETIF_F_GSO_UDP_TUNNEL |
+name:68:en_main.c:4705:		netdev->hw_enc_features |= NETIF_F_GSO_UDP_TUNNEL |
+name:69:en_main.c:4707:		netdev->gso_partial_features = NETIF_F_GSO_UDP_TUNNEL_CSUM;
+name:70:en_main.c:4711:		netdev->hw_features     |= NETIF_F_GSO_GRE |
+name:71:en_main.c:4713:		netdev->hw_enc_features |= NETIF_F_GSO_GRE |
+name:72:en_main.c:4715:		netdev->gso_partial_features |= NETIF_F_GSO_GRE |
+name:73:en_main.c:4719:	netdev->hw_features	                 |= NETIF_F_GSO_PARTIAL;
+name:74:en_main.c:4720:	netdev->gso_partial_features             |= NETIF_F_GSO_UDP_L4;
+name:75:en_main.c:4721:	netdev->hw_features                      |= NETIF_F_GSO_UDP_L4;
+name:76:en_main.c:4722:	netdev->features                         |= NETIF_F_GSO_UDP_L4;
+name:77:en_main.c:4727:		netdev->hw_features |= NETIF_F_RXALL;
+name:78:en_main.c:4730:		netdev->hw_features |= NETIF_F_RXFCS;
+name:79:en_main.c:4732:	netdev->features          = netdev->hw_features;
+name:80:en_main.c:4734:		netdev->features  &= ~NETIF_F_LRO;
+name:81:en_main.c:4737:		netdev->features  &= ~NETIF_F_RXALL;
+name:82:en_main.c:4740:		netdev->features  &= ~NETIF_F_RXFCS;
+name:83:en_main.c:4748:		netdev->hw_features      |= NETIF_F_HW_TC;
+name:84:en_main.c:4751:		netdev->hw_features	 |= NETIF_F_NTUPLE;
+name:85:en_main.c:4755:	netdev->features         |= NETIF_F_HIGHDMA;
+name:86:en_main.c:4756:	netdev->features         |= NETIF_F_HW_VLAN_STAG_FILTER;
+name:87:en_main.c:4758:	netdev->priv_flags       |= IFF_UNICAST_FLT;
+name:88:en_main.c:4807:			       netdev->mtu);
+name:89:en_main.c:4929:	netdev->min_mtu = ETH_MIN_MTU;
+name:90:en_main.c:4931:	netdev->max_mtu = MLX5E_HW2SW_MTU(&priv->channels.params, max_mtu);
+name:91:en_main.c:4940:	if (netdev->reg_state != NETREG_REGISTERED)
+name:92:en_main.c:4960:	if (priv->netdev->reg_state == NETREG_REGISTERED)
+name:93:en_main.c:5026:	netdev->rx_cpu_rmap =  mlx5_eq_table_get_rmap(mdev);
+name:94:en_rep.c:1311:	ether_addr_copy(netdev->dev_addr, saddr->sa_data);
+name:95:en_rep.c:1367:	if (netdev->netdev_ops == &mlx5e_netdev_ops_vf_rep ||
+name:96:en_rep.c:1368:	    netdev->netdev_ops == &mlx5e_netdev_ops_uplink_rep)
+name:97:en_rep.c:1388:	params->sw_mtu      = netdev->mtu;
+name:98:en_rep.c:1420:		netdev->netdev_ops = &mlx5e_netdev_ops_uplink_rep;
+name:99:en_rep.c:1422:		mlx5_query_nic_vport_mac_address(mdev, 0, netdev->dev_addr);
+name:100:en_rep.c:1423:		netdev->ethtool_ops = &mlx5e_uplink_rep_ethtool_ops;
+name:101:en_rep.c:1426:			netdev->dcbnl_ops = &mlx5e_dcbnl_ops;
+name:102:en_rep.c:1429:		netdev->netdev_ops = &mlx5e_netdev_ops_vf_rep;
+name:103:en_rep.c:1431:		netdev->ethtool_ops = &mlx5e_vf_rep_ethtool_ops;
+name:104:en_rep.c:1434:	netdev->watchdog_timeo    = 15 * HZ;
+name:105:en_rep.c:1436:	netdev->features       |= NETIF_F_NETNS_LOCAL;
+name:106:en_rep.c:1438:	netdev->switchdev_ops = &mlx5e_rep_switchdev_ops;
+name:107:en_rep.c:1440:	netdev->hw_features    |= NETIF_F_HW_TC;
+name:108:en_rep.c:1441:	netdev->hw_features    |= NETIF_F_SG;
+name:109:en_rep.c:1442:	netdev->hw_features    |= NETIF_F_IP_CSUM;
+name:110:en_rep.c:1443:	netdev->hw_features    |= NETIF_F_IPV6_CSUM;
+name:111:en_rep.c:1444:	netdev->hw_features    |= NETIF_F_GRO;
+name:112:en_rep.c:1445:	netdev->hw_features    |= NETIF_F_TSO;
+name:113:en_rep.c:1446:	netdev->hw_features    |= NETIF_F_TSO6;
+name:114:en_rep.c:1447:	netdev->hw_features    |= NETIF_F_RXCSUM;
+name:115:en_rep.c:1450:		netdev->hw_features |= NETIF_F_HW_VLAN_CTAG_RX;
+name:116:en_rep.c:1452:		netdev->features |= NETIF_F_VLAN_CHALLENGED;
+name:117:en_rep.c:1454:	netdev->features |= netdev->hw_features;
+name:118:en_rep.c:1660:	netdev->min_mtu = ETH_MIN_MTU;
+name:119:en_rep.c:1662:	netdev->max_mtu = MLX5E_HW2SW_MTU(&priv->channels.params, max_mtu);
+name:120:en_rep.c:1702:	netdev->min_mtu = ETH_MIN_MTU;
+name:121:en_rep.c:1704:	netdev->max_mtu = MLX5E_HW2SW_MTU(&priv->channels.params, max_mtu);
+name:122:en_rx.c:755:	if (unlikely(!(netdev->features & NETIF_F_RXCSUM)))
+name:123:en_rx.c:792:		if (unlikely(netdev->features & NETIF_F_RXFCS))
+name:124:en_rx.c:852:	if (likely(netdev->features & NETIF_F_RXHASH))
+name:125:en_rx.c:1294:	else if (memcmp(dgid, netdev->broadcast + 4, MLX5_GID_SIZE) == 0)
+name:126:en_rx.c:1316:	if (likely(netdev->features & NETIF_F_RXHASH))
+name:127:en_selftest.c:141:	ether_addr_copy(ethh->h_dest, priv->netdev->dev_addr);
+name:128:en_tc.c:1432:				     dmac_47_16), priv->netdev->dev_addr);
+name:129:en_tc.c:2340:			if (priv->netdev->netdev_ops == peer_dev->netdev_ops &&
+name:130:en_tc.c:2668:				       priv->netdev->name, out_dev->name);
+name:131:en_tc.c:3227:	    !(priv->netdev->features & NETIF_F_HW_TC))
+name:132:ipoib/ipoib.c:88:	netdev->mtu = max_mtu;
+name:133:ipoib/ipoib.c:92:			       netdev->mtu);
+name:134:ipoib/ipoib.c:98:	netdev->hw_features    |= NETIF_F_SG;
+name:135:ipoib/ipoib.c:99:	netdev->hw_features    |= NETIF_F_IP_CSUM;
+name:136:ipoib/ipoib.c:100:	netdev->hw_features    |= NETIF_F_IPV6_CSUM;
+name:137:ipoib/ipoib.c:101:	netdev->hw_features    |= NETIF_F_GRO;
+name:138:ipoib/ipoib.c:102:	netdev->hw_features    |= NETIF_F_TSO;
+name:139:ipoib/ipoib.c:103:	netdev->hw_features    |= NETIF_F_TSO6;
+name:140:ipoib/ipoib.c:104:	netdev->hw_features    |= NETIF_F_RXCSUM;
+name:141:ipoib/ipoib.c:105:	netdev->hw_features    |= NETIF_F_RXHASH;
+name:142:ipoib/ipoib.c:107:	netdev->netdev_ops = &mlx5i_netdev_ops;
+name:143:ipoib/ipoib.c:108:	netdev->ethtool_ops = &mlx5i_ethtool_ops;
+name:144:ipoib/ipoib.c:308:		priv->netdev->hw_features &= ~NETIF_F_NTUPLE;
+name:145:ipoib/ipoib.c:443:		netdev->mtu = params->sw_mtu;
+name:146:ipoib/ipoib.c:454:	netdev->mtu = new_channels.params.sw_mtu;
+name:147:ipoib/ipoib.c:589:			      netdev->name, qkey);
+name:148:ipoib/ipoib.c:712:	netdev->priv_destructor = mlx5_rdma_netdev_free;
+name:149:ipoib/ipoib.c:713:	netdev->needs_free_netdev = 1;
+name:150:ipoib/ipoib_vlan.c:271:	netdev->mtu = new_mtu;
+name:151:ipoib/ipoib_vlan.c:291:	netdev->netdev_ops = &mlx5i_pkey_netdev_ops;
+name:152:ipoib/ipoib_vlan.c:294:	netdev->ethtool_ops = &mlx5i_pkey_ethtool_ops;
