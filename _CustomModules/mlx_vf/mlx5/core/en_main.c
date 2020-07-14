@@ -2545,7 +2545,7 @@ static int mlx5e_set_mtu(struct mlx5e_priv *priv, u16 mtu)
 	int err;
 	int i=0;
 
-	for (i=0; i<8; i++)
+	for (i=0; i<2; i++)
 	{
 
 		u16 max;
