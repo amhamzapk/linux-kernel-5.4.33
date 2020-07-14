@@ -2538,6 +2538,19 @@ static void mlx5e_build_inner_indir_tir_ctx(struct mlx5e_priv *priv,
 	mlx5e_build_indir_tir_ctx_hash(&priv->channels.params, tt, tirc, true);
 }
 
+static void mlx5e_query_mtu(struct mlx5e_priv *priv, u16 *mtu)
+{
+	struct mlx5_core_dev *mdev = priv->mdev;
+	u16 hw_mtu = 0;
+	int err;
+
+	err = mlx5_query_nic_vport_mtu(mdev, &hw_mtu);
+	if (err || !hw_mtu) /* fallback to port oper mtu */
+		mlx5_query_port_oper_mtu(mdev, &hw_mtu, 1);
+
+	*mtu = MLX5E_HW2SW_MTU(priv, hw_mtu);
+}
+
 static int mlx5e_set_mtu(struct mlx5e_priv *priv, u16 mtu)
 {
 	struct mlx5_core_dev *mdev = priv->mdev;
@@ -2566,19 +2579,6 @@ static int mlx5e_set_mtu(struct mlx5e_priv *priv, u16 mtu)
 	/* Update vport context MTU */
 	mlx5_modify_nic_vport_mtu(priv, hw_mtu);
 	return 0;
-}
-
-static void mlx5e_query_mtu(struct mlx5e_priv *priv, u16 *mtu)
-{
-	struct mlx5_core_dev *mdev = priv->mdev;
-	u16 hw_mtu = 0;
-	int err;
-
-	err = mlx5_query_nic_vport_mtu(mdev, &hw_mtu);
-	if (err || !hw_mtu) /* fallback to port oper mtu */
-		mlx5_query_port_oper_mtu(mdev, &hw_mtu, 1);
-
-	*mtu = MLX5E_HW2SW_MTU(priv, hw_mtu);
 }
 
 static int mlx5e_set_dev_port_mtu(struct mlx5e_priv *priv)
