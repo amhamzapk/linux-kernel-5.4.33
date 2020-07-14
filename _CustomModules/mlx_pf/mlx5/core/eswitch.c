@@ -803,6 +803,7 @@ static void esw_vport_change_handle_locked(struct mlx5_vport *vport)
 		  vport->vport, mac);
 
 	if (vport->enabled_events & UC_ADDR_CHANGE) {
+		printk(KERN_INFO "UC_ADDR_CHANGE Event");
 		esw_update_vport_addr_list(esw, vport->vport,
 					   MLX5_NVPRT_LIST_TYPE_UC);
 		esw_apply_vport_addr_list(esw, vport->vport,
@@ -810,17 +811,20 @@ static void esw_vport_change_handle_locked(struct mlx5_vport *vport)
 	}
 
 	if (vport->enabled_events & MC_ADDR_CHANGE) {
+		printk(KERN_INFO "MC_ADDR_CHANGE Event");
 		esw_update_vport_addr_list(esw, vport->vport,
 					   MLX5_NVPRT_LIST_TYPE_MC);
 	}
 
 	if (vport->enabled_events & PROMISC_CHANGE) {
+		printk(KERN_INFO "PROMISC_CHANGE Event");
 		esw_update_vport_rx_mode(esw, vport->vport);
 		if (!IS_ERR_OR_NULL(vport->allmulti_rule))
 			esw_update_vport_mc_promisc(esw, vport->vport);
 	}
 
 	if (vport->enabled_events & (PROMISC_CHANGE | MC_ADDR_CHANGE)) {
+		printk(KERN_INFO "PROMISC_CHANGE | MC_ADDR_CHANGE Event");
 		esw_apply_vport_addr_list(esw, vport->vport,
 					  MLX5_NVPRT_LIST_TYPE_MC);
 	}
