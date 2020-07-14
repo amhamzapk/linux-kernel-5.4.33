@@ -2543,6 +2543,18 @@ static int mlx5e_set_mtu(struct mlx5e_priv *priv, u16 mtu)
 	struct mlx5_core_dev *mdev = priv->mdev;
 	u16 hw_mtu = MLX5E_SW2HW_MTU(priv, mtu);
 	int err;
+	int i=0;
+
+	for (i=0; i<8; i++)
+	{
+
+		u16 max;
+		u16 oper;
+		mlx5_query_port_max_mtu(mdev, &max, i);
+
+		mlx5_query_port_oper_mtu(mdev, &oper, i);
+		printk(KERN_ALERT "MTU[%d] -> OPER=%d MAX=%d", i, oper, max);
+	}
 
 	err = mlx5_set_port_mtu(mdev, hw_mtu, 1);
 	if (err)
