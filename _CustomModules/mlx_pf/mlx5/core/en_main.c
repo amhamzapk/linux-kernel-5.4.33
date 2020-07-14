@@ -2876,11 +2876,13 @@ int mlx5e_set_dev_port_mtu(struct mlx5e_priv *priv)
 		u16 max_mtu;
 		u16 oper_mtu;
 		u16 port_mtu;
+		u16 admin_mtu;
 
 		mlx5_query_port_max_mtu(mdev, &max_mtu, 1);
 		mlx5_query_port_oper_mtu(mdev, &oper_mtu, 1);
+		mlx5_query_port_admin_mtu(mdev, &admin_mtu, 1);
 		mlx5e_query_mtu(mdev, params, &port_mtu);
-		printk(KERN_ALERT "Before-- MTU[%d] -> OPER=%d MAX=%d PORT_MTU=%d", i, oper_mtu, max_mtu, port_mtu);
+		printk(KERN_ALERT "Before-- MTU[%d] -> OPER=%d MAX=%d PORT_MTU=%d ADMIN_MTU=%d", i, oper_mtu, max_mtu, port_mtu, admin_mtu);
 
 	err = mlx5e_set_mtu(mdev, params, params->sw_mtu);
 	if (err)
@@ -2893,8 +2895,9 @@ int mlx5e_set_dev_port_mtu(struct mlx5e_priv *priv)
 
 	mlx5_query_port_max_mtu(mdev, &max_mtu, 1);
 	mlx5_query_port_oper_mtu(mdev, &oper_mtu, 1);
+	mlx5_query_port_admin_mtu(mdev, &admin_mtu, 1);
 	mlx5e_query_mtu(mdev, params, &port_mtu);
-	printk(KERN_ALERT "After-- MTU[%d] -> OPER=%d MAX=%d PORT_MTU=%d", i, oper_mtu, max_mtu, port_mtu);
+	printk(KERN_ALERT "After-- MTU[%d] -> OPER=%d MAX=%d PORT_MTU=%d ADMIN_MTU=%d", i, oper_mtu, max_mtu, port_mtu, admin_mtu);
 
 	params->sw_mtu = mtu;
 	return 0;
