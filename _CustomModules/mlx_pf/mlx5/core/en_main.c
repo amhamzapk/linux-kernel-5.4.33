@@ -2872,6 +2872,18 @@ int mlx5e_set_dev_port_mtu(struct mlx5e_priv *priv)
 
 	printk("MTU_Value = %ld\n", params->sw_mtu);
 
+
+	for (i=1; i<2; i++)
+	{
+
+		u16 max;
+		u16 oper;
+		mlx5_query_port_max_mtu(mdev, &max, i);
+
+		mlx5_query_port_oper_mtu(mdev, &oper, i);
+		printk(KERN_ALERT "MTU[%d] -> OPER=%d MAX=%d", i, oper, max);
+	}
+
 	err = mlx5e_set_mtu(mdev, params, params->sw_mtu);
 	if (err)
 		return err;
