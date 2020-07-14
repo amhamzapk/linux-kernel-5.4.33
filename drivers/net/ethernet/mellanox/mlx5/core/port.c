@@ -33,8 +33,6 @@
 #include <linux/mlx5/port.h>
 #include "mlx5_core.h"
 
-void mlx5_query_port_admin_mtu(struct mlx5_core_dev *dev, u16 *admin_mtu, u8 port);
-
 int mlx5_core_access_reg(struct mlx5_core_dev *dev, void *data_in,
 			 int size_in, void *data_out, int size_out,
 			 u16 reg_id, int arg, int write)
@@ -265,7 +263,7 @@ EXPORT_SYMBOL_GPL(mlx5_set_port_mtu);
 void mlx5_query_port_max_mtu(struct mlx5_core_dev *dev, u16 *max_mtu,
 			     u8 port)
 {
-	mlx5_query_port_mtu(dev, NULL, max_mtu, NULL, port);
+	mlx5_query_port_mtu(dev, max_mtu, NULL, NULL, port);
 }
 EXPORT_SYMBOL_GPL(mlx5_query_port_max_mtu);
 
