@@ -143,6 +143,7 @@ int mlx5_set_port_beacon(struct mlx5_core_dev *dev, u16 beacon_duration);
 
 int mlx5_set_port_mtu(struct mlx5_core_dev *dev, u16 mtu, u8 port);
 void mlx5_query_port_max_mtu(struct mlx5_core_dev *dev, u16 *max_mtu, u8 port);
+void mlx5_query_port_admin_mtu(struct mlx5_core_dev *dev, u16 *admin_mtu, u8 port);
 void mlx5_query_port_oper_mtu(struct mlx5_core_dev *dev, u16 *oper_mtu,
 			      u8 port);
 
