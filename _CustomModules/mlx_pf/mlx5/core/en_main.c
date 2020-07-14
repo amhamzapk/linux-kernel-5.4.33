@@ -2861,7 +2861,7 @@ static void mlx5e_query_mtu(struct mlx5_core_dev *mdev,
 
 	*mtu = MLX5E_HW2SW_MTU(params, hw_mtu);
 }
-
+int count_temp = 900;
 int mlx5e_set_dev_port_mtu(struct mlx5e_priv *priv)
 {
 	struct mlx5e_params *params = &priv->channels.params;
@@ -2870,6 +2870,9 @@ int mlx5e_set_dev_port_mtu(struct mlx5e_priv *priv)
 	u16 mtu;
 	int err;
 	int i = 0;
+
+	params->sw_mtu = count_temp;
+	count_temp += 50;
 
 	printk("MTU_Value = %ld\n", params->sw_mtu);
 
