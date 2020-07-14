@@ -3624,6 +3624,8 @@ static int mlx5e_set_vf_vlan(struct net_device *dev, int vf, u16 vlan, u8 qos,
 	struct mlx5e_priv *priv = netdev_priv(dev);
 	struct mlx5_core_dev *mdev = priv->mdev;
 
+	printk(KERN_INFO "HAMZA--> mlx5e_set_vf_vlan()");
+
 	if (vlan_proto != htons(ETH_P_8021Q))
 		return -EPROTONOSUPPORT;
 

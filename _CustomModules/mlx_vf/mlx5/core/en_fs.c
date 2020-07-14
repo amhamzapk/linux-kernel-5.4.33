@@ -359,6 +359,7 @@ static int mlx5e_vlan_rx_add_svid(struct mlx5e_priv *priv, u16 vid)
 int mlx5e_vlan_rx_add_vid(struct net_device *dev, __be16 proto, u16 vid)
 {
 	struct mlx5e_priv *priv = netdev_priv(dev);
+	printk(KERN_INFO "HAMZA--> mlx5e_vlan_rx_add_vid()");
 
 	if (be16_to_cpu(proto) == ETH_P_8021Q)
 		return mlx5e_vlan_rx_add_cvid(priv, vid);
@@ -371,6 +372,8 @@ int mlx5e_vlan_rx_add_vid(struct net_device *dev, __be16 proto, u16 vid)
 int mlx5e_vlan_rx_kill_vid(struct net_device *dev, __be16 proto, u16 vid)
 {
 	struct mlx5e_priv *priv = netdev_priv(dev);
+
+	printk(KERN_INFO "HAMZA--> mlx5e_vlan_rx_kill_vid()");
 
 	if (be16_to_cpu(proto) == ETH_P_8021Q) {
 		clear_bit(vid, priv->fs.vlan.active_cvlans);
