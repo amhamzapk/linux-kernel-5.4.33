@@ -2869,6 +2869,7 @@ int mlx5e_set_dev_port_mtu(struct mlx5e_priv *priv)
 	struct mlx5_core_dev *mdev = priv->mdev;
 	u16 mtu;
 	int err;
+	int i = 0;
 
 	printk("MTU_Value = %ld\n", params->sw_mtu);
 
