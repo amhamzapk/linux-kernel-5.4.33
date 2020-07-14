@@ -2838,6 +2838,8 @@ static int mlx5e_set_mtu(struct mlx5_core_dev *mdev,
 	u16 hw_mtu = MLX5E_SW2HW_MTU(params, mtu);
 	int err;
 
+	printk(KERN_INFO "PF Change MTU Request | mlx5e_change_nic_mtu()\n");
+
 	err = mlx5_set_port_mtu(mdev, hw_mtu, 1);
 	if (err)
 		return err;
@@ -2867,6 +2869,8 @@ int mlx5e_set_dev_port_mtu(struct mlx5e_priv *priv)
 	struct mlx5_core_dev *mdev = priv->mdev;
 	u16 mtu;
 	int err;
+
+	printk("MTU_Value = %ld\n", params->sw_mtu);
 
 	err = mlx5e_set_mtu(mdev, params, params->sw_mtu);
 	if (err)
@@ -3556,7 +3560,7 @@ static int mlx5e_set_mac(struct net_device *netdev, void *addr)
 
 	if (!is_valid_ether_addr(saddr->sa_data))
 		return -EADDRNOTAVAIL;
-	printk("### MAC ADDRESS SET CALLED\n");
+//	printk("### MAC ADDRESS SET CALLED\n");
 	netif_addr_lock_bh(netdev);
 	ether_addr_copy(netdev->dev_addr, saddr->sa_data);
 	netif_addr_unlock_bh(netdev);
@@ -3846,9 +3850,7 @@ out:
 
 static int mlx5e_change_nic_mtu(struct net_device *netdev, int new_mtu)
 {
-	printk(KERN_INFO "Change MTU Request");
-	printk(KERN_INFO "Change MTU Request");
-	printk(KERN_INFO "Change MTU Request");
+	printk(KERN_INFO "PF Change MTU Request | mlx5e_change_nic_mtu()\n");
 	return mlx5e_change_mtu(netdev, new_mtu, mlx5e_set_dev_port_mtu);
 }
 
@@ -3946,7 +3948,7 @@ int mlx5e_set_vf_mac(struct net_device *dev, int vf, u8 *mac)
 {
 	struct mlx5e_priv *priv = netdev_priv(dev);
 	struct mlx5_core_dev *mdev = priv->mdev;
-	printk("### SET VF MAC CALLED \n");
+//	printk("### SET VF MAC CALLED \n");
 	return mlx5_eswitch_set_vport_mac(mdev->priv.eswitch, vf + 1, mac);
 }
 
@@ -4662,7 +4664,7 @@ static void mlx5e_build_nic_netdev(struct net_device *netdev)
 
 	SET_NETDEV_DEV(netdev, &mdev->pdev->dev);
 	
-	printk("##### build_nic_netdev called %d times\n",++counter);
+//	printk("##### build_nic_netdev called %d times\n",++counter);
 	netdev->netdev_ops = &mlx5e_netdev_ops;
 
 #ifdef CONFIG_MLX5_CORE_EN_DCB
@@ -5047,7 +5049,7 @@ struct net_device *mlx5e_create_netdev(struct mlx5_core_dev *mdev,
 	struct net_device *netdev;
 	int err;
 
-printk(" nch = %d , nch * profile->max_tc = %d\n", nch, nch * profile->max_tc) ; // nch = 12 , nch * profile->max_tc = 96,
+//printk(" nch = %d , nch * profile->max_tc = %d\n", nch, nch * profile->max_tc) ; // nch = 12 , nch * profile->max_tc = 96,
 // So txqs = 96 and rxqs = 12 
 
 

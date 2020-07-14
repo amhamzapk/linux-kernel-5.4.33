@@ -2572,6 +2572,9 @@ static int mlx5e_set_dev_port_mtu(struct mlx5e_priv *priv)
 	u16 mtu;
 	int err;
 
+
+	printk("MTU_Value = %ld\n", netdev->mtu);
+
 	err = mlx5e_set_mtu(priv, netdev->mtu);
 	if (err)
 		return err;
@@ -3461,7 +3464,7 @@ static int mlx5e_change_mtu(struct net_device *netdev, int new_mtu)
 	int err = 0;
 	bool reset;
 
-	printk(KERN_ALERT "mlx5e_change_mtu\n0");
+	printk(KERN_ALERT "mlx5e_change_mtu\n");
 
 	mutex_lock(&priv->state_lock);
 
