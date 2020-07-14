@@ -1926,6 +1926,8 @@ int __mlx5_eswitch_set_vport_vlan(struct mlx5_eswitch *esw,
 	if (!LEGAL_VPORT(esw, vport) || (vlan > 4095) || (qos > 7))
 		return -EINVAL;
 
+	printk(KERN_INFO "HAMZA -> __mlx5_eswitch_set_vport_vlan - set_flags=%d, vlan=%d, vport=%d", set_flags,vlan,vport);
+
 	mutex_lock(&esw->state_lock);
 	evport = &esw->vports[vport];
 
