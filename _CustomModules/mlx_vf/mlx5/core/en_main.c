@@ -3461,6 +3461,8 @@ static int mlx5e_change_mtu(struct net_device *netdev, int new_mtu)
 	int err = 0;
 	bool reset;
 
+	printk(KERN_ALERT "mlx5e_change_mtu\n0");
+
 	mutex_lock(&priv->state_lock);
 
 	reset = !priv->channels.params.lro_en &&
