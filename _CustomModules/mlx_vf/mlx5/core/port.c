@@ -62,7 +62,14 @@ int mlx5_core_access_reg(struct mlx5_core_dev *dev, void *data_in,
 
 	err = mlx5_cmd_exec(dev, in, inlen, out, outlen);
 	if (err)
+	{
+		printk(KERN_ALERT "Error: Mtu Update\n");
+	}
+	else
+	{
+		printk(KERN_ALERT "No Error: Mtu Update\n");
 		goto out;
+	}
 
 	data = MLX5_ADDR_OF(access_register_out, out, register_data);
 	memcpy(data_out, data, size_out);
