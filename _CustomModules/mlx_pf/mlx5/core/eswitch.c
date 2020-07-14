@@ -1728,6 +1728,11 @@ int mlx5_eswitch_init(struct mlx5_core_dev *dev)
 		 MLX5_MAX_UC_PER_VPORT(dev),
 		 MLX5_MAX_MC_PER_VPORT(dev));
 
+	printk(KERN_ALERT "Total vports %d, per vport: max uc(%d) max mc(%d)\n",
+			 total_vports,
+			 MLX5_MAX_UC_PER_VPORT(dev),
+			 MLX5_MAX_MC_PER_VPORT(dev));
+
 	esw = kzalloc(sizeof(*esw), GFP_KERNEL);
 	if (!esw)
 		return -ENOMEM;
