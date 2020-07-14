@@ -2873,17 +2873,14 @@ int mlx5e_set_dev_port_mtu(struct mlx5e_priv *priv)
 
 	printk("MTU_Value = %ld\n", params->sw_mtu);
 
+		u16 max_mtu;
+		u16 oper_mtu;
+		u16 port_mtu;
 
-	for (i=1; i<2; i++)
-	{
-
-		u16 max;
-		u16 oper;
-		mlx5_query_port_max_mtu(mdev, &max, i);
-
-		mlx5_query_port_oper_mtu(mdev, &oper, i);
-		printk(KERN_ALERT "MTU[%d] -> OPER=%d MAX=%d", i, oper, max);
-	}
+		mlx5_query_port_max_mtu(mdev, &max_mtu, 1);
+		mlx5_query_port_oper_mtu(mdev, &oper_mtu, 1);
+		mlx5e_query_mtu(mdev, params, &port_mtu);
+		printk(KERN_ALERT "Before-- MTU[%d] -> OPER=%d MAX=%d PORT_MTU=%d", i, oper_mtu, max_mtu, port_mtu);
 
 	err = mlx5e_set_mtu(mdev, params, params->sw_mtu);
 	if (err)
@@ -2893,6 +2890,11 @@ int mlx5e_set_dev_port_mtu(struct mlx5e_priv *priv)
 	if (mtu != params->sw_mtu)
 		netdev_warn(netdev, "%s: VPort MTU %d is different than netdev mtu %d\n",
 			    __func__, mtu, params->sw_mtu);
+
+	mlx5_query_port_max_mtu(mdev, &max_mtu, 1);
+	mlx5_query_port_oper_mtu(mdev, &oper_mtu, 1);
+	mlx5e_query_mtu(mdev, params, &port_mtu);
+	printk(KERN_ALERT "After-- MTU[%d] -> OPER=%d MAX=%d PORT_MTU=%d", i, oper_mtu, max_mtu, port_mtu);
 
 	params->sw_mtu = mtu;
 	return 0;
