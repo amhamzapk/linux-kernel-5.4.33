@@ -616,7 +616,6 @@ void mlx5e_set_rx_mode_work(struct work_struct *work)
 	bool enable_broadcast  = !ea->broadcast_enabled &&  broadcast_enabled;
 	bool disable_broadcast =  ea->broadcast_enabled && !broadcast_enabled;
 
-//	printk("HAMZA_VF => rx_mode_enable->%d | promisc_enabled->%d", rx_mode_enable, promisc_enabled);
 //	printk("HAMZA_VF => allmulti_enabled->%d | broadcast_enabled->%d", allmulti_enabled, broadcast_enabled);
 //	printk("HAMZA_VF => enable_promisc->%d | disable_promisc->%d", enable_promisc, disable_promisc);
 //	printk("HAMZA_VF => enable_allmulti->%d | disable_allmulti->%d", enable_allmulti, disable_allmulti);
@@ -652,18 +651,7 @@ void mlx5e_set_rx_mode_work(struct work_struct *work)
 	ea->allmulti_enabled  = allmulti_enabled;
 	ea->broadcast_enabled = broadcast_enabled;
 
-//	printk("Before VPort Update Context");
-//	printk("Before VPort Update Context");
-//	printk("Before VPort Update Context");
-//	mlx5e_vport_context_update(priv);
-//	ssleep(5);
-//	printk("Before-2 VPort Update Context");
-//	printk("Before-2 VPort Update Context");
-//	printk("Before-2 VPort Update Context");
-//	ssleep(5);
-//	printk("Before-3 VPort Update Context");
-//	printk("Before-3 VPort Update Context");
-//	printk("Before-3 VPort Update Context");
+	mlx5e_vport_context_update(priv);
 }
 
 static void mlx5e_destroy_groups(struct mlx5e_flow_table *ft)
