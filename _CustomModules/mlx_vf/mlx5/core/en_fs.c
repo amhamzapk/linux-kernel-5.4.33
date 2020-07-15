@@ -596,7 +596,6 @@ static void mlx5e_handle_netdev_addr(struct mlx5e_priv *priv)
 void mlx5e_set_rx_mode_work(struct work_struct *work)
 {
 
-	ssleep (5);
 	struct mlx5e_priv *priv = container_of(work, struct mlx5e_priv,
 					       set_rx_mode_work);
 
@@ -604,6 +603,8 @@ void mlx5e_set_rx_mode_work(struct work_struct *work)
 	struct net_device *ndev = priv->netdev;
 
 	printk ("#VF mlx5e_set_rx_mode called\n");
+
+	ssleep (5);
 
 	bool rx_mode_enable   = !test_bit(MLX5E_STATE_DESTROYING, &priv->state);
 	bool promisc_enabled   = rx_mode_enable && (ndev->flags & IFF_PROMISC);
