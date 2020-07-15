@@ -4665,7 +4665,6 @@ static void mlx5e_build_nic_netdev(struct net_device *netdev)
 	struct mlx5_core_dev *mdev = priv->mdev;
 	bool fcs_supported;
 	bool fcs_enabled;
-	static int counter = 0;
 
 	SET_NETDEV_DEV(netdev, &mdev->pdev->dev);
 	
