@@ -652,9 +652,18 @@ void mlx5e_set_rx_mode_work(struct work_struct *work)
 	ea->allmulti_enabled  = allmulti_enabled;
 	ea->broadcast_enabled = broadcast_enabled;
 
-	ssleep (5);
-
+	printk("Before VPort Update Context");
+	printk("Before VPort Update Context");
+	printk("Before VPort Update Context");
 	mlx5e_vport_context_update(priv);
+	ssleep(5);
+	printk("Before-2 VPort Update Context");
+	printk("Before-2 VPort Update Context");
+	printk("Before-2 VPort Update Context");
+	ssleep(5);
+	printk("Before-3 VPort Update Context");
+	printk("Before-3 VPort Update Context");
+	printk("Before-3 VPort Update Context");
 }
 
 static void mlx5e_destroy_groups(struct mlx5e_flow_table *ft)
