@@ -2861,7 +2861,7 @@ static void mlx5e_query_mtu(struct mlx5_core_dev *mdev,
 
 	*mtu = MLX5E_HW2SW_MTU(params, hw_mtu);
 }
-int count_temp = 900;
+
 int mlx5e_set_dev_port_mtu(struct mlx5e_priv *priv)
 {
 	struct mlx5e_params *params = &priv->channels.params;
@@ -2869,21 +2869,9 @@ int mlx5e_set_dev_port_mtu(struct mlx5e_priv *priv)
 	struct mlx5_core_dev *mdev = priv->mdev;
 	u16 mtu;
 	int err;
-	int i = 0;
 
-	params->sw_mtu = count_temp;
-	count_temp += 50;
+	printk("MTU_Value = %d\n", params->sw_mtu);
 
-	printk("MTU_Value = %ld\n", params->sw_mtu);
-
-		u16 max_mtu;
-		u16 oper_mtu;
-		u16 port_mtu;
-
-		mlx5_query_port_max_mtu(mdev, &max_mtu, 1);
-		mlx5_query_port_oper_mtu(mdev, &oper_mtu, 1);
-		mlx5e_query_mtu(mdev, params, &port_mtu);
-		printk(KERN_ALERT "Before-- MTU[%d] -> OPER=%d MAX=%d PORT_MTU=%d", i, oper_mtu, max_mtu, port_mtu);
 
 	err = mlx5e_set_mtu(mdev, params, params->sw_mtu);
 	if (err)
@@ -2893,11 +2881,6 @@ int mlx5e_set_dev_port_mtu(struct mlx5e_priv *priv)
 	if (mtu != params->sw_mtu)
 		netdev_warn(netdev, "%s: VPort MTU %d is different than netdev mtu %d\n",
 			    __func__, mtu, params->sw_mtu);
-
-	mlx5_query_port_max_mtu(mdev, &max_mtu, 1);
-	mlx5_query_port_oper_mtu(mdev, &oper_mtu, 1);
-	mlx5e_query_mtu(mdev, params, &port_mtu);
-	printk(KERN_ALERT "After-- MTU[%d] -> OPER=%d MAX=%d PORT_MTU=%d", i, oper_mtu, max_mtu, port_mtu);
 
 	params->sw_mtu = mtu;
 	return 0;
@@ -3978,8 +3961,6 @@ static int mlx5e_set_vf_vlan(struct net_device *dev, int vf, u16 vlan, u8 qos,
 	struct mlx5e_priv *priv = netdev_priv(dev);
 	struct mlx5_core_dev *mdev = priv->mdev;
 
-	printk(KERN_INFO "HAMZA_PF--> mlx5e_set_vf_vlan()");
-	printk(KERN_INFO "HAMZA_PF--> mlx5e_set_vf_vlan()");
 	printk(KERN_INFO "HAMZA_PF--> mlx5e_set_vf_vlan()");
 
 	if (vlan_proto != htons(ETH_P_8021Q))

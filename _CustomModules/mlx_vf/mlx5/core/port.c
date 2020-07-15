@@ -61,6 +61,8 @@ int mlx5_core_access_reg(struct mlx5_core_dev *dev, void *data_in,
 	MLX5_SET(access_register_in, in, register_id, reg_id);
 
 	err = mlx5_cmd_exec(dev, in, inlen, out, outlen);
+	if (err)
+		goto out;
 
 	data = MLX5_ADDR_OF(access_register_out, out, register_data);
 	memcpy(data_out, data, size_out);
@@ -344,13 +346,6 @@ int mlx5_set_port_mtu(struct mlx5_core_dev *dev, u16 mtu, u8 port)
 				   sizeof(out), MLX5_REG_PMTU, 0, 1);
 }
 EXPORT_SYMBOL_GPL(mlx5_set_port_mtu);
-
-void mlx5_query_port_admin_mtu(struct mlx5_core_dev *dev, u16 *admin_mtu,
-			     u8 port)
-{
-	mlx5_query_port_mtu(dev, admin_mtu, NULL, NULL, port);
-}
-EXPORT_SYMBOL_GPL(mlx5_query_port_admin_mtu);
 
 void mlx5_query_port_max_mtu(struct mlx5_core_dev *dev, u16 *max_mtu,
 			     u8 port)
