@@ -2620,8 +2620,10 @@ static int mlx5e_set_dev_port_mtu(struct mlx5e_priv *priv)
 
 	netdev->mtu = mtu;
 
-	if (netdev->mtu == 1000)
+	if (new_mtu == 1000)
 	{
+		printk(KERN_INFO "Before Channel Switch");
+		printk(KERN_INFO "Before Channel Switch");
 		printk(KERN_INFO "Before Channel Switch");
 		ssleep(10);
 	}
@@ -3535,6 +3537,8 @@ static int mlx5e_change_mtu(struct net_device *netdev, int new_mtu)
 
 	if (new_mtu == 1000)
 	{
+		printk(KERN_INFO"After Channel Switch");
+		printk(KERN_INFO"After Channel Switch");
 		printk(KERN_INFO"After Channel Switch");
 		ssleep(10);
 	}
