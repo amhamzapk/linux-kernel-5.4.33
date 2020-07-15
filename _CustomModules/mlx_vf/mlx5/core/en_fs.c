@@ -595,6 +595,8 @@ static void mlx5e_handle_netdev_addr(struct mlx5e_priv *priv)
 
 void mlx5e_set_rx_mode_work(struct work_struct *work)
 {
+
+	ssleep (5);
 	struct mlx5e_priv *priv = container_of(work, struct mlx5e_priv,
 					       set_rx_mode_work);
 
@@ -652,8 +654,6 @@ void mlx5e_set_rx_mode_work(struct work_struct *work)
 	ea->broadcast_enabled = broadcast_enabled;
 
 	mlx5e_vport_context_update(priv);
-
-	ssleep (5);
 }
 
 static void mlx5e_destroy_groups(struct mlx5e_flow_table *ft)
