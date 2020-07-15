@@ -2557,13 +2557,13 @@ static int mlx5e_set_mtu(struct mlx5e_priv *priv, u16 mtu)
 	if (mtu == 1234)
 	{
 		printk(KERN_INFO "Delay_1 -> Before mlx5_set_port_mtu()");
-		ssleep(5);
+		udelay(5000000);
 	}
 	err = mlx5_set_port_mtu(mdev, hw_mtu, 1);
 	if (mtu == 1234)
 	{
 		printk(KERN_INFO "Delay_2 -> After mlx5_set_port_mtu() & Before mlx5_modify_nic_vport_mtu()");
-		ssleep(5);
+		udelay(5000000);
 	}
 	if (err)
 		return err;
@@ -2579,7 +2579,7 @@ static int mlx5e_set_mtu(struct mlx5e_priv *priv, u16 mtu)
 	if (mtu == 1234)
 	{
 		printk(KERN_INFO "Delay_3 -> After mlx5_modify_nic_vport_mtu()");
-		ssleep(5);
+		udelay(5000000);
 	}
 
 //	mlx5_query_port_max_mtu(mdev, &max_mtu, 1);
@@ -2622,7 +2622,8 @@ static int mlx5e_set_dev_port_mtu(struct mlx5e_priv *priv)
 	if (netdev->mtu == 1234)
 	{
 		printk(KERN_INFO "Delay_4 -> After mlx5e_set_mtu() & Before mlx5e_query_mtu()");
-		ssleep(5);
+		printk(KERN_INFO "Delay_4 -> After mlx5e_set_mtu() & Before mlx5e_query_mtu()");
+		udelay(5000000);
 	}
 
 	mlx5e_query_mtu(priv, &mtu);
@@ -2630,7 +2631,7 @@ static int mlx5e_set_dev_port_mtu(struct mlx5e_priv *priv)
 	if (netdev->mtu == 1234)
 	{
 		printk(KERN_INFO "Delay_5 -> After mlx5e_query_mtu() --final");
-		ssleep(5);
+		udelay(5000000);
 	}
 
 	if (mtu != netdev->mtu)
