@@ -2619,7 +2619,7 @@ static int mlx5e_set_dev_port_mtu(struct mlx5e_priv *priv)
 	if (err)
 		return err;
 
-	if (mtu == 1234)
+	if (netdev->mtu == 1234)
 	{
 		printk(KERN_INFO "Delay_4 -> After mlx5e_set_mtu() & Before mlx5e_query_mtu()");
 		ssleep(5);
@@ -2627,9 +2627,9 @@ static int mlx5e_set_dev_port_mtu(struct mlx5e_priv *priv)
 
 	mlx5e_query_mtu(priv, &mtu);
 
-	if (mtu == 1234)
+	if (netdev->mtu == 1234)
 	{
-		printk(KERN_INFO "Delay_4 -> After mlx5e_query_mtu() --final");
+		printk(KERN_INFO "Delay_5 -> After mlx5e_query_mtu() --final");
 		ssleep(5);
 	}
 
