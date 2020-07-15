@@ -3543,6 +3543,8 @@ static int mlx5e_change_mtu(struct net_device *netdev, int new_mtu)
 
 	mlx5e_switch_priv_channels(priv, &new_channels, mlx5e_set_dev_port_mtu);
 
+
+out:
 	if (new_mtu == 1000)
 	{
 		printk(KERN_INFO"After Channel Switch");
@@ -3550,8 +3552,6 @@ static int mlx5e_change_mtu(struct net_device *netdev, int new_mtu)
 		printk(KERN_INFO"After Channel Switch");
 		ssleep(10);
 	}
-
-out:
 	mutex_unlock(&priv->state_lock);
 	return err;
 }
