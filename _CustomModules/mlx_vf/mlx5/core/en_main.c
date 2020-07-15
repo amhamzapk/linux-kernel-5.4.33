@@ -2606,7 +2606,6 @@ static int mlx5e_set_dev_port_mtu(struct mlx5e_priv *priv)
 	u16 mtu;
 	int err;
 
-
 	printk("MTU_Value = %d\n", netdev->mtu);
 
 	err = mlx5e_set_mtu(priv, netdev->mtu);
@@ -2725,6 +2724,8 @@ void mlx5e_switch_priv_channels(struct mlx5e_priv *priv,
 	mlx5e_close_channels(&priv->channels);
 
 	priv->channels = *new_chs;
+
+	printk(KERN_INFO"Before hw_modify");
 
 	/* New channels are ready to roll, modify HW settings if needed */
 	if (hw_modify)
