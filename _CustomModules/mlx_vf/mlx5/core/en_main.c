@@ -2544,7 +2544,6 @@ static int mlx5e_set_mtu(struct mlx5e_priv *priv, u16 mtu)
 	struct mlx5_core_dev *mdev = priv->mdev;
 	u16 hw_mtu = MLX5E_SW2HW_MTU(priv, mtu);
 	int err;
-	int i=0;
 
 	u16 max_mtu;
 	u16 oper_mtu;
@@ -2608,7 +2607,7 @@ static int mlx5e_set_dev_port_mtu(struct mlx5e_priv *priv)
 	int err;
 
 
-	printk("MTU_Value = %ld\n", netdev->mtu);
+	printk("MTU_Value = %d\n", netdev->mtu);
 
 	err = mlx5e_set_mtu(priv, netdev->mtu);
 	if (err)
