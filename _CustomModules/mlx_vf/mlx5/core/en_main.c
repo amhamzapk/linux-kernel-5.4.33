@@ -3255,6 +3255,7 @@ static void mlx5e_set_rx_mode(struct net_device *dev)
 {
 	struct mlx5e_priv *priv = netdev_priv(dev);
 
+	printk(KERN_INFO "HAMZA_VF_NDO--> mlx5e_set_rx_mode()");
 	queue_work(priv->wq, &priv->set_rx_mode_work);
 }
 

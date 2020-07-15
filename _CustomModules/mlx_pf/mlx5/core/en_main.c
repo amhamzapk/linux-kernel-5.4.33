@@ -3568,6 +3568,8 @@ static void mlx5e_set_rx_mode(struct net_device *dev)
 {
 	struct mlx5e_priv *priv = netdev_priv(dev);
 
+	printk(KERN_INFO "HAMZA_PF_NDO--> mlx5e_set_rx_mode()");
+
 	queue_work(priv->wq, &priv->set_rx_mode_work);
 }
 
@@ -5038,6 +5040,7 @@ int mlx5e_netdev_init(struct net_device *netdev,
 	priv->msglevel    = MLX5E_MSG_LEVEL;
 	priv->max_opened_tc = 1;
 
+	printk(KERN_INFO "HAMZA_PF--> mlx5e_netdev_init()");
 	mutex_init(&priv->state_lock);
 	INIT_WORK(&priv->update_carrier_work, mlx5e_update_carrier_work);
 	INIT_WORK(&priv->set_rx_mode_work, mlx5e_set_rx_mode_work);

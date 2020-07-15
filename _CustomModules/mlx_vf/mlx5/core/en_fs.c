@@ -601,6 +601,8 @@ void mlx5e_set_rx_mode_work(struct work_struct *work)
 	struct mlx5e_l2_table *ea = &priv->fs.l2;
 	struct net_device *ndev = priv->netdev;
 
+	printk ("#VF mlx5e_set_rx_mode called\n");
+
 	bool rx_mode_enable   = !test_bit(MLX5E_STATE_DESTROYING, &priv->state);
 	bool promisc_enabled   = rx_mode_enable && (ndev->flags & IFF_PROMISC);
 	bool allmulti_enabled  = rx_mode_enable && (ndev->flags & IFF_ALLMULTI);
