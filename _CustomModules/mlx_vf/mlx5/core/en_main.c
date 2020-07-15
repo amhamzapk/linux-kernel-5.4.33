@@ -2560,7 +2560,7 @@ static int mlx5e_set_mtu(struct mlx5e_priv *priv, u16 mtu)
 		return 0;
 	}
 
-	if (mtu != 1234)
+	if (mtu != 1222)
 	{
 		err = mlx5_set_port_mtu(mdev, hw_mtu, 1);
 	}
@@ -2572,7 +2572,7 @@ static int mlx5e_set_mtu(struct mlx5e_priv *priv, u16 mtu)
 //	mlx5_query_nic_vport_mtu(mdev, &port_mtu);
 //	printk(KERN_ALERT "After-- MTU[%d] -> OPER=%d MAX=%d PORT_MTU=%d", i, oper_mtu, max_mtu, port_mtu);
 
-	if (mtu != 4321)
+	if (mtu != 1333)
 	{
 		/* Update vport context MTU */
 		mlx5_modify_nic_vport_mtu(mdev, hw_mtu);
