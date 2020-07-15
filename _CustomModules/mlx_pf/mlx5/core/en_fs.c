@@ -600,19 +600,25 @@ void mlx5e_set_rx_mode_work(struct work_struct *work)
 
 	bool rx_mode_enable   = !test_bit(MLX5E_STATE_DESTROYING, &priv->state);
 	bool promisc_enabled   = rx_mode_enable && (ndev->flags & IFF_PROMISC);
-	printk ("bool promisc_enabled = %d\n", promisc_enabled);
+//	printk ("bool promisc_enabled = %d\n", promisc_enabled);
 	bool allmulti_enabled  = rx_mode_enable && (ndev->flags & IFF_ALLMULTI);
 	bool broadcast_enabled = rx_mode_enable;
 
 	bool enable_promisc    = !ea->promisc_enabled   &&  promisc_enabled;
-	printk ("bool enable_promisc = %d\n", enable_promisc);
+//	printk ("bool enable_promisc = %d\n", enable_promisc);
 	bool disable_promisc   =  ea->promisc_enabled   && !promisc_enabled;
-	printk ("bool disable_promisc = %d\n", disable_promisc);
+//	printk ("bool disable_promisc = %d\n", disable_promisc);
 	bool enable_allmulti   = !ea->allmulti_enabled  &&  allmulti_enabled;
 	bool disable_allmulti  =  ea->allmulti_enabled  && !allmulti_enabled;
 	bool enable_broadcast  = !ea->broadcast_enabled &&  broadcast_enabled;
 	bool disable_broadcast =  ea->broadcast_enabled && !broadcast_enabled;
 
+	printk("HAMZA => rx_mode_enable->%d | promisc_enabled->%d", rx_mode_enable, promisc_enabled);
+	printk("HAMZA => allmulti_enabled->%d | broadcast_enabled->%d", allmulti_enabled, broadcast_enabled);
+	printk("HAMZA => enable_promisc->%d | disable_promisc->%d", enable_promisc, disable_promisc);
+	printk("HAMZA => enable_allmulti->%d | disable_allmulti->%d", enable_allmulti, disable_allmulti);
+	printk("HAMZA => enable_broadcast->%d | disable_broadcast->%d", enable_broadcast, disable_broadcast);
+	printk("HAMZA => enable_promisc->%d | disable_promisc->%d", enable_promisc, disable_promisc);
 	if (enable_promisc) {
 		printk ("# if (enable_promisc)\n");
 		if (!priv->channels.params.vlan_strip_disable)
