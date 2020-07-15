@@ -261,7 +261,7 @@ static int forward_event(struct notifier_block *nb, unsigned long event, void *d
 
 //	if (eqe->type == MLX5_EVENT_TYPE_PORT_CHANGE)
 //	{
-		printk(KERN_INFO "HAMZA_PF--> forward_event()");
+//		printk(KERN_INFO "HAMZA_PF--> forward_event()");
 //	}
 	mlx5_core_dbg(events->dev, "Async eqe type %s, subtype (%d) forward to interfaces\n",
 		      eqe_type_str(eqe->type), eqe->sub_type);
