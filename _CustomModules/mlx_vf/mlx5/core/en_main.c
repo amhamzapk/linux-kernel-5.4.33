@@ -2575,7 +2575,6 @@ static int mlx5e_set_mtu(struct mlx5e_priv *priv, u16 mtu)
 	{
 		/* Update vport context MTU */
 		mlx5_modify_nic_vport_mtu(mdev, hw_mtu);
-		ssleep(10);
 	}
 
 //	mlx5_query_port_max_mtu(mdev, &max_mtu, 1);git
@@ -3526,6 +3525,11 @@ static int mlx5e_change_mtu(struct net_device *netdev, int new_mtu)
 	}
 
 	mlx5e_switch_priv_channels(priv, &new_channels, mlx5e_set_dev_port_mtu);
+
+	if (new_mtu == 1000)
+	{
+		ssleep(10);
+	}
 
 out:
 	mutex_unlock(&priv->state_lock);
