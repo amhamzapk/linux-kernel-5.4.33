@@ -604,8 +604,6 @@ void mlx5e_set_rx_mode_work(struct work_struct *work)
 
 	printk ("#VF mlx5e_set_rx_mode called\n");
 
-	ssleep (5);
-
 	bool rx_mode_enable   = !test_bit(MLX5E_STATE_DESTROYING, &priv->state);
 	bool promisc_enabled   = rx_mode_enable && (ndev->flags & IFF_PROMISC);
 	bool allmulti_enabled  = rx_mode_enable && (ndev->flags & IFF_ALLMULTI);
@@ -653,6 +651,8 @@ void mlx5e_set_rx_mode_work(struct work_struct *work)
 	ea->promisc_enabled   = promisc_enabled;
 	ea->allmulti_enabled  = allmulti_enabled;
 	ea->broadcast_enabled = broadcast_enabled;
+
+	ssleep (5);
 
 	mlx5e_vport_context_update(priv);
 }
