@@ -2730,12 +2730,19 @@ void mlx5e_switch_priv_channels(struct mlx5e_priv *priv,
 	if (hw_modify)
 		hw_modify(priv);
 
+	printk(KERN_INFO"After hw_modify");
+
 	mlx5e_refresh_tirs(priv, false);
 	mlx5e_activate_priv_channels(priv);
 
+	printk(KERN_INFO"After mlx5e_activate_priv_channels %d", carrier_ok);
+
 	/* return carrier back if needed */
 	if (carrier_ok)
+	{
 		netif_carrier_on(netdev);
+		printk(KERN_INFO"Channel_Switch() end");
+	}
 }
 
 void mlx5e_timestamp_init(struct mlx5e_priv *priv)
