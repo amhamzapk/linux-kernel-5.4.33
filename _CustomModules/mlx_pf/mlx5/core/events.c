@@ -135,10 +135,10 @@ static int any_notifier(struct notifier_block *nb,
 	struct mlx5_eqe      *eqe      = data;
 
 
-//	if (eqe->type == MLX5_EVENT_TYPE_NIC_VPORT_CHANGE)
-//	{
-//		printk(KERN_INFO "HAMZA_PF--> any_notifier()");
-//	}
+	if (eqe->type == MLX5_EVENT_TYPE_NIC_VPORT_CHANGE)
+	{
+		printk(KERN_INFO "HAMZA_PF--> any_notifier()");
+	}
 	mlx5_core_dbg(events->dev, "Async eqe type %s, subtype (%d)\n",
 		      eqe_type_str(eqe->type), eqe->sub_type);
 	return NOTIFY_OK;
