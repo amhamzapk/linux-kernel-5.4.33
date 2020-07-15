@@ -1601,7 +1601,9 @@ static int eswitch_vport_event(struct notifier_block *nb,
 	struct mlx5_vport *vport;
 	u16 vport_num;
 
+
 	vport_num = be16_to_cpu(eqe->data.vport_change.vport_num);
+	printk(KERN_INFO "HAMZA -> eswitch_vport_event() | Vport->%d", vport_num);
 	vport = &esw->vports[vport_num];
 	if (vport->enabled)
 		queue_work(esw->work_queue, &vport->vport_change_handler);

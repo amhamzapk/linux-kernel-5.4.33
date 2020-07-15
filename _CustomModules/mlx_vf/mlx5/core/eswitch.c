@@ -1702,6 +1702,8 @@ void mlx5_eswitch_vport_event(struct mlx5_eswitch *esw, struct mlx5_eqe *eqe)
 		return;
 	}
 
+	printk(KERN_INFO "HAMZA -> mlx5_eswitch_vport_event()");
+
 	vport = &esw->vports[vport_num];
 	if (vport->enabled)
 		queue_work(esw->work_queue, &vport->vport_change_handler);

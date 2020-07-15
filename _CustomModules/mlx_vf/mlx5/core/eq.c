@@ -483,6 +483,7 @@ static irqreturn_t mlx5_eq_int(int irq, void *eq_ptr)
 			break;
 
 		case MLX5_EVENT_TYPE_NIC_VPORT_CHANGE:
+			printk(KERN_INFO "HAMZA -> MLX5_EVENT_TYPE_NIC_VPORT_CHANGE");
 			mlx5_eswitch_vport_event(dev->priv.eswitch, eqe);
 			break;
 
