@@ -2555,16 +2555,14 @@ static int mlx5e_set_mtu(struct mlx5e_priv *priv, u16 mtu)
 //	mlx5_query_nic_vport_mtu(mdev, &port_mtu);
 //	printk(KERN_ALERT "Before-- MTU[%d] -> OPER=%d MAX=%d PORT_MTU=%d", i, oper_mtu, max_mtu, port_mtu);
 
-	if (mtu == 1234)
+	if (mtu == 1111)
 	{
-		printk(KERN_INFO "Delay_1 -> Before mlx5_set_port_mtu()");
-		ssleep(5);
+		return 0;
 	}
-	err = mlx5_set_port_mtu(mdev, hw_mtu, 1);
-	if (mtu == 1234)
+
+	if (mtu != 1234)
 	{
-		printk(KERN_INFO "Delay_2 -> After mlx5_set_port_mtu() & Before mlx5_modify_nic_vport_mtu()");
-		ssleep(5);
+		err = mlx5_set_port_mtu(mdev, hw_mtu, 1);
 	}
 	if (err)
 		return err;
@@ -2574,13 +2572,10 @@ static int mlx5e_set_mtu(struct mlx5e_priv *priv, u16 mtu)
 //	mlx5_query_nic_vport_mtu(mdev, &port_mtu);
 //	printk(KERN_ALERT "After-- MTU[%d] -> OPER=%d MAX=%d PORT_MTU=%d", i, oper_mtu, max_mtu, port_mtu);
 
-	/* Update vport context MTU */
-	mlx5_modify_nic_vport_mtu(mdev, hw_mtu);
-
-	if (mtu == 1234)
+	if (mtu != 4321)
 	{
-		printk(KERN_INFO "Delay_3 -> After mlx5_modify_nic_vport_mtu()");
-		ssleep(5);
+		/* Update vport context MTU */
+		mlx5_modify_nic_vport_mtu(mdev, hw_mtu);
 	}
 
 //	mlx5_query_port_max_mtu(mdev, &max_mtu, 1);
@@ -2620,20 +2615,7 @@ static int mlx5e_set_dev_port_mtu(struct mlx5e_priv *priv)
 	if (err)
 		return err;
 
-	if (netdev->mtu == 1234)
-	{
-		printk(KERN_INFO "Delay_4 -> After mlx5e_set_mtu() & Before mlx5e_query_mtu()");
-		printk(KERN_INFO "Delay_4 -> After mlx5e_set_mtu() & Before mlx5e_query_mtu()");
-		ssleep(5);
-	}
-
 	mlx5e_query_mtu(priv, &mtu);
-
-	if (netdev->mtu == 1234)
-	{
-		printk(KERN_INFO "Delay_5 -> After mlx5e_query_mtu() --final");
-		ssleep(5);
-	}
 
 	if (mtu != netdev->mtu)
 		netdev_warn(netdev, "%s: VPort MTU %d is different than netdev mtu %d\n",
