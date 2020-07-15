@@ -841,6 +841,7 @@ static void esw_vport_change_handler(struct work_struct *work)
 		container_of(work, struct mlx5_vport, vport_change_handler);
 	struct mlx5_eswitch *esw = vport->dev->priv.eswitch;
 
+	printk(KERN_INFO "HAMZA -> esw_vport_change_handler()");
 	mutex_lock(&esw->state_lock);
 	esw_vport_change_handle_locked(vport);
 	mutex_unlock(&esw->state_lock);
@@ -1547,6 +1548,7 @@ static void esw_enable_vport(struct mlx5_eswitch *esw, int vport_num,
 	if (!vport_num)
 		vport->info.trusted = true;
 
+	printk(KERN_INFO "HAMZA -> esw_enable_vport()");
 	esw_vport_change_handle_locked(vport);
 
 	esw->enabled_vports++;
@@ -1574,6 +1576,7 @@ static void esw_disable_vport(struct mlx5_eswitch *esw, int vport_num)
 	 * Calling vport change handler while vport is disabled will cleanup
 	 * the vport resources.
 	 */
+	printk(KERN_INFO "HAMZA -> esw_disable_vport()");
 	esw_vport_change_handle_locked(vport);
 	vport->enabled_events = 0;
 	esw_vport_disable_qos(esw, vport_num);
@@ -2006,6 +2009,7 @@ int mlx5_eswitch_set_vport_trust(struct mlx5_eswitch *esw,
 	mutex_lock(&esw->state_lock);
 	evport = &esw->vports[vport];
 	evport->info.trusted = setting;
+	printk(KERN_INFO "HAMZA -> mlx5_eswitch_set_vport_trust()");
 	if (evport->enabled)
 		esw_vport_change_handle_locked(evport);
 	mutex_unlock(&esw->state_lock);
