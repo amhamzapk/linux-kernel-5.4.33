@@ -2571,9 +2571,9 @@ static int mlx5e_set_mtu(struct mlx5e_priv *priv, u16 mtu)
 //	mlx5_query_nic_vport_mtu(mdev, &port_mtu);
 //	printk(KERN_ALERT "Just After-- MTU -> OPER=%d MAX=%d PORT_MTU=%d", oper_mtu, max_mtu, port_mtu);
 
-	/* Update vport context MTU */
 	if (mtu != 1100)
-		mlx5_modify_nic_vport_mtu(mdev, hw_mtu);
+	/* Update vport context MTU */
+	mlx5_modify_nic_vport_mtu(mdev, hw_mtu);
 
 //	mlx5_query_port_max_mtu(mdev, &max_mtu, 1);git
 //	mlx5_query_port_oper_mtu(mdev, &oper_mtu, 1);
@@ -2615,7 +2615,7 @@ static int mlx5e_set_dev_port_mtu(struct mlx5e_priv *priv)
 		netdev_warn(netdev, "%s: VPort MTU %d is different than netdev mtu %d\n",
 			    __func__, mtu, netdev->mtu);
 
-//	netdev->mtu = mtu;
+	netdev->mtu = mtu;
 
 	return 0;
 }
@@ -3535,7 +3535,6 @@ static int mlx5e_change_mtu(struct net_device *netdev, int new_mtu)
 
 
 out:
-
 	mutex_unlock(&priv->state_lock);
 	return err;
 }
