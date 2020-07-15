@@ -134,6 +134,10 @@ static int any_notifier(struct notifier_block *nb,
 	struct mlx5_events   *events   = event_nb->ctx;
 	struct mlx5_eqe      *eqe      = data;
 
+	if (eqe->type == MLX5_EVENT_TYPE_NIC_VPORT_CHANGE)
+	{
+		printk(KERN_INFO "HAMZA_PF--> any_notifier()");
+	}
 	mlx5_core_dbg(events->dev, "Async eqe type %s, subtype (%d)\n",
 		      eqe_type_str(eqe->type), eqe->sub_type);
 	return NOTIFY_OK;
@@ -214,6 +218,11 @@ static int port_module(struct notifier_block *nb, unsigned long type, void *data
 	const char *status_str;
 	u8 module_num;
 
+
+	if (eqe->type == MLX5_EVENT_TYPE_NIC_VPORT_CHANGE)
+	{
+		printk(KERN_INFO "HAMZA_PF--> port_module()");
+	}
 	module_event_eqe = &eqe->data.port_module;
 	module_status = module_event_eqe->module_status &
 			PORT_MODULE_EVENT_MODULE_STATUS_MASK;
@@ -259,7 +268,7 @@ static int forward_event(struct notifier_block *nb, unsigned long event, void *d
 	struct mlx5_events   *events   = event_nb->ctx;
 	struct mlx5_eqe      *eqe      = data;
 
-	if (eqe->type == MLX5_EVENT_TYPE_PORT_CHANGE)
+	if (eqe->type == MLX5_EVENT_TYPE_NIC_VPORT_CHANGE)
 	{
 		printk(KERN_INFO "HAMZA_PF--> forward_event()");
 	}
