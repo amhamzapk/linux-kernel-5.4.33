@@ -406,6 +406,9 @@ netdev_tx_t mlx5e_xmit(struct sk_buff *skb, struct net_device *dev)
 	u16 pi = sq->pc & wq->sz_m1;
 	struct mlx5e_tx_wqe *wqe = mlx5_wq_cyc_get_wqe(wq, pi);
 
+	printk("skb->data_len = %d", skb->data_len);
+	printk("skb->len = %d", skb->len);
+
 	memset(wqe, 0, sizeof(*wqe));
 
 #ifdef CONFIG_MLX5_EN_IPSEC
