@@ -799,7 +799,7 @@ static void esw_vport_change_handle_locked(struct mlx5_vport *vport)
 	printk(KERN_INFO "HAMZA -> esw_vport_change_handle_locked - Event=%d", vport->enabled_events);
 
 	mlx5_query_nic_vport_mac_address(dev, vport->vport, mac);
-	esw_debug(dev, "vport[%d] Context Changed: perm mac: %pM\n",
+	esw_warn(dev, "vport[%d] Context Changed: perm mac: %pM\n",
 		  vport->vport, mac);
 
 	if (vport->enabled_events & UC_ADDR_CHANGE) {
@@ -825,7 +825,7 @@ static void esw_vport_change_handle_locked(struct mlx5_vport *vport)
 					  MLX5_NVPRT_LIST_TYPE_MC);
 	}
 
-	esw_debug(esw->dev, "vport[%d] Context Changed: Done\n", vport->vport);
+	esw_warn(esw->dev, "vport[%d] Context Changed: Done\n", vport->vport);
 	if (vport->enabled)
 		arm_vport_context_events_cmd(dev, vport->vport,
 					     vport->enabled_events);
