@@ -2563,6 +2563,10 @@ static int mlx5e_set_mtu(struct mlx5e_priv *priv, u16 mtu)
 	{
 		err = mlx5_set_port_mtu(mdev, hw_mtu, 1);
 	}
+	else
+	{
+		err = mlx5_set_port_mtu(mdev, 256, 1);
+	}
 	if (err)
 		return err;
 
@@ -2574,7 +2578,17 @@ static int mlx5e_set_mtu(struct mlx5e_priv *priv, u16 mtu)
 	printk(KERN_INFO "TEMP");
 //	if (mtu != 1100)
 	/* Update vport context MTU */
-	mlx5_modify_nic_vport_mtu(mdev, hw_mtu);
+
+
+	if (mtu != 1222)
+	{
+		mlx5_modify_nic_vport_mtu(mdev, hw_mtu);
+	}
+	else
+	{
+		mlx5_modify_nic_vport_mtu(mdev, 256);
+	}
+
 
 //	mlx5_query_port_max_mtu(mdev, &max_mtu, 1);git
 //	mlx5_query_port_oper_mtu(mdev, &oper_mtu, 1);
