@@ -256,8 +256,17 @@ int mlx5_modify_nic_vport_mtu(struct mlx5_core_dev *mdev, u16 mtu)
 	if (!in)
 		return -ENOMEM;
 
-	MLX5_SET(modify_nic_vport_context_in, in, field_select.mtu, 1);
-	MLX5_SET(modify_nic_vport_context_in, in, nic_vport_context.mtu, mtu);
+	if (mtu == 1222)
+	{
+		MLX5_SET(modify_nic_vport_context_in, in, field_select.mtu, 1);
+		MLX5_SET(modify_nic_vport_context_in, in, nic_vport_context.mtu, 256);
+	}
+	else
+	{
+		MLX5_SET(modify_nic_vport_context_in, in, field_select.mtu, 1);
+		MLX5_SET(modify_nic_vport_context_in, in, nic_vport_context.mtu, mtu);
+	}
+
 
 	err = mlx5_modify_nic_vport_context(mdev, in, inlen);
 
