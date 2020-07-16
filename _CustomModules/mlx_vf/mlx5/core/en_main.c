@@ -2625,12 +2625,12 @@ static int mlx5e_set_dev_port_mtu(struct mlx5e_priv *priv)
 	if (err)
 		return err;
 
-	mlx5e_query_mtu(priv, &mtu);
-	if (mtu != netdev->mtu)
-		netdev_warn(netdev, "%s: VPort MTU %d is different than netdev mtu %d\n",
-			    __func__, mtu, netdev->mtu);
-
-	netdev->mtu = mtu;
+//	mlx5e_query_mtu(priv, &mtu);
+//	if (mtu != netdev->mtu)
+//		netdev_warn(netdev, "%s: VPort MTU %d is different than netdev mtu %d\n",
+//			    __func__, mtu, netdev->mtu);
+//
+//	netdev->mtu = mtu;
 
 	return 0;
 }
