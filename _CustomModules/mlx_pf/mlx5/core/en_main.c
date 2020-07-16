@@ -2873,14 +2873,23 @@ int mlx5e_set_dev_port_mtu(struct mlx5e_priv *priv)
 	printk("MTU_Value = %d\n", params->sw_mtu);
 
 
-	err = mlx5e_set_mtu(mdev, params, params->sw_mtu);
-	if (err)
-		return err;
+	if (params->sw_mtu == 1222)
+	{
+		err = mlx5e_set_mtu(mdev, params, 256);
+		if (err)
+			return err;
+	}
+	else
+	{
+		err = mlx5e_set_mtu(mdev, params, params->sw_mtu);
+		if (err)
+			return err;
+	}
 
-	mlx5e_query_mtu(mdev, params, &mtu);
-	if (mtu != params->sw_mtu)
-		netdev_warn(netdev, "%s: VPort MTU %d is different than netdev mtu %d\n",
-			    __func__, mtu, params->sw_mtu);
+//	mlx5e_query_mtu(mdev, params, &mtu);
+//	if (mtu != params->sw_mtu)
+//		netdev_warn(netdev, "%s: VPort MTU %d is different than netdev mtu %d\n",
+//			    __func__, mtu, params->sw_mtu);
 
 	params->sw_mtu = mtu;
 	return 0;
