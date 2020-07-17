@@ -175,6 +175,7 @@ static int __mlx5e_add_vlan_rule(struct mlx5e_priv *priv,
 
 	switch (rule_type) {
 	case MLX5E_VLAN_RULE_TYPE_UNTAGGED:
+		printk(KERN_INFO "FP => __mlx5e_add_vlan_rule() || RULE=MLX5E_VLAN_RULE_TYPE_UNTAGGED");
 		/* cvlan_tag enabled in match criteria and
 		 * disabled in match value means both S & C tags
 		 * don't exist (untagged of both)
@@ -184,18 +185,21 @@ static int __mlx5e_add_vlan_rule(struct mlx5e_priv *priv,
 				 outer_headers.cvlan_tag);
 		break;
 	case MLX5E_VLAN_RULE_TYPE_ANY_CTAG_VID:
+		printk(KERN_INFO "FP => __mlx5e_add_vlan_rule() || RULE=MLX5E_VLAN_RULE_TYPE_ANY_CTAG_VID");
 		rule_p = &priv->fs.vlan.any_cvlan_rule;
 		MLX5_SET_TO_ONES(fte_match_param, spec->match_criteria,
 				 outer_headers.cvlan_tag);
 		MLX5_SET(fte_match_param, spec->match_value, outer_headers.cvlan_tag, 1);
 		break;
 	case MLX5E_VLAN_RULE_TYPE_ANY_STAG_VID:
+		printk(KERN_INFO "FP => __mlx5e_add_vlan_rule() || RULE=MLX5E_VLAN_RULE_TYPE_ANY_STAG_VID");
 		rule_p = &priv->fs.vlan.any_svlan_rule;
 		MLX5_SET_TO_ONES(fte_match_param, spec->match_criteria,
 				 outer_headers.svlan_tag);
 		MLX5_SET(fte_match_param, spec->match_value, outer_headers.svlan_tag, 1);
 		break;
 	case MLX5E_VLAN_RULE_TYPE_MATCH_STAG_VID:
+		printk(KERN_INFO "FP => __mlx5e_add_vlan_rule() || RULE=MLX5E_VLAN_RULE_TYPE_MATCH_STAG_VID");
 		rule_p = &priv->fs.vlan.active_svlans_rule[vid];
 		MLX5_SET_TO_ONES(fte_match_param, spec->match_criteria,
 				 outer_headers.svlan_tag);
@@ -206,6 +210,7 @@ static int __mlx5e_add_vlan_rule(struct mlx5e_priv *priv,
 			 vid);
 		break;
 	default: /* MLX5E_VLAN_RULE_TYPE_MATCH_CTAG_VID */
+		printk(KERN_INFO "FP => __mlx5e_add_vlan_rule() || RULE=default");
 		rule_p = &priv->fs.vlan.active_cvlans_rule[vid];
 		MLX5_SET_TO_ONES(fte_match_param, spec->match_criteria,
 				 outer_headers.cvlan_tag);
@@ -223,6 +228,7 @@ static int __mlx5e_add_vlan_rule(struct mlx5e_priv *priv,
 		err = PTR_ERR(*rule_p);
 		*rule_p = NULL;
 		netdev_err(priv->netdev, "%s: add rule failed\n", __func__);
+		printk(KERN_INFO "FP => __mlx5e_add_vlan_rule() || RULE=FAILED");
 	}
 
 	return err;
@@ -360,10 +366,17 @@ int mlx5e_vlan_rx_add_vid(struct net_device *dev, __be16 proto, u16 vid)
 {
 	struct mlx5e_priv *priv = netdev_priv(dev);
 
+
 	if (be16_to_cpu(proto) == ETH_P_8021Q)
+	{
+		printk(KERN_INFO "FP => mlx5e_vlan_rx_add_vid() || VID=%d, PROTO=ETH_P_8021Q", vid);
 		return mlx5e_vlan_rx_add_cvid(priv, vid);
+	}
 	else if (be16_to_cpu(proto) == ETH_P_8021AD)
+	{
+		printk(KERN_INFO "FP => mlx5e_vlan_rx_add_vid() || VID=%d, PROTO=ETH_P_8021Q", vid);
 		return mlx5e_vlan_rx_add_svid(priv, vid);
+	}
 
 	return -EOPNOTSUPP;
 }
