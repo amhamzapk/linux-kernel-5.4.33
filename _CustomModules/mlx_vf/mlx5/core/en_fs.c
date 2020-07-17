@@ -402,14 +402,19 @@ int mlx5e_vlan_rx_kill_vid(struct net_device *dev, __be16 proto, u16 vid)
 {
 	struct mlx5e_priv *priv = netdev_priv(dev);
 
+	printk(KERN_INFO "FP => mlx5e_vlan_rx_kill_vid() --start");
 	if (be16_to_cpu(proto) == ETH_P_8021Q) {
 		clear_bit(vid, priv->fs.vlan.active_cvlans);
+		printk(KERN_INFO "FP => mlx5e_vlan_rx_kill_vid() || VID=%d, PROTO=ETH_P_8021Q", vid);
 		mlx5e_del_vlan_rule(priv, MLX5E_VLAN_RULE_TYPE_MATCH_CTAG_VID, vid);
 	} else if (be16_to_cpu(proto) == ETH_P_8021AD) {
+		printk(KERN_INFO "FP => mlx5e_vlan_rx_kill_vid() || VID=%d, PROTO=ETH_P_8021Q", vid);
 		clear_bit(vid, priv->fs.vlan.active_svlans);
 		mlx5e_del_vlan_rule(priv, MLX5E_VLAN_RULE_TYPE_MATCH_STAG_VID, vid);
 		netdev_update_features(dev);
 	}
+
+	printk(KERN_INFO "FP => mlx5e_vlan_rx_kill_vid() --end");
 
 	return 0;
 }
