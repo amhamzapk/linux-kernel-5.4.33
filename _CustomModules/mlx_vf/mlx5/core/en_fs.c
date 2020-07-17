@@ -175,6 +175,7 @@ static int __mlx5e_add_vlan_rule(struct mlx5e_priv *priv,
 
 	switch (rule_type) {
 	case MLX5E_VLAN_RULE_TYPE_UNTAGGED:
+		printk(KERN_INFO "FP => __mlx5e_add_vlan_rule() || RULE=MLX5E_VLAN_RULE_TYPE_UNTAGGED");
 		/* cvlan_tag enabled in match criteria and
 		 * disabled in match value means both S & C tags
 		 * don't exist (untagged of both)
@@ -184,18 +185,21 @@ static int __mlx5e_add_vlan_rule(struct mlx5e_priv *priv,
 				 outer_headers.cvlan_tag);
 		break;
 	case MLX5E_VLAN_RULE_TYPE_ANY_CTAG_VID:
+		printk(KERN_INFO "FP => __mlx5e_add_vlan_rule() || RULE=MLX5E_VLAN_RULE_TYPE_ANY_CTAG_VID");
 		rule_p = &priv->fs.vlan.any_cvlan_rule;
 		MLX5_SET_TO_ONES(fte_match_param, spec->match_criteria,
 				 outer_headers.cvlan_tag);
 		MLX5_SET(fte_match_param, spec->match_value, outer_headers.cvlan_tag, 1);
 		break;
 	case MLX5E_VLAN_RULE_TYPE_ANY_STAG_VID:
+		printk(KERN_INFO "FP => __mlx5e_add_vlan_rule() || RULE=MLX5E_VLAN_RULE_TYPE_ANY_STAG_VID");
 		rule_p = &priv->fs.vlan.any_svlan_rule;
 		MLX5_SET_TO_ONES(fte_match_param, spec->match_criteria,
 				 outer_headers.svlan_tag);
 		MLX5_SET(fte_match_param, spec->match_value, outer_headers.svlan_tag, 1);
 		break;
 	case MLX5E_VLAN_RULE_TYPE_MATCH_STAG_VID:
+		printk(KERN_INFO "FP => __mlx5e_add_vlan_rule() || RULE=MLX5E_VLAN_RULE_TYPE_MATCH_STAG_VID");
 		rule_p = &priv->fs.vlan.active_svlans_rule[vid];
 		MLX5_SET_TO_ONES(fte_match_param, spec->match_criteria,
 				 outer_headers.svlan_tag);
@@ -207,6 +211,7 @@ static int __mlx5e_add_vlan_rule(struct mlx5e_priv *priv,
 		break;
 	default: /* MLX5E_VLAN_RULE_TYPE_MATCH_CTAG_VID */
 		rule_p = &priv->fs.vlan.active_cvlans_rule[vid];
+		printk(KERN_INFO "FP => __mlx5e_add_vlan_rule() || RULE=default");
 		MLX5_SET_TO_ONES(fte_match_param, spec->match_criteria,
 				 outer_headers.cvlan_tag);
 		MLX5_SET(fte_match_param, spec->match_value, outer_headers.cvlan_tag, 1);
@@ -220,6 +225,7 @@ static int __mlx5e_add_vlan_rule(struct mlx5e_priv *priv,
 	*rule_p = mlx5_add_flow_rules(ft, spec, &flow_act, &dest, 1);
 
 	if (IS_ERR(*rule_p)) {
+		printk(KERN_INFO "FP => __mlx5e_add_vlan_rule() || RULE=error");
 		err = PTR_ERR(*rule_p);
 		*rule_p = NULL;
 		netdev_err(priv->netdev, "%s: add rule failed\n", __func__);
@@ -238,10 +244,13 @@ static int mlx5e_add_vlan_rule(struct mlx5e_priv *priv,
 	if (!spec)
 		return -ENOMEM;
 
+	printk(KERN_INFO "FP => mlx5e_add_vlan_rule() --start");
 	if (rule_type == MLX5E_VLAN_RULE_TYPE_MATCH_CTAG_VID)
 		mlx5e_vport_context_update_vlans(priv);
 
 	err = __mlx5e_add_vlan_rule(priv, rule_type, vid, spec);
+
+	printk(KERN_INFO "FP => mlx5e_add_vlan_rule() --end");
 
 	kvfree(spec);
 
@@ -253,41 +262,41 @@ static void mlx5e_del_vlan_rule(struct mlx5e_priv *priv,
 {
 	switch (rule_type) {
 	case MLX5E_VLAN_RULE_TYPE_UNTAGGED:
-		printk(KERN_INFO "FP => __mlx5e_add_vlan_rule() || RULE=MLX5E_VLAN_RULE_TYPE_UNTAGGED");
+		printk(KERN_INFO "FP => mlx5e_del_vlan_rule() || RULE=MLX5E_VLAN_RULE_TYPE_UNTAGGED");
 		if (priv->fs.vlan.untagged_rule) {
-			printk(KERN_INFO "FP => __mlx5e_add_vlan_rule() || RULE=MLX5E_VLAN_RULE_TYPE_UNTAGGED --in loop");
+			printk(KERN_INFO "FP => mlx5e_del_vlan_rule() || RULE=MLX5E_VLAN_RULE_TYPE_UNTAGGED --in loop");
 			mlx5_del_flow_rules(priv->fs.vlan.untagged_rule);
 			priv->fs.vlan.untagged_rule = NULL;
 		}
 		break;
 	case MLX5E_VLAN_RULE_TYPE_ANY_CTAG_VID:
-		printk(KERN_INFO "FP => __mlx5e_add_vlan_rule() || RULE=MLX5E_VLAN_RULE_TYPE_ANY_CTAG_VID");
+		printk(KERN_INFO "FP => mlx5e_del_vlan_rule() || RULE=MLX5E_VLAN_RULE_TYPE_ANY_CTAG_VID");
 		if (priv->fs.vlan.any_cvlan_rule) {
-			printk(KERN_INFO "FP => __mlx5e_add_vlan_rule() || RULE=MLX5E_VLAN_RULE_TYPE_ANY_CTAG_VID --in loop");
+			printk(KERN_INFO "FP => mlx5e_del_vlan_rule() || RULE=MLX5E_VLAN_RULE_TYPE_ANY_CTAG_VID --in loop");
 			mlx5_del_flow_rules(priv->fs.vlan.any_cvlan_rule);
 			priv->fs.vlan.any_cvlan_rule = NULL;
 		}
 		break;
 	case MLX5E_VLAN_RULE_TYPE_ANY_STAG_VID:
-		printk(KERN_INFO "FP => __mlx5e_add_vlan_rule() || RULE=MLX5E_VLAN_RULE_TYPE_ANY_STAG_VID");
+		printk(KERN_INFO "FP => mlx5e_del_vlan_rule() || RULE=MLX5E_VLAN_RULE_TYPE_ANY_STAG_VID");
 		if (priv->fs.vlan.any_svlan_rule) {
-			printk(KERN_INFO "FP => __mlx5e_add_vlan_rule() || RULE=MLX5E_VLAN_RULE_TYPE_ANY_STAG_VID --in loop");
+			printk(KERN_INFO "FP => mlx5e_del_vlan_rule() || RULE=MLX5E_VLAN_RULE_TYPE_ANY_STAG_VID --in loop");
 			mlx5_del_flow_rules(priv->fs.vlan.any_svlan_rule);
 			priv->fs.vlan.any_svlan_rule = NULL;
 		}
 		break;
 	case MLX5E_VLAN_RULE_TYPE_MATCH_STAG_VID:
-		printk(KERN_INFO "FP => __mlx5e_add_vlan_rule() || RULE=MLX5E_VLAN_RULE_TYPE_MATCH_STAG_VID");
+		printk(KERN_INFO "FP => mlx5e_del_vlan_rule() || RULE=MLX5E_VLAN_RULE_TYPE_MATCH_STAG_VID");
 		if (priv->fs.vlan.active_svlans_rule[vid]) {
-			printk(KERN_INFO "FP => __mlx5e_add_vlan_rule() || RULE=MLX5E_VLAN_RULE_TYPE_MATCH_STAG_VID --in loop");
+			printk(KERN_INFO "FP => mlx5e_del_vlan_rule() || RULE=MLX5E_VLAN_RULE_TYPE_MATCH_STAG_VID --in loop");
 			mlx5_del_flow_rules(priv->fs.vlan.active_svlans_rule[vid]);
 			priv->fs.vlan.active_svlans_rule[vid] = NULL;
 		}
 		break;
 	case MLX5E_VLAN_RULE_TYPE_MATCH_CTAG_VID:
-		printk(KERN_INFO "FP => __mlx5e_add_vlan_rule() || RULE=MLX5E_VLAN_RULE_TYPE_MATCH_CTAG_VID");
+		printk(KERN_INFO "FP => mlx5e_del_vlan_rule() || RULE=MLX5E_VLAN_RULE_TYPE_MATCH_CTAG_VID");
 		if (priv->fs.vlan.active_cvlans_rule[vid]) {
-			printk(KERN_INFO "FP => __mlx5e_add_vlan_rule() || RULE=MLX5E_VLAN_RULE_TYPE_MATCH_CTAG_VID --in loop");
+			printk(KERN_INFO "FP => mlx5e_del_vlan_rule() || RULE=MLX5E_VLAN_RULE_TYPE_MATCH_CTAG_VID --in loop");
 			mlx5_del_flow_rules(priv->fs.vlan.active_cvlans_rule[vid]);
 			priv->fs.vlan.active_cvlans_rule[vid] = NULL;
 		}
@@ -377,7 +386,7 @@ int mlx5e_vlan_rx_add_vid(struct net_device *dev, __be16 proto, u16 vid)
 	}
 	else if (be16_to_cpu(proto) == ETH_P_8021AD)
 	{
-		printk(KERN_INFO "FP => mlx5e_vlan_rx_add_vid() || VID=%d, PROTO=ETH_P_8021Q", vid);
+		printk(KERN_INFO "FP => mlx5e_vlan_rx_add_vid() || VID=%d, PROTO=ETH_P_8021AD", vid);
 		return mlx5e_vlan_rx_add_svid(priv, vid);
 	}
 
