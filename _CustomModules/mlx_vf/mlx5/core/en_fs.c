@@ -253,31 +253,41 @@ static void mlx5e_del_vlan_rule(struct mlx5e_priv *priv,
 {
 	switch (rule_type) {
 	case MLX5E_VLAN_RULE_TYPE_UNTAGGED:
+		printk(KERN_INFO "FP => __mlx5e_add_vlan_rule() || RULE=MLX5E_VLAN_RULE_TYPE_UNTAGGED");
 		if (priv->fs.vlan.untagged_rule) {
+			printk(KERN_INFO "FP => __mlx5e_add_vlan_rule() || RULE=MLX5E_VLAN_RULE_TYPE_UNTAGGED --in loop");
 			mlx5_del_flow_rules(priv->fs.vlan.untagged_rule);
 			priv->fs.vlan.untagged_rule = NULL;
 		}
 		break;
 	case MLX5E_VLAN_RULE_TYPE_ANY_CTAG_VID:
+		printk(KERN_INFO "FP => __mlx5e_add_vlan_rule() || RULE=MLX5E_VLAN_RULE_TYPE_ANY_CTAG_VID");
 		if (priv->fs.vlan.any_cvlan_rule) {
+			printk(KERN_INFO "FP => __mlx5e_add_vlan_rule() || RULE=MLX5E_VLAN_RULE_TYPE_ANY_CTAG_VID --in loop");
 			mlx5_del_flow_rules(priv->fs.vlan.any_cvlan_rule);
 			priv->fs.vlan.any_cvlan_rule = NULL;
 		}
 		break;
 	case MLX5E_VLAN_RULE_TYPE_ANY_STAG_VID:
+		printk(KERN_INFO "FP => __mlx5e_add_vlan_rule() || RULE=MLX5E_VLAN_RULE_TYPE_ANY_STAG_VID");
 		if (priv->fs.vlan.any_svlan_rule) {
+			printk(KERN_INFO "FP => __mlx5e_add_vlan_rule() || RULE=MLX5E_VLAN_RULE_TYPE_ANY_STAG_VID --in loop");
 			mlx5_del_flow_rules(priv->fs.vlan.any_svlan_rule);
 			priv->fs.vlan.any_svlan_rule = NULL;
 		}
 		break;
 	case MLX5E_VLAN_RULE_TYPE_MATCH_STAG_VID:
+		printk(KERN_INFO "FP => __mlx5e_add_vlan_rule() || RULE=MLX5E_VLAN_RULE_TYPE_MATCH_STAG_VID");
 		if (priv->fs.vlan.active_svlans_rule[vid]) {
+			printk(KERN_INFO "FP => __mlx5e_add_vlan_rule() || RULE=MLX5E_VLAN_RULE_TYPE_MATCH_STAG_VID --in loop");
 			mlx5_del_flow_rules(priv->fs.vlan.active_svlans_rule[vid]);
 			priv->fs.vlan.active_svlans_rule[vid] = NULL;
 		}
 		break;
 	case MLX5E_VLAN_RULE_TYPE_MATCH_CTAG_VID:
+		printk(KERN_INFO "FP => __mlx5e_add_vlan_rule() || RULE=MLX5E_VLAN_RULE_TYPE_MATCH_CTAG_VID");
 		if (priv->fs.vlan.active_cvlans_rule[vid]) {
+			printk(KERN_INFO "FP => __mlx5e_add_vlan_rule() || RULE=MLX5E_VLAN_RULE_TYPE_MATCH_CTAG_VID --in loop");
 			mlx5_del_flow_rules(priv->fs.vlan.active_cvlans_rule[vid]);
 			priv->fs.vlan.active_cvlans_rule[vid] = NULL;
 		}
@@ -361,9 +371,15 @@ int mlx5e_vlan_rx_add_vid(struct net_device *dev, __be16 proto, u16 vid)
 	struct mlx5e_priv *priv = netdev_priv(dev);
 
 	if (be16_to_cpu(proto) == ETH_P_8021Q)
+	{
+		printk(KERN_INFO "FP => mlx5e_vlan_rx_add_vid() || VID=%d, PROTO=ETH_P_8021Q", vid);
 		return mlx5e_vlan_rx_add_cvid(priv, vid);
+	}
 	else if (be16_to_cpu(proto) == ETH_P_8021AD)
+	{
+		printk(KERN_INFO "FP => mlx5e_vlan_rx_add_vid() || VID=%d, PROTO=ETH_P_8021Q", vid);
 		return mlx5e_vlan_rx_add_svid(priv, vid);
+	}
 
 	return -EOPNOTSUPP;
 }
