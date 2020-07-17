@@ -394,7 +394,6 @@ int mlx5e_vlan_rx_add_vid(struct net_device *dev, __be16 proto, u16 vid)
 	}
 
 	printk(KERN_INFO "FP => mlx5e_vlan_rx_add_vid() --end");
-	printk(KERN_INFO "FP => mlx5e_vlan_rx_add_vid() --end");
 
 	return ret_status;
 }
