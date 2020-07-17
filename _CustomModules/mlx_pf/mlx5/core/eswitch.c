@@ -835,9 +835,6 @@ static void esw_vport_change_handler(struct work_struct *work)
 		container_of(work, struct mlx5_vport, vport_change_handler);
 	struct mlx5_eswitch *esw = vport->dev->priv.eswitch;
 
-
-	printk(KERN_INFO "HAMZA -> esw_vport_change_handler()");
-
 	mutex_lock(&esw->state_lock);
 	esw_vport_change_handle_locked(vport);
 	mutex_unlock(&esw->state_lock);

@@ -594,33 +594,27 @@ void mlx5e_set_rx_mode_work(struct work_struct *work)
 {
 	struct mlx5e_priv *priv = container_of(work, struct mlx5e_priv,
 					       set_rx_mode_work);
-	printk ("# mlx5e_set_rx_mode called\n");
 	struct mlx5e_l2_table *ea = &priv->fs.l2;
 	struct net_device *ndev = priv->netdev;
 
 	bool rx_mode_enable   = !test_bit(MLX5E_STATE_DESTROYING, &priv->state);
 	bool promisc_enabled   = rx_mode_enable && (ndev->flags & IFF_PROMISC);
-	printk ("bool promisc_enabled = %d\n", promisc_enabled);
 	bool allmulti_enabled  = rx_mode_enable && (ndev->flags & IFF_ALLMULTI);
 	bool broadcast_enabled = rx_mode_enable;
 
 	bool enable_promisc    = !ea->promisc_enabled   &&  promisc_enabled;
-	printk ("bool enable_promisc = %d\n", enable_promisc);
 	bool disable_promisc   =  ea->promisc_enabled   && !promisc_enabled;
-	printk ("bool disable_promisc = %d\n", disable_promisc);
 	bool enable_allmulti   = !ea->allmulti_enabled  &&  allmulti_enabled;
 	bool disable_allmulti  =  ea->allmulti_enabled  && !allmulti_enabled;
 	bool enable_broadcast  = !ea->broadcast_enabled &&  broadcast_enabled;
 	bool disable_broadcast =  ea->broadcast_enabled && !broadcast_enabled;
 
 	if (enable_promisc) {
-		printk ("# if (enable_promisc)\n");
 		if (!priv->channels.params.vlan_strip_disable)
 			netdev_warn_once(ndev,
 					 "S-tagged traffic will be dropped while C-tag vlan stripping is enabled\n");
 		mlx5e_add_l2_flow_rule(priv, &ea->promisc, MLX5E_PROMISC);
 		if (!priv->fs.vlan.cvlan_filter_disabled){
-			printk ("if (!priv->fs.vlan.cvlan_filter_disabled)\n");
 			mlx5e_add_any_vid_rules(priv);
 		}
 	}
@@ -636,9 +630,7 @@ void mlx5e_set_rx_mode_work(struct work_struct *work)
 	if (disable_allmulti)
 		mlx5e_del_l2_flow_rule(priv, &ea->allmulti);
 	if (disable_promisc) {
-		printk ("if (disable_promisc)\n");
 		if (!priv->fs.vlan.cvlan_filter_disabled){
-			printk ("if (!priv->fs.vlan.cvlan_filter_disabled)\n");
 			mlx5e_del_any_vid_rules(priv);
 		}
 		mlx5e_del_l2_flow_rule(priv, &ea->promisc);
@@ -649,7 +641,6 @@ void mlx5e_set_rx_mode_work(struct work_struct *work)
 	ea->broadcast_enabled = broadcast_enabled;
 
 	mlx5e_vport_context_update(priv);
-	printk ("# End mlx5e_set_rx_mode\n");
 }
 
 static void mlx5e_destroy_groups(struct mlx5e_flow_table *ft)
