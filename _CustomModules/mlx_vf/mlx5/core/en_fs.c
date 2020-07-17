@@ -380,7 +380,7 @@ int mlx5e_vlan_rx_add_vid(struct net_device *dev, __be16 proto, u16 vid)
 	struct mlx5e_priv *priv = netdev_priv(dev);
 	int ret_status = -EOPNOTSUPP;
 
-	printk(KERN_INFO "FP => mlx5e_vlan_rx_add_vid() --start", vid);
+	printk(KERN_INFO "FP => mlx5e_vlan_rx_add_vid() --start");
 
 	if (be16_to_cpu(proto) == ETH_P_8021Q)
 	{
@@ -393,8 +393,8 @@ int mlx5e_vlan_rx_add_vid(struct net_device *dev, __be16 proto, u16 vid)
 		ret_status = mlx5e_vlan_rx_add_svid(priv, vid);
 	}
 
-	printk(KERN_INFO "FP => mlx5e_vlan_rx_add_vid() --end", vid);
-	printk(KERN_INFO "FP => mlx5e_vlan_rx_add_vid() --end", vid);
+	printk(KERN_INFO "FP => mlx5e_vlan_rx_add_vid() --end");
+	printk(KERN_INFO "FP => mlx5e_vlan_rx_add_vid() --end");
 
 	return ret_status;
 }
