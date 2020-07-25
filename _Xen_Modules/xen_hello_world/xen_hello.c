@@ -3,6 +3,11 @@
 #include <linux/kernel.h>           // Contains types, macros, functions for the kernel
 #include <linux/printk.h>
 
+MODULE_LICENSE("GPL");              ///< The license type -- this affects runtime behavior
+MODULE_AUTHOR("Ameer Hamza");      ///< The author -- visible when you use modinfo
+MODULE_DESCRIPTION("Xen Hello Module");  ///< The description -- see modinfo
+MODULE_VERSION("0.1");              ///< The version of the module
+
 static int __init xen_hello_init(void){
    printk(KERN_INFO "Hello XEN!\n");
    return 0;
