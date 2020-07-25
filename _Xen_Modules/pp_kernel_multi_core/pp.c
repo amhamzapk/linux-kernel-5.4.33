@@ -57,8 +57,8 @@ static int prime_thread(void *unused) {
         	__asm__("mov $0x0, %eax\n\t");
         	__asm__("cpuid\n\t");
         	__asm__("mov %%eax, %0\n\t":"=r" (cpuid));
+        	printk (KERN_ALERT "%d\n", cpuid);
     	}
-    	printk (KERN_ALERT "%d\n", cpuid);
         /* Keep track of RDTSC */
         if (!clk_cycles_start)
             clk_cycles_start = read_rdtsc();
