@@ -49,15 +49,15 @@ static int prime_thread(void *unused) {
 
     /* Run until module is not unloaded */
     while (!kthread_should_stop()) {
-    	int cpuid = 0;
+//    	int cpuid = 0;
 
     	if (++temp_cnt > 1000000)
     	{
     		temp_cnt = 0;
-        	__asm__("mov $0x0, %eax\n\t");
-        	__asm__("cpuid\n\t");
-        	__asm__("mov %%eax, %0\n\t":"=r" (cpuid));
-        	printk (KERN_ALERT "%d\n", cpuid);
+//        	__asm__("mov $0x0, %eax\n\t");
+//        	__asm__("cpuid\n\t");
+//        	__asm__("mov %%eax, %0\n\t":"=r" (cpuid));
+        	printk (KERN_ALERT "%d\n", get_cpu());
     	}
         /* Keep track of RDTSC */
         if (!clk_cycles_start)
