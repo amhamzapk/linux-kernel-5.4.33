@@ -81,8 +81,8 @@ static int prime_thread(void *unused) {
                of time, for the sake of load balancing. Otherwise
                we get system gets stuck if a core continously
                spend its cycle in a while loop */
-//            schedule_timeout (0);
-        	msleep(1);
+            schedule_timeout (0);
+//        	msleep(1);
         }
     }
 
@@ -92,7 +92,7 @@ static int __init pp_init(void){
    printk(KERN_INFO "Init PP!\n");
    /* Bind C-Model worker thread to the last core */
    thread_prime = kthread_create(prime_thread, NULL, "kthread_c_model_worker");
-   kthread_bind(thread_prime, 0);
+//   kthread_bind(thread_prime, 0);
    wake_up_process(thread_prime);
    return 0;
 }
