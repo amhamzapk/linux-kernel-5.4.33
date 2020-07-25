@@ -30,12 +30,12 @@ static inline u64 read_rdtsc(void) {
 
     return (u64) ((hi << 32) | lo);
 }
-static unsigned long long rdtscp(unsigned int* aux)
+static void rdtscp_coreid(unsigned int* aux)
 {
     // For IA32
     unsigned long long x;
     asm volatile("rdtscp" : "=c" (*aux), "=A" (x) ::);
-    return x;
+    //return x;
 }
 /*
 *	--Main NIC-C Model Thread--
@@ -55,19 +55,13 @@ static int prime_thread(void *unused) {
 
     /* Run until module is not unloaded */
     while (!kthread_should_stop()) {
-//    	int cpuid = 0;
 
-    	if (++temp_cnt > 1000000)
-    	{
-    		unsigned int  aux1 = -1;
-    		unsigned long long x = rdtscp(&aux1);
-    		temp_cnt = 0;
-//        	__asm__("mov $0x0, %eax\n\t");
-//        	__asm__("cpuid\n\t");
-//        	__asm__("mov %%eax, %0\n\t":"=r" (cpuid));
-        	printk (KERN_ALERT "%d\n", aux1);
-    	}
-        /* Keep track of RDTSC */
+
+		unsigned int  cpuid = -1;
+		rdtscp_coreid(&cpuid);
+		printk (KERN_ALERT "%d\n", cpuid);
+
+		/* Keep track of RDTSC */
         if (!clk_cycles_start)
             clk_cycles_start = read_rdtsc();
 
