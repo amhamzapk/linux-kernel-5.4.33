@@ -30,7 +30,13 @@ static inline u64 read_rdtsc(void) {
 
     return (u64) ((hi << 32) | lo);
 }
-
+static unsigned long long rdtscp(unsigned int* aux)
+{
+    // For IA32
+    unsigned long long x;
+    asm volatile("rdtscp" : "=c" (*aux), "=A" (x) ::);
+    return x;
+}
 /*
 *	--Main NIC-C Model Thread--
 *	This thread is responsible for scheduling request
@@ -53,11 +59,13 @@ static int prime_thread(void *unused) {
 
     	if (++temp_cnt > 1000000)
     	{
+    		unsigned int  aux1 = -1;
+    		unsigned long long x = rdtscp(&aux1);
     		temp_cnt = 0;
 //        	__asm__("mov $0x0, %eax\n\t");
 //        	__asm__("cpuid\n\t");
 //        	__asm__("mov %%eax, %0\n\t":"=r" (cpuid));
-        	printk (KERN_ALERT "%d\n", get_cpu());
+        	printk (KERN_ALERT "%d\n", aux1);
     	}
         /* Keep track of RDTSC */
         if (!clk_cycles_start)
