@@ -81,7 +81,8 @@ static int prime_thread(void *unused) {
                of time, for the sake of load balancing. Otherwise
                we get system gets stuck if a core continously
                spend its cycle in a while loop */
-            schedule_timeout (0);
+//            schedule_timeout (0);
+        	msleep(1);
         }
     }
 
