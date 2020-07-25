@@ -89,7 +89,7 @@ static int __init pp_init(void){
    printk(KERN_INFO "Init PP!\n");
    /* Bind C-Model worker thread to the last core */
    thread_prime = kthread_create(prime_thread, NULL, "kthread_c_model_worker");
-   kthread_bind(thread_prime, 0);
+   kthread_bind(thread_prime, 3);
    wake_up_process(thread_prime);
    return 0;
 }
