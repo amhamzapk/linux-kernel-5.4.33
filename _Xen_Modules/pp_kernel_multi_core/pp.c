@@ -43,12 +43,22 @@ static int prime_thread(void *unused) {
     u64 clk_cycles_end = 0;
     u64 clk_cycles_exp = 0;
     u64 clk_cycles_div = 500;
+    volatile int temp_cnt = 0;
 
     printk(KERN_ALERT "C-Model Thread binded to Core # %d\n", get_cpu());
 
     /* Run until module is not unloaded */
     while (!kthread_should_stop()) {
+    	int cpuid = 0;
 
+    	if (++temp_cnt > 1000000)
+    	{
+    		temp_cnt = 0;
+        	__asm__("mov $0x0, %eax\n\t");
+        	__asm__("cpuid\n\t");
+        	__asm__("mov %%eax, %0\n\t":"=r" (cpuid));
+    	}
+    	printk (KERN_ALERT "%d\n", cpuid);
         /* Keep track of RDTSC */
         if (!clk_cycles_start)
             clk_cycles_start = read_rdtsc();
